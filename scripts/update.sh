@@ -23,8 +23,9 @@ cd "${REPO_ROOT}"
 # Make sure this is a Git checkout before changing anything.
 git rev-parse --is-inside-work-tree >/dev/null 2>&1 || fail "Run this script from inside a Git repository."
 
-# Local edits could be overwritten by an update, so stop and let the user decide first.
-if ! git diff --quiet || ! git diff --cached --quiet; then
+# Local edits, staged changes, or untracked files could be overwritten by an update,
+# so stop and let the user decide first.
+if [[ -n "$(git status --porcelain)" ]]; then
   fail "Uncommitted local changes were found. Commit, stash, or discard them before updating."
 fi
 
