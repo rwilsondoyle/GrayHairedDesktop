@@ -35,8 +35,10 @@ def run(argv: list[str] | None = None) -> int:
     settings = create_settings(metadata)
     window = MainWindow(metadata, settings, logger)
     window.show()
-    logger.info("%s %s started", metadata.name, metadata.version)
-    return app.exec()
+    logger.info("Application started")
+    exit_code = app.exec()
+    logger.info("Application closed")
+    return exit_code
 
 
 def main() -> None:

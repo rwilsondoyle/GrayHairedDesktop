@@ -21,16 +21,15 @@ class BrowserView(QWebEngineView):
     def load_home(self) -> None:
         """Load the configured GrayHaired Desktop URL."""
 
-        self._logger.info("Loading %s", self._url.toString())
         self.load(self._url)
 
     @Slot()
     def _on_load_started(self) -> None:
-        self._logger.debug("Page load started")
+        self._logger.info("Page loading: %s", self.url().toString() or self._url.toString())
 
     @Slot(bool)
     def _on_load_finished(self, ok: bool) -> None:
         if ok:
-            self._logger.info("Page loaded successfully")
+            self._logger.info("Page loaded")
         else:
-            self._logger.error("Page failed to load: %s", self._url.toString())
+            self._logger.error("Page failed: %s", self._url.toString())
