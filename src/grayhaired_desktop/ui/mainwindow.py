@@ -6,10 +6,12 @@ import logging
 
 from PySide6.QtCore import QSettings, QSize
 from PySide6.QtGui import QAction
-from PySide6.QtWidgets import QMainWindow, QMessageBox, QStatusBar
+from PySide6.QtWidgets import QMainWindow, QMessageBox, QStatusBar, QToolBar
 
 from grayhaired_desktop.browser import BrowserView
 from grayhaired_desktop.config import AppMetadata
+from grayhaired_desktop.settings import load_preferences, save_preferences
+from grayhaired_desktop.ui.preferences import PreferencesDialog
 
 
 class MainWindow(QMainWindow):
@@ -20,9 +22,10 @@ class MainWindow(QMainWindow):
         self._metadata = metadata
         self._settings = settings
         self._logger = logger.getChild("mainwindow")
-        self._browser = BrowserView(metadata.desktop_url, logger, self)
+        self._preferences = load_preferences(settings)
+        self._browser = BrowserView(self._preferences.home_page_url, logger, self)
 
-        self.setWindowTitle("GrayHaired Desktop Alpha 0.2")
+        self.setWindowTitle("GrayDesk Alpha 0.3")
         self.setMinimumSize(QSize(1024, 720))
         self.setCentralWidget(self._browser)
         self.setStatusBar(QStatusBar(self))
@@ -30,6 +33,7 @@ class MainWindow(QMainWindow):
 
         self._create_actions()
         self._create_menus()
+        self._create_toolbar()
         self._connect_browser_status()
         self._restore_window_state()
         self._browser.load_home()
@@ -47,9 +51,18 @@ class MainWindow(QMainWindow):
         self._exit_action.setStatusTip("Close GrayHaired Desktop")
         self._exit_action.triggered.connect(self.close)
 
+        self._home_action = QAction("Home", self)
+        self._home_action.setStatusTip("Load the configured home page")
+        self._home_action.triggered.connect(self._browser.load_home)
+
         self._reload_action = QAction("Reload", self)
         self._reload_action.setStatusTip("Reload the current page")
         self._reload_action.triggered.connect(self._browser.reload)
+
+        self._preferences_action = QAction("Preferences...", self)
+        self._preferences_action.setIconText("Preferences")
+        self._preferences_action.setStatusTip("Edit GrayHaired Desktop preferences")
+        self._preferences_action.triggered.connect(self._show_preferences_dialog)
 
         self._about_action = QAction("About", self)
         self._about_action.setStatusTip("About GrayHaired Desktop")
@@ -62,27 +75,53 @@ class MainWindow(QMainWindow):
         file_menu.addAction(self._exit_action)
 
         view_menu = menu_bar.addMenu("View")
+        view_menu.addAction(self._home_action)
         view_menu.addAction(self._reload_action)
+
+        settings_menu = menu_bar.addMenu("Settings")
+        settings_menu.addAction(self._preferences_action)
 
         help_menu = menu_bar.addMenu("Help")
         help_menu.addAction(self._about_action)
 
+    def _create_toolbar(self) -> None:
+        toolbar = QToolBar("Main Toolbar", self)
+        toolbar.setMovable(False)
+        toolbar.addAction(self._home_action)
+        toolbar.addAction(self._reload_action)
+        toolbar.addAction(self._preferences_action)
+        self.addToolBar(toolbar)
+
     def _connect_browser_status(self) -> None:
-        self._browser.loadStarted.connect(lambda: self.statusBar().showMessage("Page loading"))
+        self._browser.loadStarted.connect(lambda: self.statusBar().showMessage("Loading..."))
         self._browser.loadFinished.connect(self._update_load_status)
 
     def _update_load_status(self, ok: bool) -> None:
         if ok:
-            self.statusBar().showMessage("Page loaded")
+            self.statusBar().showMessage("Loaded")
         else:
-            self.statusBar().showMessage("Page failed")
+            self.statusBar().showMessage("Failed")
+
+    def _show_preferences_dialog(self) -> None:
+        dialog = PreferencesDialog(self._preferences, self)
+        if dialog.exec() != PreferencesDialog.DialogCode.Accepted:
+            return
+
+        updated_preferences = dialog.preferences
+        if updated_preferences == self._preferences:
+            return
+
+        self._preferences = updated_preferences
+        save_preferences(self._settings, self._preferences)
+        self._browser.set_home_url(self._preferences.home_page_url)
+        self._logger.info("Preferences changed")
 
     def _show_about_dialog(self) -> None:
         QMessageBox.about(
             self,
             "About GrayHaired Desktop",
             (
-                "GrayHaired Desktop Alpha 0.2\n\n"
+                "GrayDesk Alpha 0.3\n\n"
                 "A native PySide6 desktop shell for the GrayHaired Tech web experience."
             ),
         )

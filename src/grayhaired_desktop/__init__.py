@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 __app_name__ = "GrayHaired Desktop"
-__version__ = "0.2.0-alpha.0"
+__version__ = "0.3.0-alpha.0"
 __organization__ = "GrayHaired Tech"
 __domain__ = "grayhaired.tech"
 
