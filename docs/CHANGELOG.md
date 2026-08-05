@@ -40,7 +40,7 @@ Status: complete.
 ### Added
 
 - Native Qt main window.
-- Embedded QtWebEngine browser surface for the GrayHaired Tech desktop web experience.
+- Embedded a QtWebEngine browser surface for the configured desktop web experience.
 
 ## Alpha 0.1 — Project skeleton
 

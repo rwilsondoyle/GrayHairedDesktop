@@ -1,10 +1,14 @@
 # Roadmap
 
-GrayHaired Desktop is moving toward a dependable, easy-to-install desktop companion for GrayHaired Tech users on Zorin OS. The roadmap favors small, verifiable alpha milestones that improve trust, installation confidence, and daily usability without overcomplicating the native shell.
+The desktop application is moving toward a dependable, easy-to-install desktop companion for Zorin OS users. The roadmap favors small, verifiable alpha milestones that improve trust, installation confidence, and daily usability without overcomplicating the native shell.
 
 ## Vision
 
-The project vision is to provide a comfortable desktop entry point for GrayHaired Tech: a native window, predictable controls, simple setup, persistent preferences, and a clear path for future contributors to enhance the experience safely.
+The project vision is to provide a comfortable desktop entry point: a native window, predictable controls, simple setup, persistent preferences, and a clear path for future contributors to enhance the experience safely.
+
+## Naming
+
+GrayHairedDesktop is the current repository name, but the public product name is not final before Version 1.0. Possible future names include PersonalDesktop or MyDesktop; this documentation does not select one. Use neutral wording such as "the application" or "the desktop application" where practical. Ron Doyle and GrayHaired.Tech remain appropriate author/About attribution, but they should not be treated as required long-term product branding.
 
 ## Milestones through Alpha 0.3.1
 
@@ -21,7 +25,7 @@ Status: complete.
 Status: complete.
 
 - Implemented the native Qt main window.
-- Embedded the GrayHaired Tech desktop web experience in `QWebEngineView`.
+- Embedded the configured desktop web experience in `QWebEngineView`.
 - Added basic application startup and browser loading behavior.
 
 ### Alpha 0.3 — Preferences, navigation, and persistence
@@ -52,7 +56,7 @@ Status: in progress.
 
 ## Longer-term ideas
 
-- Improve error handling and user-facing diagnostics when the hosted page cannot load.
+- Improve error handling and user-facing diagnostics when the configured web destination cannot load.
 - Add desktop integration assets, such as an icon and `.desktop` launcher, when branding is ready.
 - Explore release packaging only after the alpha setup scripts are consistently verified on target systems.
 - Evaluate accessibility and high-DPI behavior on the target Zorin hardware.

@@ -1,6 +1,10 @@
-# GrayHaired Desktop
+# GrayHairedDesktop
 
-GrayHaired Desktop Alpha 0.3 is a native Python 3.12+ desktop application for Zorin OS. It uses PySide6 and QtWebEngine to display the GrayHaired Tech desktop web experience inside a native Qt main window.
+GrayHairedDesktop is the current repository name for an Alpha 0.3 native Python 3.12+ desktop application for Zorin OS. It uses PySide6 and QtWebEngine to display a configurable web-based desktop experience inside a native Qt main window. The public product name is provisional before Version 1.0.
+
+## Naming
+
+GrayHairedDesktop is the current repository name, but the public product name is not final before Version 1.0. Possible future names include PersonalDesktop or MyDesktop; this documentation does not select one. Use neutral wording such as "the application" or "the desktop application" where practical. Ron Doyle and GrayHaired.Tech remain appropriate author/About attribution, but they should not be treated as required long-term product branding.
 
 ## Alpha 0.3 features
 
@@ -36,9 +40,9 @@ These helper scripts are intended for the user's Zorin OS computers. Run them fr
 ./scripts/setup-zorin.sh
 ```
 
-The setup script checks for Python 3.12 or newer, installs missing Zorin/Ubuntu packages, creates `.venv` when needed, installs GrayHaired Desktop, and can be safely run more than once.
+The setup script checks for Python 3.12 or newer, installs missing Zorin/Ubuntu packages, creates `.venv` when needed, installs the application, and can be safely run more than once.
 
-### Run GrayHaired Desktop
+### Run the desktop application
 
 ```bash
 ./scripts/run.sh
@@ -46,7 +50,7 @@ The setup script checks for Python 3.12 or newer, installs missing Zorin/Ubuntu 
 
 If the script says `.venv` is missing, run `./scripts/setup-zorin.sh` first.
 
-### Update GrayHaired Desktop
+### Update the desktop application
 
 ```bash
 ./scripts/update.sh

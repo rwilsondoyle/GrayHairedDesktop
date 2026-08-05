@@ -12,7 +12,7 @@ This log records project-level development milestones and verification notes. It
 ### Alpha 0.1
 
 - Added the initial package skeleton under `src/grayhaired_desktop`.
-- Established the QtWebEngine direction for rendering the GrayHaired Tech web experience inside a native desktop window.
+- Established the QtWebEngine direction for rendering a configurable web experience inside a native desktop window.
 
 ### Alpha 0.2
 

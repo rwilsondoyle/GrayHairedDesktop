@@ -1,14 +1,14 @@
 # Project Principles
 
-GrayHaired Desktop should remain clear, dependable, and approachable. These principles guide technical decisions and contributor behavior during the alpha phase.
+The desktop application should remain clear, dependable, and approachable. These principles guide technical decisions and contributor behavior during the alpha phase.
 
 ## 1. Serve the user first
 
-The app exists to make the GrayHaired Tech desktop experience easy to open and comfortable to use on Zorin OS. Native features should make that experience simpler, not distract from it.
+The application exists to make a configurable desktop web experience easy to open and comfortable to use on Zorin OS. Native features should make that experience simpler, not distract from it.
 
 ## 2. Keep the native shell focused
 
-The Python application should provide desktop responsibilities: windowing, navigation, preferences, persistence, diagnostics, and platform integration. The hosted GrayHaired Tech web experience remains the primary content surface.
+The Python application should provide desktop responsibilities: windowing, navigation, preferences, persistence, diagnostics, and platform integration. Documentation and architecture should leave room for the configured web destination and public branding to evolve before Version 1.0.
 
 ## 3. Prefer understandable changes
 
@@ -29,3 +29,7 @@ Setup and update scripts should be safe to rerun, explain failures clearly, and 
 ## 7. Separate documentation and application changes
 
 Documentation-only milestones should not change application source code. Application changes should include enough documentation updates to keep users and contributors oriented.
+
+## 8. Keep branding flexible
+
+GrayHairedDesktop is the repository name, not a final public product name. Ron Doyle and GrayHaired.Tech are appropriate author/About attribution during alpha, while product naming should remain flexible until a Version 1.0 branding decision is made.

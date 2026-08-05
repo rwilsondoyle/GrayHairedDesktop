@@ -1,6 +1,6 @@
 # Architecture
 
-GrayHaired Desktop is a small native Linux desktop shell for the GrayHaired Tech web experience. The current Alpha 0.3 codebase is intentionally simple: Python starts a Qt application, a main window owns the desktop chrome, and an embedded QtWebEngine browser loads the configured GrayHaired web URL.
+GrayHairedDesktop is the current repository name for a small native Linux desktop shell. The current Alpha 0.3 codebase is intentionally simple: Python starts a Qt application, a main window owns the desktop chrome, and an embedded QtWebEngine browser loads the configured web URL.
 
 ## Runtime stack
 
@@ -8,6 +8,10 @@ GrayHaired Desktop is a small native Linux desktop shell for the GrayHaired Tech
 - **Desktop toolkit:** PySide6, including Qt Widgets and QtWebEngine.
 - **Target environment:** Zorin OS, with compatibility expected on close Ubuntu-based desktop environments when QtWebEngine runtime packages are available.
 - **Packaging:** `pyproject.toml` exposes the `grayhaired-desktop` console script, which calls `grayhaired_desktop.app:main`.
+
+## Naming
+
+GrayHairedDesktop is the current repository name, but the public product name is not final before Version 1.0. Possible future names include PersonalDesktop or MyDesktop; this documentation does not select one. Use neutral wording such as "the application" or "the desktop application" where practical. Ron Doyle and GrayHaired.Tech remain appropriate author/About attribution, but they should not be treated as required long-term product branding.
 
 ## Application flow
 
@@ -34,7 +38,7 @@ GrayHaired Desktop is a small native Linux desktop shell for the GrayHaired Tech
 
 ## Persistence
 
-The application uses Qt `QSettings` under the GrayHaired Tech organization metadata. It currently persists:
+The application uses Qt `QSettings` under the current author/About attribution metadata. It currently persists:
 
 - `preferences/homePageUrl` for the configurable home page URL.
 - `mainwindow/geometry` for window size and placement.
@@ -42,6 +46,6 @@ The application uses Qt `QSettings` under the GrayHaired Tech organization metad
 
 ## Current boundaries
 
-- The application source code is a native shell only; the primary user experience is delivered by the hosted GrayHaired Tech web page.
+- The application source code is a native shell only; the configured web destination can evolve as branding and product direction mature.
 - There is no local database, background service, or custom network protocol layer in the desktop app.
 - The app does not currently ship automated GUI tests. Manual Zorin verification remains important for each alpha milestone.
