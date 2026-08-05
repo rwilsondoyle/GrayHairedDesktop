@@ -1,17 +1,21 @@
 # GrayHaired Desktop
 
-GrayHaired Desktop Alpha 0.2 is a native Python 3.12+ desktop application for Zorin OS. It uses PySide6 and QtWebEngine to display the GrayHaired Tech desktop web experience inside a native Qt main window.
+GrayHaired Desktop Alpha 0.3 is a native Python 3.12+ desktop application for Zorin OS. It uses PySide6 and QtWebEngine to display the GrayHaired Tech desktop web experience inside a native Qt main window.
 
-## Alpha 0.2 features
+## Alpha 0.3 features
 
-- Native `QMainWindow` shell with the title `GrayHaired Desktop Alpha 0.2`
+- Native `QMainWindow` shell with the title `GrayDesk Alpha 0.3`
 - Embedded `QWebEngineView` browser surface
-- Automatically loads `https://grayhaired.tech/desktop-c/`
+- Configurable home page URL with the default `https://grayhaired.tech/desktop-c/`
+- Persistent preferences stored with `QSettings`
+- Preferences dialog with **OK**, **Cancel**, and **Restore Defaults** controls
 - File menu with **Exit**
-- View menu with **Reload**
+- View menu with **Home** and **Reload**
+- Settings menu with **Preferences...**
 - Help menu with **About**
-- Status bar with page load state updates
-- Structured logging for application startup, page loading, page loaded, page failed, and application shutdown
+- Toolbar actions for **Home**, **Reload**, and **Preferences**
+- Status bar states for **Loading...**, **Loaded**, **Failed**, and **Ready**
+- Structured logging for application startup, application shutdown, preference changes, page loading, finished loading, and load failures
 - Modular Python package layout
 - Application metadata configured for Qt
 - Persistent window geometry via `QSettings`
@@ -59,7 +63,9 @@ src/
     browser.py
     config.py
     logger.py
+    settings.py
     ui/
       __init__.py
       mainwindow.py
+      preferences.py
 ```

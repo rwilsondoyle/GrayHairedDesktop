@@ -23,13 +23,18 @@ class BrowserView(QWebEngineView):
 
         self.load(self._url)
 
+    def set_home_url(self, url: str) -> None:
+        """Update the configured home URL."""
+
+        self._url = QUrl(url)
+
     @Slot()
     def _on_load_started(self) -> None:
-        self._logger.info("Page loading: %s", self.url().toString() or self._url.toString())
+        self._logger.info("Loading page: %s", self.url().toString() or self._url.toString())
 
     @Slot(bool)
     def _on_load_finished(self, ok: bool) -> None:
         if ok:
-            self._logger.info("Page loaded")
+            self._logger.info("Finished loading")
         else:
-            self._logger.error("Page failed: %s", self._url.toString())
+            self._logger.error("Load failed: %s", self.url().toString() or self._url.toString())
