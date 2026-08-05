@@ -40,8 +40,17 @@ import sys
 raise SystemExit(0 if sys.version_info >= (3, 12) else 1)
 PY
 
+PYTHON_VERSION="$("${PYTHON_BIN}" - <<'PY'
+import sys
+print(f"{sys.version_info.major}.{sys.version_info.minor}")
+PY
+)"
+VENV_PACKAGE="python${PYTHON_VERSION}-venv"
+
 # Install only the operating system packages that are missing.
-REQUIRED_PACKAGES=(python3-venv python3-pip libxcb-cursor0)
+# The venv package must match the selected interpreter, because python3-venv
+# does not necessarily provide venv support for every installed Python version.
+REQUIRED_PACKAGES=("${VENV_PACKAGE}" python3-pip libxcb-cursor0)
 MISSING_PACKAGES=()
 for package in "${REQUIRED_PACKAGES[@]}"; do
   if ! dpkg-query -W -f='${Status}' "${package}" 2>/dev/null | grep -q "install ok installed"; then
