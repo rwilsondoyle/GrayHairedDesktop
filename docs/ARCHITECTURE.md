@@ -16,7 +16,7 @@ GrayHairedDesktop is the current repository name, but the public product name is
 ## Application flow
 
 1. `grayhaired_desktop.app` configures logging, creates `QApplication`, applies Qt application metadata, creates `QSettings`, and shows the main window.
-2. `grayhaired_desktop.ui.mainwindow.MainWindow` builds the menu bar, toolbar, status bar, preferences workflow, and persistent window geometry.
+2. `grayhaired_desktop.ui.mainwindow.MainWindow` coordinates the browser, status bar, preferences workflow, and persistent window geometry. Focused UI modules create its shared actions, menu bar, and toolbar.
 3. `grayhaired_desktop.browser.BrowserView` wraps `QWebEngineView`, stores the configured home URL, and logs page load events.
 4. `grayhaired_desktop.settings` loads and saves user preferences through `QSettings`.
 5. `grayhaired_desktop.ui.preferences.PreferencesDialog` lets the user edit or restore the home page URL without modifying source code.
@@ -30,7 +30,10 @@ GrayHairedDesktop is the current repository name, but the public product name is
 | `config.py` | Application metadata and `QSettings` factory. |
 | `logger.py` | Central logging configuration. |
 | `settings.py` | Default preference values and persistence helpers. |
-| `ui/mainwindow.py` | Main desktop window, menu actions, toolbar, status messages, About dialog, window state persistence. |
+| `ui/actions.py` | Creates and connects the actions shared by the menu bar and toolbar. |
+| `ui/menus.py` | Populates the application menu bar from the shared actions. |
+| `ui/toolbar.py` | Builds the non-movable main toolbar from the shared actions. |
+| `ui/mainwindow.py` | Main desktop window coordination, browser and status messages, preferences and About dialogs, window state persistence. |
 | `ui/preferences.py` | Preferences dialog for the configurable home page URL. |
 | `scripts/setup-zorin.sh` | First-time Zorin/Ubuntu setup, system dependency checks, virtual environment creation, editable install. |
 | `scripts/run.sh` | Starts the installed app from the project virtual environment. |

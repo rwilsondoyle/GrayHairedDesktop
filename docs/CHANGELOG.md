@@ -2,6 +2,12 @@
 
 All notable project changes should be summarized here. This project is currently in alpha, so entries focus on practical milestones rather than formal release packaging.
 
+## Unreleased
+
+### Changed
+
+- Refactored the main-window UI code into focused action, menu, and toolbar modules without intentionally changing appearance or behavior.
+
 ## Alpha 0.3.1 — Documentation foundation
 
 Status: in progress.

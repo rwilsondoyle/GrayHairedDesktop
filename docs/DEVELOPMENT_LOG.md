@@ -33,6 +33,12 @@ This log records project-level development milestones and verification notes. It
 - Updated the README to direct users and contributors to the new documentation set.
 - No application source code was changed for this documentation milestone.
 
+### Task 009 UI refactor
+
+- Separated action creation, menu construction, and toolbar construction into focused UI modules.
+- Kept the main window responsible for browser coordination, preferences, status updates, dialogs, and persistent window state.
+- Preserved the existing user-visible wording, layout, and behavior; this milestone adds no visible features.
+
 ## Zorin verification notes
 
 The project targets Zorin OS, so manual verification on real Zorin computers is part of the alpha process.
