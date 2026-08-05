@@ -81,6 +81,16 @@ Or run the module directly from a source checkout:
 python -m grayhaired_desktop.app
 ```
 
+## Documentation
+
+The project documentation lives in [`docs/`](docs/):
+
+- [`ARCHITECTURE.md`](docs/ARCHITECTURE.md) explains the current native shell architecture and module responsibilities.
+- [`ROADMAP.md`](docs/ROADMAP.md) describes the project vision and milestones through Alpha 0.3.1.
+- [`DEVELOPMENT_LOG.md`](docs/DEVELOPMENT_LOG.md) records milestone history and Zorin verification status.
+- [`CHANGELOG.md`](docs/CHANGELOG.md) summarizes notable alpha changes.
+- [`PROJECT_PRINCIPLES.md`](docs/PROJECT_PRINCIPLES.md) captures the project principles for contributors.
+
 ## Project structure
 
 ```text
