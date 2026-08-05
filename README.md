@@ -1,16 +1,20 @@
 # GrayHaired Desktop
 
-GrayHaired Desktop is a native Python 3.12+ desktop application for Zorin OS. It uses PySide6 and QtWebEngine to present the GrayHaired Tech desktop web experience in a native Qt window.
+GrayHaired Desktop Alpha 0.2 is a native Python 3.12+ desktop application for Zorin OS. It uses PySide6 and QtWebEngine to display the GrayHaired Tech desktop web experience inside a native Qt main window.
 
-## Features
+## Alpha 0.2 features
 
-- Native Qt application window
-- QtWebEngine-powered browser surface
-- Loads `https://grayhaired.tech/desktop-c/`
+- Native `QMainWindow` shell with the title `GrayHaired Desktop Alpha 0.2`
+- Embedded `QWebEngineView` browser surface
+- Automatically loads `https://grayhaired.tech/desktop-c/`
+- File menu with **Exit**
+- View menu with **Reload**
+- Help menu with **About**
+- Status bar with page load state updates
+- Structured logging for application startup, page loading, page loaded, page failed, and application shutdown
 - Modular Python package layout
 - Application metadata configured for Qt
 - Persistent window geometry via `QSettings`
-- Structured application logging
 
 ## Requirements
 
