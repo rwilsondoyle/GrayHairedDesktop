@@ -4,7 +4,7 @@ All notable project changes should be summarized here. This project is currently
 
 ## Alpha 0.3.1 — Documentation foundation
 
-Status: in progress.
+Status: complete.
 
 ### Added
 
@@ -15,11 +15,13 @@ Status: in progress.
   - `CHANGELOG.md`
   - `PROJECT_PRINCIPLES.md`
 - Added contributor-facing architecture, roadmap, principles, and verification notes.
-- Documented Zorin verification status for two computers: one reported successful and the second pending until confirmed.
+- Documented Zorin verification status for both supported systems.
 
 ### Changed
 
 - Updated the README to reference the new documentation foundation.
+- Successfully tested the setup, update, and run scripts on both supported Zorin systems.
+- Manually verified the core application controls on both systems.
 
 ## Alpha 0.3 — Preferences and persistence
 

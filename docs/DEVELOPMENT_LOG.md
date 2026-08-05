@@ -33,16 +33,20 @@ This log records project-level development milestones and verification notes. It
 - Updated the README to direct users and contributors to the new documentation set.
 - No application source code was changed for this documentation milestone.
 
+### Alpha 0.3.1 Verification Complete
+
+- Alpha 0.3.1 is verified on both supported Zorin systems.
+
 ## Zorin verification notes
 
 The project targets Zorin OS, so manual verification on real Zorin computers is part of the alpha process.
 
-| Computer | Status | Notes |
+| System | Status | Verified workflows and controls |
 | --- | --- | --- |
-| Zorin computer 1 | Successful | Setup and run verification has been reported successful on one Zorin computer. |
-| Zorin computer 2 | Pending | Second-computer verification should be recorded here after setup and run are completed successfully. |
+| Primary Development System | Verified | `git pull`, `scripts/setup-zorin.sh`, `scripts/update.sh`, `scripts/run.sh`, application startup, Home, Reload, Preferences, About, and Exit. |
+| Secondary Test System | Verified | `git pull`, `scripts/setup-zorin.sh`, `scripts/update.sh`, `scripts/run.sh`, application startup, Home, Reload, Preferences, About, and Exit. |
 
-When the second Zorin verification is complete, update this table with the exact date, hardware notes if useful, and any setup issues encountered.
+Dual-system verification is complete for the two supported physical Zorin systems.
 
 ## Contributor workflow notes
 
