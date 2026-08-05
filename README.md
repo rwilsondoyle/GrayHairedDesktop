@@ -26,7 +26,35 @@ GrayHaired Desktop Alpha 0.3 is a native Python 3.12+ desktop application for Zo
 - Zorin OS or a compatible Linux desktop environment
 - QtWebEngine runtime dependencies supported by PySide6
 
-## Install for development
+## Zorin OS quick start
+
+These helper scripts are intended for the user's Zorin OS computers. Run them from the repository root after cloning the project.
+
+### First-time setup
+
+```bash
+./scripts/setup-zorin.sh
+```
+
+The setup script checks for Python 3.12 or newer, installs missing Zorin/Ubuntu packages, creates `.venv` when needed, installs GrayHaired Desktop, and can be safely run more than once.
+
+### Run GrayHaired Desktop
+
+```bash
+./scripts/run.sh
+```
+
+If the script says `.venv` is missing, run `./scripts/setup-zorin.sh` first.
+
+### Update GrayHaired Desktop
+
+```bash
+./scripts/update.sh
+```
+
+The update script stops if you have uncommitted local changes, pulls the latest code with `git pull --ff-only`, and reinstalls the project into the existing `.venv`.
+
+## Manual development install
 
 ```bash
 python3.12 -m venv .venv
@@ -41,7 +69,7 @@ Alternatively, install dependencies directly:
 python -m pip install -r requirements.txt
 ```
 
-## Run
+## Manual run
 
 ```bash
 grayhaired-desktop
