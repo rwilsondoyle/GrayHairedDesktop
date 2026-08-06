@@ -36,6 +36,8 @@ class MainWindow(QMainWindow):
         self._actions = create_actions(
             self,
             close=self.close,
+            go_back=self._browser.back,
+            go_forward=self._browser.forward,
             load_home=self._browser.load_home,
             reload_page=self._browser.reload,
             show_preferences=self._show_preferences_dialog,
@@ -56,14 +58,27 @@ class MainWindow(QMainWindow):
         super().closeEvent(event)
 
     def _connect_browser_status(self) -> None:
-        self._browser.loadStarted.connect(lambda: self.statusBar().showMessage("Loading..."))
+        self._browser.loadStarted.connect(self._handle_load_started)
         self._browser.loadFinished.connect(self._update_load_status)
+        self._browser.urlChanged.connect(self._update_navigation_actions)
+
+    def _handle_load_started(self) -> None:
+        self.statusBar().showMessage("Loading...")
+        self._update_navigation_actions()
 
     def _update_load_status(self, ok: bool) -> None:
         if ok:
             self.statusBar().showMessage("Loaded")
         else:
             self.statusBar().showMessage("Failed")
+        self._update_navigation_actions()
+
+    def _update_navigation_actions(self, *_args: object) -> None:
+        """Keep navigation controls in sync with the browser history."""
+
+        history = self._browser.history()
+        self._actions.back.setEnabled(history.canGoBack())
+        self._actions.forward.setEnabled(history.canGoForward())
 
     def _show_preferences_dialog(self) -> None:
         dialog = PreferencesDialog(self._preferences, self)

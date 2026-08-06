@@ -4,6 +4,11 @@ All notable project changes should be summarized here. This project is currently
 
 ## Unreleased
 
+### Added
+
+- Added Back and Forward browser actions to the View menu and toolbar for the Alpha 0.4 navigation milestone.
+- Added keyboard shortcuts, user-facing navigation tips, and history-aware enabled states.
+
 ### Changed
 
 - Refactored the main-window UI code into focused action, menu, and toolbar modules without intentionally changing appearance or behavior.
