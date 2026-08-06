@@ -15,7 +15,10 @@ from PySide6.QtWidgets import (
     QRadioButton,
     QPushButton,
     QMessageBox,
+    QScrollArea,
+    QSizePolicy,
     QVBoxLayout,
+    QWidget,
 )
 
 from grayhaired_desktop.settings import (
@@ -76,9 +79,13 @@ class PreferencesDialog(QDialog):
         section_title = QLabel("Desktop Website", self)
         section_title.setStyleSheet("font-weight: bold; font-size: 16px;")
         instruction = QLabel(
-            "Choose the website you would like to display inside your desktop.", self
+            "Choose the website to display inside your desktop.", self
         )
         instruction.setWordWrap(True)
+        instruction.setSizePolicy(
+            QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Minimum
+        )
+        instruction.setMinimumHeight(instruction.fontMetrics().lineSpacing() * 2)
 
         separator = QFrame(self)
         separator.setFrameShape(QFrame.Shape.HLine)
@@ -112,21 +119,35 @@ class PreferencesDialog(QDialog):
         action_layout.addStretch(1)
         action_layout.addWidget(button_box)
 
-        layout = QVBoxLayout(self)
-        layout.setContentsMargins(20, 20, 20, 20)
-        layout.setSpacing(16)
-        layout.addWidget(section_title)
-        layout.addWidget(instruction)
-        layout.addWidget(self._another_website)
-        layout.addWidget(address_label)
-        layout.addWidget(self._home_page_url)
-        layout.addWidget(address_help)
-        layout.addWidget(address_example)
-        layout.addWidget(separator)
+        content = QWidget(self)
+        content_layout = QVBoxLayout(content)
+        content_layout.setContentsMargins(20, 28, 20, 16)
+        content_layout.setSpacing(14)
+        content_layout.addWidget(section_title)
+        content_layout.addSpacing(4)
+        content_layout.addWidget(instruction)
+        content_layout.addWidget(self._another_website)
+        content_layout.addWidget(address_label)
+        content_layout.addWidget(self._home_page_url)
+        content_layout.addWidget(address_help)
+        content_layout.addWidget(address_example)
+        content_layout.addWidget(separator)
         for button in self._built_in_buttons:
-            layout.addWidget(button)
-        layout.addSpacing(8)
+            content_layout.addWidget(button)
+
+        scroll_area = QScrollArea(self)
+        scroll_area.setWidgetResizable(True)
+        scroll_area.setFrameShape(QFrame.Shape.NoFrame)
+        scroll_area.setWidget(content)
+
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 16)
+        layout.setSpacing(12)
+        layout.addWidget(scroll_area)
+        action_layout.setContentsMargins(20, 0, 20, 0)
         layout.addLayout(action_layout)
+
+        self.setMinimumSize(440, 520)
 
         self.setTabOrder(self._another_website, self._home_page_url)
         self.setTabOrder(self._home_page_url, next(iter(self._built_in_buttons)))
