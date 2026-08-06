@@ -116,19 +116,19 @@ class PreferencesDialog(QDialog):
         layout.addWidget(section_title)
         layout.addWidget(instruction)
         layout.addWidget(self._another_website)
-        layout.addWidget(separator)
-        for button in self._built_in_buttons:
-            layout.addWidget(button)
-        layout.addSpacing(8)
         layout.addWidget(address_label)
         layout.addWidget(self._home_page_url)
         layout.addWidget(address_help)
         layout.addWidget(address_example)
+        layout.addWidget(separator)
+        for button in self._built_in_buttons:
+            layout.addWidget(button)
+        layout.addSpacing(8)
         layout.addLayout(action_layout)
 
-        self.setTabOrder(self._another_website, next(iter(self._built_in_buttons)))
-        self.setTabOrder(list(self._built_in_buttons)[-1], self._home_page_url)
-        self.setTabOrder(self._home_page_url, self._open_button)
+        self.setTabOrder(self._another_website, self._home_page_url)
+        self.setTabOrder(self._home_page_url, next(iter(self._built_in_buttons)))
+        self.setTabOrder(list(self._built_in_buttons)[-1], self._open_button)
 
     def _open_home_page(self) -> None:
         """Open the entered address externally without saving it."""
