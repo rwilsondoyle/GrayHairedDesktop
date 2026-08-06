@@ -27,7 +27,7 @@ class MainWindow(QMainWindow):
         self._preferences = load_preferences(settings)
         self._browser = BrowserView(self._preferences.home_page_url, logger, self)
 
-        self.setWindowTitle("GrayDesk Alpha 0.3")
+        self.setWindowTitle("GrayDesk Alpha 0.4")
         self.setMinimumSize(QSize(1024, 720))
         self.setCentralWidget(self._browser)
         self.setStatusBar(QStatusBar(self))
@@ -99,7 +99,7 @@ class MainWindow(QMainWindow):
             self,
             "About GrayHaired Desktop",
             (
-                "GrayDesk Alpha 0.3\n\n"
+                "GrayDesk Alpha 0.4\n\n"
                 "A native PySide6 desktop shell for the GrayHaired Tech web experience."
             ),
         )
