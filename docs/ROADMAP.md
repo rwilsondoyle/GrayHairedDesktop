@@ -50,7 +50,7 @@ Status: complete.
 
 ### Alpha 0.4 — Browser navigation
 
-Status: complete.
+Status: implementation complete; manual Zorin verification pending.
 
 - Added Back and Forward controls to the View menu and toolbar.
 - Added familiar keyboard shortcuts and clear user-facing tips.
