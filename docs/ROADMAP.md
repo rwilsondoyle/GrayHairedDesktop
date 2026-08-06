@@ -79,7 +79,7 @@ Status: Implementation complete; manual Zorin verification pending.
 - Replaced **Preferences** with clearer **Settings** wording.
 - Put **Another Website...** first and placed an alphabetical built-in list after a separator.
 - Enabled **Website Address** only for custom selections and sourced built-ins from one reusable configuration structure.
-- Ensured **Preview Website** does not save, **Save** applies the selection, and **Cancel** preserves the previous selection.
+- Ensured **Preview in Browser** does not save, **Save** applies the selection, and **Cancel** preserves the previous selection.
 - Added no widget system.
 
 ## Near-term priorities after Alpha 0.6

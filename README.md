@@ -14,7 +14,7 @@ GrayHairedDesktop is the current repository name, but the public product name is
 - **Settings** screen with **Another Website...** first, followed by Bing, DuckDuckGo, Google, MSN, and Yahoo in alphabetical order
 - Reusable built-in website configuration containing display names and addresses
 - Custom **Website Address** editing, enabled only for **Another Website...**, with complete HTTP/HTTPS address validation
-- **Preview Website** opens the current selection externally without saving or changing the embedded page
+- **Preview in Browser** opens the current selection externally without saving or changing the embedded page
 - **Save** applies and loads the selection; **Cancel** preserves both saved settings and the displayed page
 - Persistent settings and window geometry through `QSettings`
 - Home, Reload, Settings, About, and Exit actions, status messages, and structured logging

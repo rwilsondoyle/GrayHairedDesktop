@@ -15,7 +15,7 @@ Status: Implementation complete; manual Zorin verification pending.
 ### Changed
 
 - **Settings** replaces **Preferences** in user-visible wording.
-- **Preview Website** opens either a built-in or valid custom selection externally without saving, closing Settings, or changing the page in the application.
+- **Preview in Browser** opens either a built-in or valid custom selection externally without saving, closing Settings, or changing the page in the application.
 - **Save** validates custom addresses, persists the selection, closes Settings, and loads it immediately. **Cancel** preserves the previous selection and current page.
 - No widget system has been added.
 
