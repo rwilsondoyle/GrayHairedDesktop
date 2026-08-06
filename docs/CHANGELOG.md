@@ -2,7 +2,9 @@
 
 All notable project changes should be summarized here. This project is currently in alpha, so entries focus on practical milestones rather than formal release packaging.
 
-## Unreleased
+## Alpha 0.4 — Desktop launch page
+
+Status: complete.
 
 ### Added
 
@@ -15,7 +17,12 @@ All notable project changes should be summarized here. This project is currently
 - Removed Back and Forward actions, shortcuts, history state, menu entries, and toolbar controls.
 - The View menu now contains Home and Reload; the toolbar contains Home, Reload, and Preferences.
 
-The public product name is still undecided. Alpha 0.4 remains pending manual Zorin verification.
+### Verified
+
+- Completed manual verification on both supported physical Zorin systems: Primary Development System and Secondary Test System.
+- On both systems, successfully verified Application startup, Home page, Home, Reload, Preferences, About, Exit, external link launching, and that the Home page remains displayed after launching links.
+
+The public product name is still undecided.
 
 ## Alpha 0.3.1 — Documentation foundation
 
