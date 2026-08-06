@@ -2,6 +2,23 @@
 
 All notable project changes should be summarized here. This project is currently in alpha, so entries focus on practical milestones rather than formal release packaging.
 
+## Alpha 0.6 — Desktop Website Selection
+
+Status: Implementation complete; manual Zorin verification pending.
+
+### Added
+
+- Added **Another Website...** first, followed after a separator by Bing, DuckDuckGo, Google, MSN, and Yahoo in alphabetical order.
+- Added one reusable immutable configuration structure containing each built-in display name and website address.
+- Added short **Website Address** help and an example; the field is enabled only for **Another Website...**.
+
+### Changed
+
+- **Settings** replaces **Preferences** in user-visible wording.
+- **Preview Website** opens either a built-in or valid custom selection externally without saving, closing Settings, or changing the page in the application.
+- **Save** validates custom addresses, persists the selection, closes Settings, and loads it immediately. **Cancel** preserves the previous selection and current page.
+- No widget system has been added.
+
 ## Alpha 0.5 — Launch Page Personalization
 
 Status: Implementation complete; manual Zorin verification pending.

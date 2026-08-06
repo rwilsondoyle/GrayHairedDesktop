@@ -47,9 +47,9 @@ def create_actions(
     reload_action.setStatusTip("Reload the current page")
     reload_action.triggered.connect(reload_page)
 
-    preferences_action = QAction("Preferences...", parent)
-    preferences_action.setIconText("Preferences")
-    preferences_action.setStatusTip("Edit GrayHaired Desktop preferences")
+    preferences_action = QAction("Settings...", parent)
+    preferences_action.setIconText("Settings")
+    preferences_action.setStatusTip("Choose the desktop website")
     preferences_action.triggered.connect(show_preferences)
 
     about_action = QAction("About", parent)

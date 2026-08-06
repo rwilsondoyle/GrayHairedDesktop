@@ -11,6 +11,31 @@ DEFAULT_HOME_PAGE_URL = "https://grayhaired.tech/desktop-c/"
 HOME_PAGE_URL_KEY = "preferences/homePageUrl"
 
 
+@dataclass(frozen=True, slots=True)
+class BuiltInWebsite:
+    """A website offered as a ready-to-use desktop choice."""
+
+    display_name: str
+    address: str
+
+
+BUILT_IN_WEBSITES = (
+    BuiltInWebsite("Bing", "https://www.bing.com"),
+    BuiltInWebsite("DuckDuckGo", "https://duckduckgo.com"),
+    BuiltInWebsite("Google", "https://www.google.com"),
+    BuiltInWebsite("MSN", "https://www.msn.com"),
+    BuiltInWebsite("Yahoo", "https://www.yahoo.com"),
+)
+
+
+def find_built_in_website(address: str) -> BuiltInWebsite | None:
+    """Return the built-in website matching *address*, if one exists."""
+
+    return next(
+        (website for website in BUILT_IN_WEBSITES if website.address == address), None
+    )
+
+
 def is_valid_home_page_url(value: str) -> bool:
     """Return whether *value* is a complete HTTP or HTTPS web address."""
 
