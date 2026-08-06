@@ -89,8 +89,10 @@ class PreferencesDialog(QDialog):
         address_help = QLabel("Copy and paste the website address here.", self)
         address_example = QLabel("Example: https://www.google.com", self)
 
-        self._open_button = QPushButton("Preview Website", self)
-        preview_description = "Open the selected website without saving changes."
+        self._open_button = QPushButton("Preview in Browser", self)
+        preview_description = (
+            "Preview the selected website in your default browser without saving changes."
+        )
         self._open_button.setToolTip(preview_description)
         self._open_button.setStatusTip(preview_description)
         self._open_button.setAccessibleDescription(preview_description)

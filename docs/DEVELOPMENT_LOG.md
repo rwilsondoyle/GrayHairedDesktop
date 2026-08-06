@@ -73,7 +73,7 @@ Status: Implementation complete; manual Zorin verification pending.
 - Added **Another Website...** first and a separated, alphabetical built-in list: Bing, DuckDuckGo, Google, MSN, and Yahoo.
 - Populated built-in choices from one reusable immutable display-name/address configuration structure.
 - Enabled **Website Address** only for **Another Website...** and retained custom values when appropriate.
-- Made **Preview Website** non-saving and non-destructive to the embedded page.
+- Made **Preview in Browser** non-saving and non-destructive to the embedded page.
 - Made **Save** validate custom choices and immediately apply them; **Cancel** preserves the previous selection and page.
 - Preserved Alpha 0.5 navigation, external-link, persistence, status, logging, and script behavior.
 - No widget system has been added.
