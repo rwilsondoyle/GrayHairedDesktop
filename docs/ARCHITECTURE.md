@@ -1,6 +1,6 @@
 # Architecture
 
-GrayHairedDesktop is the current repository name for a small native Linux desktop shell. The Alpha 0.4 codebase is intentionally simple: Python starts a Qt application, a main window owns the desktop chrome, and an embedded QtWebEngine launch page loads and retains the configured home URL. Clicked destinations are handed to the operating system's default browser.
+GrayHairedDesktop is the current repository name for a small native Linux desktop shell. The Alpha 0.5 codebase is intentionally simple: Python starts a Qt application, a main window owns the desktop chrome, and an embedded QtWebEngine launch page loads and retains the configured home URL. Clicked destinations are handed to the operating system's default browser.
 
 ## Runtime stack
 
@@ -18,8 +18,8 @@ GrayHairedDesktop is the current repository name, but the public product name is
 1. `grayhaired_desktop.app` configures logging, creates `QApplication`, applies Qt application metadata, creates `QSettings`, and shows the main window.
 2. `grayhaired_desktop.ui.mainwindow.MainWindow` coordinates the launch page, external-link status, preferences workflow, and persistent window geometry. Focused UI modules create its shared actions, menu bar, and toolbar.
 3. `grayhaired_desktop.browser.BrowserView` wraps `QWebEngineView`, stores the configured home URL, and uses a `QWebEnginePage` navigation policy plus `QDesktopServices` to open clicked links externally. Same-page fragment navigation remains embedded.
-4. `grayhaired_desktop.settings` loads and saves user preferences through `QSettings`.
-5. `grayhaired_desktop.ui.preferences.PreferencesDialog` lets the user edit or restore the home page URL without modifying source code.
+4. `grayhaired_desktop.settings` loads and saves user preferences through `QSettings` and provides reusable HTTP/HTTPS URL validation.
+5. `grayhaired_desktop.ui.preferences.PreferencesDialog` lets the user edit, externally preview, validate, or restore the home page URL. Edits remain local to the dialog until OK is selected.
 
 ## Module responsibilities
 
@@ -29,12 +29,12 @@ GrayHairedDesktop is the current repository name, but the public product name is
 | `browser.py` | Embedded launch-page widget, external-link policy, and page-load logging hooks. |
 | `config.py` | Application metadata and `QSettings` factory. |
 | `logger.py` | Central logging configuration. |
-| `settings.py` | Default preference values and persistence helpers. |
+| `settings.py` | Default preference values, URL validation, and persistence helpers. |
 | `ui/actions.py` | Creates and connects the shared Home, Reload, Preferences, About, and Exit actions. |
 | `ui/menus.py` | Populates the application menu bar from the shared actions. |
 | `ui/toolbar.py` | Builds the non-movable main toolbar from the shared actions. |
 | `ui/mainwindow.py` | Main desktop window coordination, external-link status messages, preferences and About dialogs, window state persistence. |
-| `ui/preferences.py` | Preferences dialog for the configurable home page URL. |
+| `ui/preferences.py` | Preferences dialog for editing, opening, validating, and restoring the configurable home page URL. |
 | `scripts/setup-zorin.sh` | First-time Zorin/Ubuntu setup, system dependency checks, virtual environment creation, editable install. |
 | `scripts/run.sh` | Starts the installed app from the project virtual environment. |
 | `scripts/update.sh` | Safely updates a clean checkout and reinstalls into the existing virtual environment. |
@@ -53,3 +53,4 @@ The application uses Qt `QSettings` under the current author/About attribution m
 - The application source code is a native shell only; the configured web destination can evolve as branding and product direction mature.
 - There is no local database, background service, or custom network protocol layer in the desktop app.
 - The app does not currently ship automated GUI tests. Manual Zorin verification remains important for each alpha milestone.
+- Alpha 0.5 does not add a widget system, dashboards, themes, accounts, or synchronization.

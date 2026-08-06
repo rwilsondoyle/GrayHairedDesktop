@@ -52,6 +52,18 @@ This log records project-level development milestones and verification notes. It
 - On both systems, successfully verified Application startup, Home page, Home, Reload, Preferences, About, Exit, external link launching, and that the Home page remains displayed after launching links.
 - Alpha 0.4 is complete.
 
+### Alpha 0.5 — Launch Page Personalization
+
+Status: Implementation complete; manual Zorin verification pending.
+
+- Improved Preferences with plain-English help and readable spacing.
+- Added **Open Home Page** to preview the entered address in the default browser without saving or closing Preferences.
+- Added a confirmation-protected **Restore Default Home Page** action that only changes the field until **OK** is selected.
+- Added reusable validation for complete HTTP and HTTPS addresses, with a friendly correction message.
+- Preserved **Cancel** so edited and restored values do not replace the saved Home Page.
+- Preserved the launch page, external links, Home, Reload, About, Exit, window state, status messages, and logging.
+- No widget system has been added yet.
+
 ## Zorin verification notes
 
 The project targets Zorin OS, so manual verification on real Zorin computers is part of the alpha process.

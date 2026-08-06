@@ -19,7 +19,9 @@ from grayhaired_desktop.ui.toolbar import create_toolbar
 class MainWindow(QMainWindow):
     """Native application window hosting the GrayHaired web experience."""
 
-    def __init__(self, metadata: AppMetadata, settings: QSettings, logger: logging.Logger) -> None:
+    def __init__(
+        self, metadata: AppMetadata, settings: QSettings, logger: logging.Logger
+    ) -> None:
         super().__init__()
         self._metadata = metadata
         self._settings = settings
@@ -27,7 +29,7 @@ class MainWindow(QMainWindow):
         self._preferences = load_preferences(settings)
         self._browser = BrowserView(self._preferences.home_page_url, logger, self)
 
-        self.setWindowTitle("GrayDesk Alpha 0.4")
+        self.setWindowTitle("GrayDesk Alpha 0.5")
         self.setMinimumSize(QSize(1024, 720))
         self.setCentralWidget(self._browser)
         self.setStatusBar(QStatusBar(self))
@@ -89,6 +91,7 @@ class MainWindow(QMainWindow):
         self._preferences = updated_preferences
         save_preferences(self._settings, self._preferences)
         self._browser.set_home_url(self._preferences.home_page_url)
+        self._browser.load_home()
         self._logger.info("Preferences changed")
 
     def _show_about_dialog(self) -> None:
@@ -96,7 +99,7 @@ class MainWindow(QMainWindow):
             self,
             "About GrayHaired Desktop",
             (
-                "GrayDesk Alpha 0.4\n\n"
+                f"GrayDesk Alpha 0.5 ({self._metadata.version})\n\n"
                 "A native PySide6 desktop shell for the GrayHaired Tech web experience."
             ),
         )
