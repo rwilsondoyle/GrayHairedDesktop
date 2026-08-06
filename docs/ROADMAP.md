@@ -40,12 +40,13 @@ Status: complete.
 
 ### Alpha 0.3.1 — Documentation and Zorin install confidence
 
-Status: in progress.
+Status: complete.
 
-- Add the docs foundation in this directory.
-- Keep the README focused on quick start and point contributors to deeper documentation.
-- Document current architecture, development history, project principles, and release notes.
-- Continue validating setup and runtime behavior on two Zorin computers. The first Zorin verification has been reported successful; the second verification should remain marked pending until it is completed and recorded in the development log.
+- Added the docs foundation in this directory.
+- Kept the README focused on quick start and pointed contributors to deeper documentation.
+- Documented current architecture, development history, project principles, and release notes.
+- Completed manual setup and runtime verification on two physical Zorin systems: Primary Development System and Secondary Test System.
+- On both systems, successfully verified `git pull`, `scripts/setup-zorin.sh`, `scripts/update.sh`, `scripts/run.sh`, Application startup, Home, Reload, Preferences, About, and Exit.
 
 ## Near-term priorities after Alpha 0.3.1
 

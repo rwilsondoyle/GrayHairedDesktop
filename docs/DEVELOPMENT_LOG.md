@@ -31,6 +31,7 @@ This log records project-level development milestones and verification notes. It
 
 - Added dedicated documentation for architecture, roadmap, changelog, development history, and project principles.
 - Updated the README to direct users and contributors to the new documentation set.
+- Completed manual verification on two physical Zorin systems.
 - No application source code was changed for this documentation milestone.
 
 ### Task 009 UI refactor
@@ -43,12 +44,12 @@ This log records project-level development milestones and verification notes. It
 
 The project targets Zorin OS, so manual verification on real Zorin computers is part of the alpha process.
 
-| Computer | Status | Notes |
+| Physical Zorin system | Status | Verified workflow and behavior |
 | --- | --- | --- |
-| Zorin computer 1 | Successful | Setup and run verification has been reported successful on one Zorin computer. |
-| Zorin computer 2 | Pending | Second-computer verification should be recorded here after setup and run are completed successfully. |
+| Primary Development System | Successful | `git pull`; `scripts/setup-zorin.sh`; `scripts/update.sh`; `scripts/run.sh`; Application startup; Home; Reload; Preferences; About; Exit. |
+| Secondary Test System | Successful | `git pull`; `scripts/setup-zorin.sh`; `scripts/update.sh`; `scripts/run.sh`; Application startup; Home; Reload; Preferences; About; Exit. |
 
-When the second Zorin verification is complete, update this table with the exact date, hardware notes if useful, and any setup issues encountered.
+These results record manual verification on exactly two physical Zorin systems. They do not represent automated GUI testing, completed Windows testing, or completed virtual-machine testing.
 
 ## Contributor workflow notes
 
