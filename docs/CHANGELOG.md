@@ -8,7 +8,7 @@ Status: Implementation complete; manual Zorin verification pending.
 
 ### Added
 
-- Added **Open Home Page** for opening the currently entered address in the default browser without saving it or closing Preferences.
+- Added **Preview Home Page in Browser** for opening the currently entered address in the default browser without saving it or closing Preferences.
 - Added a confirmation-protected **Restore Default Home Page** action.
 - Added reusable validation for complete HTTP and HTTPS Home Page addresses and friendly error messages.
 
@@ -66,7 +66,7 @@ Status: complete.
 
 ### Added
 
-- Preferences dialog for the home page URL.
+- Preferences dialog for the Home Page address.
 - Persistent user preferences with `QSettings`.
 - Home and Reload actions in the menu and toolbar.
 - Persistent window geometry and state.

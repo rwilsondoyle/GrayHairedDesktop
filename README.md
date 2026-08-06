@@ -11,9 +11,9 @@ GrayHairedDesktop is the current repository name, but the public product name is
 - Native `QMainWindow` shell with the title `GrayDesk Alpha 0.5`
 - Embedded `QWebEngineView` launch-page surface that keeps the configured home page in the application
 - Ordinary links, `target="_blank"` links, `window.open()`, and new-tab/new-window requests open in the operating system's configured default browser
-- Configurable home page URL with the default `https://grayhaired.tech/desktop-c/`
+- Configurable Home Page address with the default `https://grayhaired.tech/desktop-c/`
 - Persistent preferences stored with `QSettings`
-- Plain-English Preferences dialog with **Open Home Page**, **Restore Default Home Page**, **OK**, and **Cancel** controls
+- Plain-English Preferences dialog with **Preview Home Page in Browser**, **Restore Default Home Page**, **OK**, and **Cancel** controls
 - Friendly validation requiring a complete `http://` or `https://` Home Page address
 - Previewing or restoring an address never saves it until **OK** is selected; **Cancel** preserves the saved preference
 - File menu with **Exit**

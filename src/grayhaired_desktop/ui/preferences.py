@@ -57,16 +57,26 @@ class PreferencesDialog(QDialog):
         form_layout = QFormLayout()
         form_layout.setHorizontalSpacing(16)
         form_layout.setVerticalSpacing(12)
-        form_layout.addRow("Home Page URL:", self._home_page_url)
+        form_layout.addRow("Home Page Address:", self._home_page_url)
 
         help_text = QLabel(
-            "The Home Page is the page displayed inside the desktop application. "
-            "Links clicked on that page open in your regular web browser.",
+            "The Home Page is shown inside this application.\n\n"
+            'Selecting "Preview Home Page in Browser" opens the current address '
+            "in your regular web browser.\n\n"
+            "Previewing never saves changes or changes the Home Page shown inside "
+            "the application.",
             self,
         )
         help_text.setWordWrap(True)
 
-        self._open_button = QPushButton("Open Home Page", self)
+        self._open_button = QPushButton("Preview Home Page in Browser", self)
+        preview_description = (
+            "Preview the current Home Page in your regular web browser without "
+            "saving any changes."
+        )
+        self._open_button.setToolTip(preview_description)
+        self._open_button.setStatusTip(preview_description)
+        self._open_button.setAccessibleDescription(preview_description)
         self._open_button.clicked.connect(self._open_home_page)
         self._restore_defaults_button = QPushButton("Restore Default Home Page", self)
         self._restore_defaults_button.clicked.connect(self._restore_default_home_page)

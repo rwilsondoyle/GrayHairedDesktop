@@ -23,7 +23,7 @@ This log records project-level development milestones and verification notes. It
 ### Alpha 0.3
 
 - Added user-facing navigation for Home and Reload.
-- Added Preferences for editing the home page URL.
+- Added Preferences for editing the Home Page address.
 - Added persistent preferences and persistent window geometry through `QSettings`.
 - Added application, browser, preferences, load-success, and load-failure logging.
 
@@ -57,7 +57,7 @@ This log records project-level development milestones and verification notes. It
 Status: Implementation complete; manual Zorin verification pending.
 
 - Improved Preferences with plain-English help and readable spacing.
-- Added **Open Home Page** to preview the entered address in the default browser without saving or closing Preferences.
+- Added **Preview Home Page in Browser** to preview the entered address in the default browser without saving or closing Preferences.
 - Added a confirmation-protected **Restore Default Home Page** action that only changes the field until **OK** is selected.
 - Added reusable validation for complete HTTP and HTTPS addresses, with a friendly correction message.
 - Preserved **Cancel** so edited and restored values do not replace the saved Home Page.
