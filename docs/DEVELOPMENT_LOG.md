@@ -67,7 +67,7 @@ Status: Implementation complete; manual Zorin verification pending.
 
 ### Alpha 0.6 — Desktop Website Selection
 
-Status: Implementation complete; manual Zorin verification pending.
+Status: complete.
 
 - Replaced user-visible **Preferences** wording with **Settings**.
 - Added **Another Website...** first and a separated, alphabetical built-in list: Bing, DuckDuckGo, Google, MSN, and Yahoo.
@@ -77,6 +77,10 @@ Status: Implementation complete; manual Zorin verification pending.
 - Made **Save** validate custom choices and immediately apply them; **Cancel** preserves the previous selection and page.
 - Preserved Alpha 0.5 navigation, external-link, persistence, status, logging, and script behavior.
 - No widget system has been added.
+- Completed manual verification on both supported physical Zorin systems: Primary Development System and Secondary Test System.
+- On both systems, successfully verified Application startup; Desktop Website loading; the one-click Settings menu; menu order (**File**, **View**, **Settings**, **Help**); **Another Website...** appearing first; the **Website Address** field and its validation; Bing, DuckDuckGo, Google, MSN, and Yahoo; **Preview in Browser**; **Save**; **Cancel**; the saved website remaining after restarting; links opening in the default browser while the Desktop Website remains displayed; **Home**; **Reload**; **About**; and **Exit**.
+- Confirmed on both tested displays that the Settings dialog text is fully visible, its content is not clipped, and the dialog remains usable.
+- Alpha 0.6 is complete.
 
 ## Zorin verification notes
 
@@ -84,8 +88,8 @@ The project targets Zorin OS, so manual verification on real Zorin computers is 
 
 | Physical Zorin system | Status | Verified workflow and behavior |
 | --- | --- | --- |
-| Primary Development System | Successful | `git pull`; `scripts/setup-zorin.sh`; `scripts/update.sh`; `scripts/run.sh`; Application startup; Home page; Home; Reload; Preferences; About; Exit; external link launching; Home page remaining displayed after launching links. |
-| Secondary Test System | Successful | `git pull`; `scripts/setup-zorin.sh`; `scripts/update.sh`; `scripts/run.sh`; Application startup; Home page; Home; Reload; Preferences; About; Exit; external link launching; Home page remaining displayed after launching links. |
+| Primary Development System | Successful | `git pull`; `scripts/setup-zorin.sh`; `scripts/update.sh`; `scripts/run.sh`; Application startup; Home page; Home; Reload; Preferences; About; Exit; external link launching; Home page remaining displayed after launching links; Desktop Website loading; one-click Settings menu; menu order: File, View, Settings, Help; Another Website appearing first; Website Address field; Website Address validation; Bing; DuckDuckGo; Google; MSN; Yahoo; Preview in Browser; Save; Cancel; saved website remaining after restarting; links opening in the default browser; Desktop Website remaining displayed after opening links; Settings dialog text fully visible; Settings dialog content not clipped; Settings dialog remaining usable on the tested display. |
+| Secondary Test System | Successful | `git pull`; `scripts/setup-zorin.sh`; `scripts/update.sh`; `scripts/run.sh`; Application startup; Home page; Home; Reload; Preferences; About; Exit; external link launching; Home page remaining displayed after launching links; Desktop Website loading; one-click Settings menu; menu order: File, View, Settings, Help; Another Website appearing first; Website Address field; Website Address validation; Bing; DuckDuckGo; Google; MSN; Yahoo; Preview in Browser; Save; Cancel; saved website remaining after restarting; links opening in the default browser; Desktop Website remaining displayed after opening links; Settings dialog text fully visible; Settings dialog content not clipped; Settings dialog remaining usable on the tested display. |
 
 These results record manual verification on exactly two physical Zorin systems. They do not represent automated GUI testing, completed Windows testing, or completed virtual-machine testing.
 

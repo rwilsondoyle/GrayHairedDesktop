@@ -74,13 +74,16 @@ Status: Implementation complete; manual Zorin verification pending.
 
 ### Alpha 0.6 — Desktop Website Selection
 
-Status: Implementation complete; manual Zorin verification pending.
+Status: complete.
 
 - Replaced **Preferences** with clearer **Settings** wording.
 - Put **Another Website...** first and placed an alphabetical built-in list after a separator.
 - Enabled **Website Address** only for custom selections and sourced built-ins from one reusable configuration structure.
 - Ensured **Preview in Browser** does not save, **Save** applies the selection, and **Cancel** preserves the previous selection.
 - Added no widget system.
+- Completed manual verification on both supported physical Zorin systems: Primary Development System and Secondary Test System.
+- On both systems, successfully verified Application startup; Desktop Website loading; the one-click Settings menu; menu order (**File**, **View**, **Settings**, **Help**); **Another Website...** appearing first; the **Website Address** field and its validation; Bing, DuckDuckGo, Google, MSN, and Yahoo; **Preview in Browser**; **Save**; **Cancel**; the saved website remaining after restarting; links opening in the default browser while the Desktop Website remains displayed; **Home**; **Reload**; **About**; and **Exit**.
+- Confirmed on both tested displays that the Settings dialog text is fully visible, its content is not clipped, and the dialog remains usable.
 
 ## Near-term priorities after Alpha 0.6
 
