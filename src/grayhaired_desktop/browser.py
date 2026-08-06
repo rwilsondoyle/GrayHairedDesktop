@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 
 from PySide6.QtCore import QUrl, Slot
+from PySide6.QtWebEngineCore import QWebEnginePage
 from PySide6.QtWebEngineWidgets import QWebEngineView
 
 
@@ -27,6 +28,17 @@ class BrowserView(QWebEngineView):
         """Update the configured home URL."""
 
         self._url = QUrl(url)
+
+    def createWindow(
+        self, window_type: QWebEnginePage.WebWindowType
+    ) -> QWebEngineView:
+        """Redirect requested browser windows and tabs into this view."""
+
+        self._logger.info(
+            "Redirecting new-window request into the existing browser view: %s",
+            window_type.name,
+        )
+        return self
 
     @Slot()
     def _on_load_started(self) -> None:

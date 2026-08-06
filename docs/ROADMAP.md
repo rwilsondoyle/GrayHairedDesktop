@@ -55,7 +55,9 @@ Status: implementation complete; manual Zorin verification pending.
 - Added Back and Forward controls to the View menu and toolbar.
 - Added familiar keyboard shortcuts and clear user-facing tips.
 - Made Back and Forward availability follow the embedded browser's history.
+- Redirected new-window and new-tab link requests into the existing browser view so those navigations create usable browser history without adding application windows or tabs.
 - Preserved existing navigation, preferences, window persistence, status, About, and Exit behavior.
+- Alpha 0.4 remains pending manual verification of link navigation and Back/Forward behavior on the target Zorin systems.
 
 ## Near-term priorities after Alpha 0.4
 
