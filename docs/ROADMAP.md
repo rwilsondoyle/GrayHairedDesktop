@@ -66,7 +66,7 @@ Status: complete.
 Status: Implementation complete; manual Zorin verification pending.
 
 - Improved Preferences with plain-English help, clear controls, and readable spacing.
-- Added non-saving **Open Home Page** and confirmation-protected **Restore Default Home Page** actions.
+- Added non-saving **Preview Home Page in Browser** and confirmation-protected **Restore Default Home Page** actions.
 - Added friendly validation for complete HTTP and HTTPS addresses.
 - Ensured **Cancel** preserves the previously saved Home Page.
 - Preserved all Alpha 0.4 launch-page behavior.
