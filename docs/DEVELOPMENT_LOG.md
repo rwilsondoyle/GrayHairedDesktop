@@ -40,6 +40,13 @@ This log records project-level development milestones and verification notes. It
 - Kept the main window responsible for browser coordination, preferences, status updates, dialogs, and persistent window state.
 - Preserved the existing user-visible wording, layout, and behavior; this milestone adds no visible features.
 
+### Alpha 0.4 browser navigation
+
+- Added Back and Forward actions to the View menu and main toolbar.
+- Added familiar keyboard shortcuts, tooltips, and status tips for browser navigation.
+- Connected navigation availability to browser history so Back and Forward are disabled when no destination is available.
+- Preserved the existing Home, Reload, Preferences, About, Exit, window persistence, and status-message behavior.
+
 ## Zorin verification notes
 
 The project targets Zorin OS, so manual verification on real Zorin computers is part of the alpha process.

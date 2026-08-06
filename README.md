@@ -1,23 +1,23 @@
 # GrayHairedDesktop
 
-GrayHairedDesktop is the current repository name for an Alpha 0.3 native Python 3.12+ desktop application for Zorin OS. It uses PySide6 and QtWebEngine to display a configurable web-based desktop experience inside a native Qt main window. The public product name is provisional before Version 1.0.
+GrayHairedDesktop is the current repository name for an Alpha 0.4 native Python 3.12+ desktop application for Zorin OS. It uses PySide6 and QtWebEngine to display a configurable web-based desktop experience inside a native Qt main window. The public product name is provisional before Version 1.0.
 
 ## Naming
 
 GrayHairedDesktop is the current repository name, but the public product name is not final before Version 1.0. Possible future names include PersonalDesktop or MyDesktop; this documentation does not select one. Use neutral wording such as "the application" or "the desktop application" where practical. Ron Doyle and GrayHaired.Tech remain appropriate author/About attribution, but they should not be treated as required long-term product branding.
 
-## Alpha 0.3 features
+## Alpha 0.4 features
 
-- Native `QMainWindow` shell with the title `GrayDesk Alpha 0.3`
+- Native `QMainWindow` shell with the title `GrayDesk Alpha 0.4`
 - Embedded `QWebEngineView` browser surface
 - Configurable home page URL with the default `https://grayhaired.tech/desktop-c/`
 - Persistent preferences stored with `QSettings`
 - Preferences dialog with **OK**, **Cancel**, and **Restore Defaults** controls
 - File menu with **Exit**
-- View menu with **Home** and **Reload**
+- View menu with **Back**, **Forward**, **Home**, and **Reload**
 - Settings menu with **Preferences...**
 - Help menu with **About**
-- Toolbar actions for **Home**, **Reload**, and **Preferences**
+- Toolbar actions for **Back**, **Forward**, **Home**, **Reload**, and **Preferences**
 - Status bar states for **Loading...**, **Loaded**, **Failed**, and **Ready**
 - Structured logging for application startup, application shutdown, preference changes, page loading, finished loading, and load failures
 - Modular Python package layout
@@ -90,7 +90,7 @@ python -m grayhaired_desktop.app
 The project documentation lives in [`docs/`](docs/):
 
 - [`ARCHITECTURE.md`](docs/ARCHITECTURE.md) explains the current native shell architecture and module responsibilities.
-- [`ROADMAP.md`](docs/ROADMAP.md) describes the project vision and milestones through Alpha 0.3.1.
+- [`ROADMAP.md`](docs/ROADMAP.md) describes the project vision and milestones through Alpha 0.4.
 - [`DEVELOPMENT_LOG.md`](docs/DEVELOPMENT_LOG.md) records milestone history and Zorin verification status.
 - [`CHANGELOG.md`](docs/CHANGELOG.md) summarizes notable alpha changes.
 - [`PROJECT_PRINCIPLES.md`](docs/PROJECT_PRINCIPLES.md) captures the project principles for contributors.

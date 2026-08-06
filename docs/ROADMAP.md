@@ -10,7 +10,7 @@ The project vision is to provide a comfortable desktop entry point: a native win
 
 GrayHairedDesktop is the current repository name, but the public product name is not final before Version 1.0. Possible future names include PersonalDesktop or MyDesktop; this documentation does not select one. Use neutral wording such as "the application" or "the desktop application" where practical. Ron Doyle and GrayHaired.Tech remain appropriate author/About attribution, but they should not be treated as required long-term product branding.
 
-## Milestones through Alpha 0.3.1
+## Milestones through Alpha 0.4
 
 ### Alpha 0.1 — Project skeleton
 
@@ -48,7 +48,16 @@ Status: complete.
 - Completed manual setup and runtime verification on two physical Zorin systems: Primary Development System and Secondary Test System.
 - On both systems, successfully verified `git pull`, `scripts/setup-zorin.sh`, `scripts/update.sh`, `scripts/run.sh`, Application startup, Home, Reload, Preferences, About, and Exit.
 
-## Near-term priorities after Alpha 0.3.1
+### Alpha 0.4 — Browser navigation
+
+Status: implementation complete; manual Zorin verification pending.
+
+- Added Back and Forward controls to the View menu and toolbar.
+- Added familiar keyboard shortcuts and clear user-facing tips.
+- Made Back and Forward availability follow the embedded browser's history.
+- Preserved existing navigation, preferences, window persistence, status, About, and Exit behavior.
+
+## Near-term priorities after Alpha 0.4
 
 - Add lightweight Markdown/documentation checks to the development workflow.
 - Consider smoke-test coverage for importability and non-GUI helpers.
