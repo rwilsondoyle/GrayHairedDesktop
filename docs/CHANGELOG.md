@@ -6,15 +6,16 @@ All notable project changes should be summarized here. This project is currently
 
 ### Added
 
-- Added Back and Forward browser actions to the View menu and toolbar for the Alpha 0.4 navigation milestone.
-- Added keyboard shortcuts, user-facing navigation tips, and history-aware enabled states.
+- Added desktop launch-page handling that sends clicked links and new-window/new-tab requests to the operating system's default browser.
+- Added privacy-conscious destination logging and a clear status message when the default browser cannot open a link.
 
 ### Changed
 
-- Redirected links that request a new browser window or tab into the existing application browser so their navigation contributes to Back and Forward history.
-- Refactored the main-window UI code into focused action, menu, and toolbar modules without intentionally changing appearance or behavior.
+- The configured home page now remains inside the application when a link opens externally.
+- Removed Back and Forward actions, shortcuts, history state, menu entries, and toolbar controls.
+- The View menu now contains Home and Reload; the toolbar contains Home, Reload, and Preferences.
 
-Alpha 0.4 remains pending manual verification, including new-window link navigation and browser history behavior.
+The public product name is still undecided. Alpha 0.4 remains pending manual Zorin verification.
 
 ## Alpha 0.3.1 — Documentation foundation
 

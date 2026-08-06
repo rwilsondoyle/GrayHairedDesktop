@@ -40,13 +40,14 @@ This log records project-level development milestones and verification notes. It
 - Kept the main window responsible for browser coordination, preferences, status updates, dialogs, and persistent window state.
 - Preserved the existing user-visible wording, layout, and behavior; this milestone adds no visible features.
 
-### Alpha 0.4 browser navigation
+### Alpha 0.4 desktop launch page
 
-- Added Back and Forward actions to the View menu and main toolbar.
-- Added familiar keyboard shortcuts, tooltips, and status tips for browser navigation.
-- Connected navigation availability to browser history so Back and Forward are disabled when no destination is available.
-- Redirected web content's new-window and new-tab requests into the existing browser view so links using `target="_blank"`, `window.open()`, and Qt WebBrowser window types can navigate without creating another application window.
-- Preserved the existing Home, Reload, Preferences, About, Exit, window persistence, and status-message behavior.
+- Changed the embedded mini-browser into a desktop launch page.
+- Kept the configured home page displayed inside the application while ordinary links open in the operating system's default browser.
+- Covered ordinary clicks, `target="_blank"`, `window.open()`, and new-tab/new-window requests while preserving same-page fragment links.
+- Removed Back and Forward actions, shortcuts, toolbar/menu entries, and browser-history coordination.
+- Preserved Home, Reload, Preferences, About, Exit, window persistence, logging, and status-message behavior.
+- The public product name is still undecided.
 - Alpha 0.4 remains pending manual verification on the target Zorin systems.
 
 ## Zorin verification notes
