@@ -14,8 +14,6 @@ class ApplicationActions:
     """Actions shared by the application's menus and toolbar."""
 
     exit: QAction
-    back: QAction
-    forward: QAction
     home: QAction
     reload: QAction
     preferences: QAction
@@ -26,8 +24,6 @@ def create_actions(
     parent: QObject,
     *,
     close: Callable[[], object],
-    go_back: Callable[[], object],
-    go_forward: Callable[[], object],
     load_home: Callable[[], object],
     reload_page: Callable[[], object],
     show_preferences: Callable[[], object],
@@ -38,20 +34,6 @@ def create_actions(
     exit_action = QAction("Exit", parent)
     exit_action.setStatusTip("Close GrayHaired Desktop")
     exit_action.triggered.connect(close)
-
-    back_action = QAction("Back", parent)
-    back_action.setShortcut("Alt+Left")
-    back_action.setToolTip("Go back to the previous page")
-    back_action.setStatusTip("Go back to the previous page")
-    back_action.setEnabled(False)
-    back_action.triggered.connect(go_back)
-
-    forward_action = QAction("Forward", parent)
-    forward_action.setShortcut("Alt+Right")
-    forward_action.setToolTip("Go forward to the next page")
-    forward_action.setStatusTip("Go forward to the next page")
-    forward_action.setEnabled(False)
-    forward_action.triggered.connect(go_forward)
 
     home_action = QAction("Home", parent)
     home_action.setShortcut("Alt+Home")
@@ -76,8 +58,6 @@ def create_actions(
 
     return ApplicationActions(
         exit=exit_action,
-        back=back_action,
-        forward=forward_action,
         home=home_action,
         reload=reload_action,
         preferences=preferences_action,

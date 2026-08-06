@@ -1,6 +1,6 @@
 # GrayHairedDesktop
 
-GrayHairedDesktop is the current repository name for an Alpha 0.4 native Python 3.12+ desktop application for Zorin OS. It uses PySide6 and QtWebEngine to display a configurable web-based desktop experience inside a native Qt main window. The public product name is provisional before Version 1.0.
+GrayHairedDesktop is the current repository name for an Alpha 0.4 native Python 3.12+ desktop application for Zorin OS. It uses PySide6 and QtWebEngine as a desktop launch page: the configured home page stays inside the native Qt window, while clicked links open in the operating system's default browser. The public product name is still undecided before Version 1.0.
 
 ## Naming
 
@@ -9,15 +9,16 @@ GrayHairedDesktop is the current repository name, but the public product name is
 ## Alpha 0.4 features
 
 - Native `QMainWindow` shell with the title `GrayDesk Alpha 0.4`
-- Embedded `QWebEngineView` browser surface
+- Embedded `QWebEngineView` launch-page surface that keeps the configured home page in the application
+- Ordinary links, `target="_blank"` links, `window.open()`, and new-tab/new-window requests open in the operating system's configured default browser
 - Configurable home page URL with the default `https://grayhaired.tech/desktop-c/`
 - Persistent preferences stored with `QSettings`
 - Preferences dialog with **OK**, **Cancel**, and **Restore Defaults** controls
 - File menu with **Exit**
-- View menu with **Back**, **Forward**, **Home**, and **Reload**
+- View menu with **Home** and **Reload**
 - Settings menu with **Preferences...**
 - Help menu with **About**
-- Toolbar actions for **Back**, **Forward**, **Home**, **Reload**, and **Preferences**
+- Toolbar actions for **Home**, **Reload**, and **Preferences**
 - Status bar states for **Loading...**, **Loaded**, **Failed**, and **Ready**
 - Structured logging for application startup, application shutdown, preference changes, page loading, finished loading, and load failures
 - Modular Python package layout

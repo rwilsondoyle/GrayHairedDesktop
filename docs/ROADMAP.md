@@ -48,23 +48,24 @@ Status: complete.
 - Completed manual setup and runtime verification on two physical Zorin systems: Primary Development System and Secondary Test System.
 - On both systems, successfully verified `git pull`, `scripts/setup-zorin.sh`, `scripts/update.sh`, `scripts/run.sh`, Application startup, Home, Reload, Preferences, About, and Exit.
 
-### Alpha 0.4 — Browser navigation
+### Alpha 0.4 — Desktop launch page
 
 Status: implementation complete; manual Zorin verification pending.
 
-- Added Back and Forward controls to the View menu and toolbar.
-- Added familiar keyboard shortcuts and clear user-facing tips.
-- Made Back and Forward availability follow the embedded browser's history.
-- Redirected new-window and new-tab link requests into the existing browser view so those navigations create usable browser history without adding application windows or tabs.
-- Preserved existing navigation, preferences, window persistence, status, About, and Exit behavior.
-- Alpha 0.4 remains pending manual verification of link navigation and Back/Forward behavior on the target Zorin systems.
+- Established the product direction as a desktop launch page rather than an embedded mini-browser.
+- Kept the configured home page inside the application while clicked links open in the operating system's default browser.
+- Supported ordinary links, `target="_blank"`, `window.open()`, and new-tab/new-window requests.
+- Removed Back and Forward controls, shortcuts, and browser-history behavior.
+- Preserved Home, Reload, Preferences, window persistence, status, About, and Exit behavior.
+- The public product name is still undecided.
+- Alpha 0.4 remains pending manual verification of launch-page behavior on the target Zorin systems.
 
 ## Near-term priorities after Alpha 0.4
 
 - Add lightweight Markdown/documentation checks to the development workflow.
 - Consider smoke-test coverage for importability and non-GUI helpers.
 - Improve contributor setup notes as real Zorin installation feedback accumulates.
-- Keep native desktop features focused on shell responsibilities: launching, navigation, preferences, diagnostics, and platform integration.
+- Keep native desktop features focused on shell responsibilities: launching, preferences, diagnostics, and platform integration.
 
 ## Longer-term ideas
 

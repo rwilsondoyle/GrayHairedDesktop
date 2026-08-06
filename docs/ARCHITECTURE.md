@@ -1,6 +1,6 @@
 # Architecture
 
-GrayHairedDesktop is the current repository name for a small native Linux desktop shell. The Alpha 0.4 codebase is intentionally simple: Python starts a Qt application, a main window owns the desktop chrome, and an embedded QtWebEngine browser loads the configured web URL.
+GrayHairedDesktop is the current repository name for a small native Linux desktop shell. The Alpha 0.4 codebase is intentionally simple: Python starts a Qt application, a main window owns the desktop chrome, and an embedded QtWebEngine launch page loads and retains the configured home URL. Clicked destinations are handed to the operating system's default browser.
 
 ## Runtime stack
 
@@ -16,8 +16,8 @@ GrayHairedDesktop is the current repository name, but the public product name is
 ## Application flow
 
 1. `grayhaired_desktop.app` configures logging, creates `QApplication`, applies Qt application metadata, creates `QSettings`, and shows the main window.
-2. `grayhaired_desktop.ui.mainwindow.MainWindow` coordinates the browser, navigation-history state, status bar, preferences workflow, and persistent window geometry. Focused UI modules create its shared actions, menu bar, and toolbar.
-3. `grayhaired_desktop.browser.BrowserView` wraps `QWebEngineView`, stores the configured home URL, and logs page load events.
+2. `grayhaired_desktop.ui.mainwindow.MainWindow` coordinates the launch page, external-link status, preferences workflow, and persistent window geometry. Focused UI modules create its shared actions, menu bar, and toolbar.
+3. `grayhaired_desktop.browser.BrowserView` wraps `QWebEngineView`, stores the configured home URL, and uses a `QWebEnginePage` navigation policy plus `QDesktopServices` to open clicked links externally. Same-page fragment navigation remains embedded.
 4. `grayhaired_desktop.settings` loads and saves user preferences through `QSettings`.
 5. `grayhaired_desktop.ui.preferences.PreferencesDialog` lets the user edit or restore the home page URL without modifying source code.
 
@@ -26,14 +26,14 @@ GrayHairedDesktop is the current repository name, but the public product name is
 | Module | Responsibility |
 | --- | --- |
 | `app.py` | Application entry point, Qt application metadata, settings construction, main event loop. |
-| `browser.py` | Embedded browser widget and page-load logging hooks. |
+| `browser.py` | Embedded launch-page widget, external-link policy, and page-load logging hooks. |
 | `config.py` | Application metadata and `QSettings` factory. |
 | `logger.py` | Central logging configuration. |
 | `settings.py` | Default preference values and persistence helpers. |
-| `ui/actions.py` | Creates and connects the shared Back, Forward, Home, Reload, Preferences, About, and Exit actions. |
+| `ui/actions.py` | Creates and connects the shared Home, Reload, Preferences, About, and Exit actions. |
 | `ui/menus.py` | Populates the application menu bar from the shared actions. |
 | `ui/toolbar.py` | Builds the non-movable main toolbar from the shared actions. |
-| `ui/mainwindow.py` | Main desktop window coordination, browser-history action state, status messages, preferences and About dialogs, window state persistence. |
+| `ui/mainwindow.py` | Main desktop window coordination, external-link status messages, preferences and About dialogs, window state persistence. |
 | `ui/preferences.py` | Preferences dialog for the configurable home page URL. |
 | `scripts/setup-zorin.sh` | First-time Zorin/Ubuntu setup, system dependency checks, virtual environment creation, editable install. |
 | `scripts/run.sh` | Starts the installed app from the project virtual environment. |
@@ -49,6 +49,7 @@ The application uses Qt `QSettings` under the current author/About attribution m
 
 ## Current boundaries
 
+- The desktop launch page retains the configured home page in the application, while clicked links open in the operating system's default browser.
 - The application source code is a native shell only; the configured web destination can evolve as branding and product direction mature.
 - There is no local database, background service, or custom network protocol layer in the desktop app.
 - The app does not currently ship automated GUI tests. Manual Zorin verification remains important for each alpha milestone.
