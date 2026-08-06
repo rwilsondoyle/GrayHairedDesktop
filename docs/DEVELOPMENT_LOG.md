@@ -45,7 +45,9 @@ This log records project-level development milestones and verification notes. It
 - Added Back and Forward actions to the View menu and main toolbar.
 - Added familiar keyboard shortcuts, tooltips, and status tips for browser navigation.
 - Connected navigation availability to browser history so Back and Forward are disabled when no destination is available.
+- Redirected web content's new-window and new-tab requests into the existing browser view so links using `target="_blank"`, `window.open()`, and Qt WebBrowser window types can navigate without creating another application window.
 - Preserved the existing Home, Reload, Preferences, About, Exit, window persistence, and status-message behavior.
+- Alpha 0.4 remains pending manual verification on the target Zorin systems.
 
 ## Zorin verification notes
 

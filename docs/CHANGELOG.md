@@ -11,7 +11,10 @@ All notable project changes should be summarized here. This project is currently
 
 ### Changed
 
+- Redirected links that request a new browser window or tab into the existing application browser so their navigation contributes to Back and Forward history.
 - Refactored the main-window UI code into focused action, menu, and toolbar modules without intentionally changing appearance or behavior.
+
+Alpha 0.4 remains pending manual verification, including new-window link navigation and browser history behavior.
 
 ## Alpha 0.3.1 — Documentation foundation
 
