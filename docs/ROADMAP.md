@@ -10,7 +10,7 @@ The project vision is to provide a comfortable desktop entry point: a native win
 
 GrayHairedDesktop is the current repository name, but the public product name is not final before Version 1.0. Possible future names include PersonalDesktop or MyDesktop; this documentation does not select one. Use neutral wording such as "the application" or "the desktop application" where practical. Ron Doyle and GrayHaired.Tech remain appropriate author/About attribution, but they should not be treated as required long-term product branding.
 
-## Milestones through Alpha 0.4
+## Milestones through Alpha 0.5
 
 ### Alpha 0.1 — Project skeleton
 
@@ -61,7 +61,18 @@ Status: complete.
 - On both systems, successfully verified Application startup, Home page, Home, Reload, Preferences, About, Exit, external link launching, and that the Home page remains displayed after launching links.
 - The public product name is still undecided.
 
-## Near-term priorities after Alpha 0.4
+### Alpha 0.5 — Launch Page Personalization
+
+Status: Implementation complete; manual Zorin verification pending.
+
+- Improved Preferences with plain-English help, clear controls, and readable spacing.
+- Added non-saving **Open Home Page** and confirmation-protected **Restore Default Home Page** actions.
+- Added friendly validation for complete HTTP and HTTPS addresses.
+- Ensured **Cancel** preserves the previously saved Home Page.
+- Preserved all Alpha 0.4 launch-page behavior.
+- Deliberately added no widget system, dashboards, themes, accounts, or cloud synchronization.
+
+## Near-term priorities after Alpha 0.5
 
 - Add lightweight Markdown/documentation checks to the development workflow.
 - Consider smoke-test coverage for importability and non-GUI helpers.

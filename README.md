@@ -1,19 +1,21 @@
 # GrayHairedDesktop
 
-GrayHairedDesktop is the current repository name for an Alpha 0.4 native Python 3.12+ desktop application for Zorin OS. It uses PySide6 and QtWebEngine as a desktop launch page: the configured home page stays inside the native Qt window, while clicked links open in the operating system's default browser. The public product name is still undecided before Version 1.0.
+GrayHairedDesktop is the current repository name for an Alpha 0.5 native Python 3.12+ desktop application for Zorin OS. It uses PySide6 and QtWebEngine as a desktop launch page: the configured home page stays inside the native Qt window, while clicked links open in the operating system's default browser. The public product name is still undecided before Version 1.0.
 
 ## Naming
 
 GrayHairedDesktop is the current repository name, but the public product name is not final before Version 1.0. Possible future names include PersonalDesktop or MyDesktop; this documentation does not select one. Use neutral wording such as "the application" or "the desktop application" where practical. Ron Doyle and GrayHaired.Tech remain appropriate author/About attribution, but they should not be treated as required long-term product branding.
 
-## Alpha 0.4 features
+## Alpha 0.5 features
 
-- Native `QMainWindow` shell with the title `GrayDesk Alpha 0.4`
+- Native `QMainWindow` shell with the title `GrayDesk Alpha 0.5`
 - Embedded `QWebEngineView` launch-page surface that keeps the configured home page in the application
 - Ordinary links, `target="_blank"` links, `window.open()`, and new-tab/new-window requests open in the operating system's configured default browser
 - Configurable home page URL with the default `https://grayhaired.tech/desktop-c/`
 - Persistent preferences stored with `QSettings`
-- Preferences dialog with **OK**, **Cancel**, and **Restore Defaults** controls
+- Plain-English Preferences dialog with **Open Home Page**, **Restore Default Home Page**, **OK**, and **Cancel** controls
+- Friendly validation requiring a complete `http://` or `https://` Home Page address
+- Previewing or restoring an address never saves it until **OK** is selected; **Cancel** preserves the saved preference
 - File menu with **Exit**
 - View menu with **Home** and **Reload**
 - Settings menu with **Preferences...**
@@ -91,7 +93,7 @@ python -m grayhaired_desktop.app
 The project documentation lives in [`docs/`](docs/):
 
 - [`ARCHITECTURE.md`](docs/ARCHITECTURE.md) explains the current native shell architecture and module responsibilities.
-- [`ROADMAP.md`](docs/ROADMAP.md) describes the project vision and milestones through Alpha 0.4.
+- [`ROADMAP.md`](docs/ROADMAP.md) describes the project vision and milestones through Alpha 0.5.
 - [`DEVELOPMENT_LOG.md`](docs/DEVELOPMENT_LOG.md) records milestone history and Zorin verification status.
 - [`CHANGELOG.md`](docs/CHANGELOG.md) summarizes notable alpha changes.
 - [`PROJECT_PRINCIPLES.md`](docs/PROJECT_PRINCIPLES.md) captures the project principles for contributors.

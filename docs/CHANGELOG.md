@@ -2,6 +2,22 @@
 
 All notable project changes should be summarized here. This project is currently in alpha, so entries focus on practical milestones rather than formal release packaging.
 
+## Alpha 0.5 — Launch Page Personalization
+
+Status: Implementation complete; manual Zorin verification pending.
+
+### Added
+
+- Added **Open Home Page** for opening the currently entered address in the default browser without saving it or closing Preferences.
+- Added a confirmation-protected **Restore Default Home Page** action.
+- Added reusable validation for complete HTTP and HTTPS Home Page addresses and friendly error messages.
+
+### Changed
+
+- Improved the Preferences dialog with plain-English help, clearer labels, readable spacing, and keyboard-friendly ordering.
+- Selecting **OK** loads and saves a valid changed Home Page; selecting **Cancel** leaves the saved preference unchanged.
+- No widget system has been added yet.
+
 ## Alpha 0.4 — Desktop launch page
 
 Status: complete.
