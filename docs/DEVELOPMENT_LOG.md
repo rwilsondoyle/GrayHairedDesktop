@@ -58,8 +58,8 @@ The project targets Zorin OS, so manual verification on real Zorin computers is 
 
 | Physical Zorin system | Status | Verified workflow and behavior |
 | --- | --- | --- |
-| Primary Development System | Successful | Application startup; Home page; Home; Reload; Preferences; About; Exit; external link launching; Home page remaining displayed after launching links. |
-| Secondary Test System | Successful | Application startup; Home page; Home; Reload; Preferences; About; Exit; external link launching; Home page remaining displayed after launching links. |
+| Primary Development System | Successful | `git pull`; `scripts/setup-zorin.sh`; `scripts/update.sh`; `scripts/run.sh`; Application startup; Home page; Home; Reload; Preferences; About; Exit; external link launching; Home page remaining displayed after launching links. |
+| Secondary Test System | Successful | `git pull`; `scripts/setup-zorin.sh`; `scripts/update.sh`; `scripts/run.sh`; Application startup; Home page; Home; Reload; Preferences; About; Exit; external link launching; Home page remaining displayed after launching links. |
 
 These results record manual verification on exactly two physical Zorin systems. They do not represent automated GUI testing, completed Windows testing, or completed virtual-machine testing.
 
