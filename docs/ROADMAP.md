@@ -50,15 +50,16 @@ Status: complete.
 
 ### Alpha 0.4 — Desktop launch page
 
-Status: implementation complete; manual Zorin verification pending.
+Status: complete.
 
 - Established the product direction as a desktop launch page rather than an embedded mini-browser.
 - Kept the configured home page inside the application while clicked links open in the operating system's default browser.
 - Supported ordinary links, `target="_blank"`, `window.open()`, and new-tab/new-window requests.
 - Removed Back and Forward controls, shortcuts, and browser-history behavior.
 - Preserved Home, Reload, Preferences, window persistence, status, About, and Exit behavior.
+- Completed manual verification on both supported physical Zorin systems: Primary Development System and Secondary Test System.
+- On both systems, successfully verified Application startup, Home page, Home, Reload, Preferences, About, Exit, external link launching, and that the Home page remains displayed after launching links.
 - The public product name is still undecided.
-- Alpha 0.4 remains pending manual verification of launch-page behavior on the target Zorin systems.
 
 ## Near-term priorities after Alpha 0.4
 
