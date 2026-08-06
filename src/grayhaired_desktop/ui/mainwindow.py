@@ -29,7 +29,7 @@ class MainWindow(QMainWindow):
         self._preferences = load_preferences(settings)
         self._browser = BrowserView(self._preferences.home_page_url, logger, self)
 
-        self.setWindowTitle("GrayDesk Alpha 0.5")
+        self.setWindowTitle("GrayDesk Alpha 0.6")
         self.setMinimumSize(QSize(1024, 720))
         self.setCentralWidget(self._browser)
         self.setStatusBar(QStatusBar(self))
@@ -85,21 +85,18 @@ class MainWindow(QMainWindow):
             return
 
         updated_preferences = dialog.preferences
-        if updated_preferences == self._preferences:
-            return
-
         self._preferences = updated_preferences
         save_preferences(self._settings, self._preferences)
         self._browser.set_home_url(self._preferences.home_page_url)
         self._browser.load_home()
-        self._logger.info("Preferences changed")
+        self._logger.info("Settings saved")
 
     def _show_about_dialog(self) -> None:
         QMessageBox.about(
             self,
             "About GrayHaired Desktop",
             (
-                f"GrayDesk Alpha 0.5 ({self._metadata.version})\n\n"
+                f"GrayDesk Alpha 0.6 ({self._metadata.version})\n\n"
                 "A native PySide6 desktop shell for the GrayHaired Tech web experience."
             ),
         )

@@ -10,7 +10,7 @@ The project vision is to provide a comfortable desktop entry point: a native win
 
 GrayHairedDesktop is the current repository name, but the public product name is not final before Version 1.0. Possible future names include PersonalDesktop or MyDesktop; this documentation does not select one. Use neutral wording such as "the application" or "the desktop application" where practical. Ron Doyle and GrayHaired.Tech remain appropriate author/About attribution, but they should not be treated as required long-term product branding.
 
-## Milestones through Alpha 0.5
+## Alpha milestones
 
 ### Alpha 0.1 — Project skeleton
 
@@ -72,12 +72,33 @@ Status: Implementation complete; manual Zorin verification pending.
 - Preserved all Alpha 0.4 launch-page behavior.
 - Deliberately added no widget system, dashboards, themes, accounts, or cloud synchronization.
 
-## Near-term priorities after Alpha 0.5
+### Alpha 0.6 — Desktop Website Selection
+
+Status: Implementation complete; manual Zorin verification pending.
+
+- Replaced **Preferences** with clearer **Settings** wording.
+- Put **Another Website...** first and placed an alphabetical built-in list after a separator.
+- Enabled **Website Address** only for custom selections and sourced built-ins from one reusable configuration structure.
+- Ensured **Preview Website** does not save, **Save** applies the selection, and **Cancel** preserves the previous selection.
+- Added no widget system.
+
+## Near-term priorities after Alpha 0.6
 
 - Add lightweight Markdown/documentation checks to the development workflow.
 - Consider smoke-test coverage for importability and non-GUI helpers.
 - Improve contributor setup notes as real Zorin installation feedback accumulates.
 - Keep native desktop features focused on shell responsibilities: launching, preferences, diagnostics, and platform integration.
+
+### Alpha 0.9 — Usability and Accessibility Review
+
+Status: planned; not complete.
+
+- Review wording throughout the application.
+- Review keyboard navigation.
+- Review click-target sizes and spacing.
+- Review high-contrast and large-text needs.
+- Confirm consistent use of **Settings** terminology.
+- Conduct a senior-friendly usability pass before Version 1.0.
 
 ## Longer-term ideas
 

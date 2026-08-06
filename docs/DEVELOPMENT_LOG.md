@@ -64,6 +64,20 @@ Status: Implementation complete; manual Zorin verification pending.
 - Preserved the launch page, external links, Home, Reload, About, Exit, window state, status messages, and logging.
 - No widget system has been added yet.
 
+
+### Alpha 0.6 — Desktop Website Selection
+
+Status: Implementation complete; manual Zorin verification pending.
+
+- Replaced user-visible **Preferences** wording with **Settings**.
+- Added **Another Website...** first and a separated, alphabetical built-in list: Bing, DuckDuckGo, Google, MSN, and Yahoo.
+- Populated built-in choices from one reusable immutable display-name/address configuration structure.
+- Enabled **Website Address** only for **Another Website...** and retained custom values when appropriate.
+- Made **Preview Website** non-saving and non-destructive to the embedded page.
+- Made **Save** validate custom choices and immediately apply them; **Cancel** preserves the previous selection and page.
+- Preserved Alpha 0.5 navigation, external-link, persistence, status, logging, and script behavior.
+- No widget system has been added.
+
 ## Zorin verification notes
 
 The project targets Zorin OS, so manual verification on real Zorin computers is part of the alpha process.

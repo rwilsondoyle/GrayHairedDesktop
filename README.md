@@ -1,31 +1,25 @@
 # GrayHairedDesktop
 
-GrayHairedDesktop is the current repository name for an Alpha 0.5 native Python 3.12+ desktop application for Zorin OS. It uses PySide6 and QtWebEngine as a desktop launch page: the configured home page stays inside the native Qt window, while clicked links open in the operating system's default browser. The public product name is still undecided before Version 1.0.
+GrayHairedDesktop is the current repository name for an Alpha 0.6 native Python 3.12+ desktop application for Zorin OS. It uses PySide6 and QtWebEngine as a desktop launch page: the configured home page stays inside the native Qt window, while clicked links open in the operating system's default browser. The public product name is still undecided before Version 1.0.
 
 ## Naming
 
 GrayHairedDesktop is the current repository name, but the public product name is not final before Version 1.0. Possible future names include PersonalDesktop or MyDesktop; this documentation does not select one. Use neutral wording such as "the application" or "the desktop application" where practical. Ron Doyle and GrayHaired.Tech remain appropriate author/About attribution, but they should not be treated as required long-term product branding.
 
-## Alpha 0.5 features
+## Alpha 0.6 features
 
-- Native `QMainWindow` shell with the title `GrayDesk Alpha 0.5`
-- Embedded `QWebEngineView` launch-page surface that keeps the configured home page in the application
-- Ordinary links, `target="_blank"` links, `window.open()`, and new-tab/new-window requests open in the operating system's configured default browser
-- Configurable Home Page address with the default `https://grayhaired.tech/desktop-c/`
-- Persistent preferences stored with `QSettings`
-- Plain-English Preferences dialog with **Preview Home Page in Browser**, **Restore Default Home Page**, **OK**, and **Cancel** controls
-- Friendly validation requiring a complete `http://` or `https://` Home Page address
-- Previewing or restoring an address never saves it until **OK** is selected; **Cancel** preserves the saved preference
-- File menu with **Exit**
-- View menu with **Home** and **Reload**
-- Settings menu with **Preferences...**
-- Help menu with **About**
-- Toolbar actions for **Home**, **Reload**, and **Preferences**
-- Status bar states for **Loading...**, **Loaded**, **Failed**, and **Ready**
-- Structured logging for application startup, application shutdown, preference changes, page loading, finished loading, and load failures
-- Modular Python package layout
-- Application metadata configured for Qt
-- Persistent window geometry via `QSettings`
+- Native `QMainWindow` shell with the title `GrayDesk Alpha 0.6`
+- Embedded `QWebEngineView` that keeps the selected Desktop Website in the application
+- Ordinary links and new-window requests open in the operating system's default browser
+- **Settings** screen with **Another Website...** first, followed by Bing, DuckDuckGo, Google, MSN, and Yahoo in alphabetical order
+- Reusable built-in website configuration containing display names and addresses
+- Custom **Website Address** editing, enabled only for **Another Website...**, with complete HTTP/HTTPS address validation
+- **Preview Website** opens the current selection externally without saving or changing the embedded page
+- **Save** applies and loads the selection; **Cancel** preserves both saved settings and the displayed page
+- Persistent settings and window geometry through `QSettings`
+- Home, Reload, Settings, About, and Exit actions, status messages, and structured logging
+- Zorin setup, update, and run helper scripts
+- No widget system, dashboards, themes, accounts, or cloud synchronization
 
 ## Requirements
 
@@ -93,10 +87,11 @@ python -m grayhaired_desktop.app
 The project documentation lives in [`docs/`](docs/):
 
 - [`ARCHITECTURE.md`](docs/ARCHITECTURE.md) explains the current native shell architecture and module responsibilities.
-- [`ROADMAP.md`](docs/ROADMAP.md) describes the project vision and milestones through Alpha 0.5.
+- [`ROADMAP.md`](docs/ROADMAP.md) describes the project vision and planned milestones.
 - [`DEVELOPMENT_LOG.md`](docs/DEVELOPMENT_LOG.md) records milestone history and Zorin verification status.
 - [`CHANGELOG.md`](docs/CHANGELOG.md) summarizes notable alpha changes.
 - [`PROJECT_PRINCIPLES.md`](docs/PROJECT_PRINCIPLES.md) captures the project principles for contributors.
+- [`UI_GUIDELINES.md`](docs/UI_GUIDELINES.md) defines practical rules for clear, approachable interfaces.
 
 ## Project structure
 
