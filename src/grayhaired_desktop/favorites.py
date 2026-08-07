@@ -15,7 +15,15 @@ class Favorite:
 
 
 PLACEHOLDER_FAVORITES = tuple(
-    Favorite(title=f"Favorite {number}", website_address="")
-    for number in range(1, 9)
+    Favorite(title=title, website_address="", icon_placeholder=icon)
+    for title, icon in (
+        ("Email", "✉"),
+        ("Weather", "☀"),
+        ("News", "▤"),
+        ("YouTube", "▶"),
+        ("Facebook", "☺"),
+        ("Shopping", "🛒"),
+        ("Family", "♥"),
+        ("Add Favorite", "+"),
+    )
 )
-

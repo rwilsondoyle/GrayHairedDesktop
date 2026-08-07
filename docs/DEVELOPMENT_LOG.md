@@ -83,11 +83,11 @@ Status: Implementation complete; manual Zorin verification pending.
 Status: Implementation complete; manual verification pending.
 
 - Added a permanent **Favorites** heading and panel below the Desktop Website display.
-- Added eight equal, compact launcher tiles that remain aligned and reflow naturally as the window is resized while leaving the Desktop Website dominant.
+- Added eight compact graphical launcher entries with local symbols and readable sample labels that remain aligned and reflow naturally while leaving the Desktop Website dominant.
 - Added a reusable Favorite model with title, website address, and icon-placeholder fields; persistence will come later.
-- Made every placeholder tile display **Favorites will be available in a future update.** through the existing status bar.
+- Used the existing status bar for sample Favorite and **Add Favorite** future-update messages.
 - Preserved Desktop Website, Settings, Menu, Toolbar, Home, Reload, About, Exit, and all other Alpha 0.6 behavior.
-- Deferred editing, deleting, launching, dialogs, drag and drop, icons, and context menus.
+- Deferred editing, deleting, launching, dialogs, drag and drop, remote website artwork, and context menus.
 
 ## Zorin verification notes
 

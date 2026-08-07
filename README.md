@@ -18,8 +18,8 @@ GrayHairedDesktop is the current repository name, but the public product name is
 - **Save** applies and loads the selection; **Cancel** preserves both saved settings and the displayed page
 - Persistent settings and window geometry through `QSettings`
 - Home, Reload, Settings, About, and Exit actions, status messages, and structured logging
-- Compact **Favorites** launcher with eight easy-to-click placeholder tiles in a responsive grid
-- Reusable Favorite data model ready for future website and icon data; editing, deleting, launching, persistence, and icons are intentionally deferred
+- Compact graphical **Favorites** launcher with eight icon-and-label sample entries in a responsive grid
+- Reusable Favorite data model ready for future website and icon data; editing, deleting, launching, persistence, and remote website artwork are intentionally deferred
 - Zorin setup, update, and run helper scripts
 - No widget system, dashboards, themes, accounts, or cloud synchronization
 

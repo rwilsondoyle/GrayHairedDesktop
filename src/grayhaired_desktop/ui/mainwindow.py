@@ -39,7 +39,10 @@ class MainWindow(QMainWindow):
         desktop_layout.setSpacing(16)
         desktop_layout.addWidget(self._browser, 1)
         self._favorites = FavoritesPanel(
-            PLACEHOLDER_FAVORITES, self._show_favorites_placeholder, desktop
+            PLACEHOLDER_FAVORITES,
+            self._show_favorites_placeholder,
+            self._show_add_favorite_placeholder,
+            desktop,
         )
         desktop_layout.addWidget(self._favorites)
         self.setCentralWidget(desktop)
@@ -115,6 +118,11 @@ class MainWindow(QMainWindow):
     def _show_favorites_placeholder(self) -> None:
         self.statusBar().showMessage(
             "Favorites will be available in a future update.", 5000
+        )
+
+    def _show_add_favorite_placeholder(self) -> None:
+        self.statusBar().showMessage(
+            "Favorite selection will be available in a future update.", 5000
         )
 
     def _restore_window_state(self) -> None:
