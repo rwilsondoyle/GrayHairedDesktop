@@ -9,6 +9,9 @@ from PySide6.QtCore import QSettings
 
 DEFAULT_HOME_PAGE_URL = "https://grayhaired.tech/desktop-c/"
 HOME_PAGE_URL_KEY = "preferences/homePageUrl"
+SHORTCUT_THEME_KEY = "preferences/shortcutTheme"
+DEFAULT_SHORTCUT_THEME = "system"
+VALID_SHORTCUT_THEMES = {"system", "light", "dark"}
 
 
 @dataclass(frozen=True, slots=True)
@@ -61,17 +64,27 @@ class UserPreferences:
     """User-editable application preferences."""
 
     home_page_url: str = DEFAULT_HOME_PAGE_URL
+    shortcut_theme: str = DEFAULT_SHORTCUT_THEME
 
 
 def load_preferences(settings: QSettings) -> UserPreferences:
     """Load user preferences from persistent settings."""
 
     home_page_url = settings.value(HOME_PAGE_URL_KEY, DEFAULT_HOME_PAGE_URL, str)
-    return UserPreferences(home_page_url=home_page_url or DEFAULT_HOME_PAGE_URL)
+    shortcut_theme = settings.value(
+        SHORTCUT_THEME_KEY, DEFAULT_SHORTCUT_THEME, str
+    ).lower()
+    if shortcut_theme not in VALID_SHORTCUT_THEMES:
+        shortcut_theme = DEFAULT_SHORTCUT_THEME
+    return UserPreferences(
+        home_page_url=home_page_url or DEFAULT_HOME_PAGE_URL,
+        shortcut_theme=shortcut_theme,
+    )
 
 
 def save_preferences(settings: QSettings, preferences: UserPreferences) -> None:
     """Persist user preferences."""
 
     settings.setValue(HOME_PAGE_URL_KEY, preferences.home_page_url)
+    settings.setValue(SHORTCUT_THEME_KEY, preferences.shortcut_theme)
     settings.sync()
