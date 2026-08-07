@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from PySide6.QtCore import QUrl
 from PySide6.QtWidgets import (
     QComboBox,
     QDialog,
@@ -16,13 +15,24 @@ from PySide6.QtWidgets import (
 )
 
 from grayhaired_desktop.favorites import Favorite
+from grayhaired_desktop.settings import is_valid_home_page_url
 
 ICON_CHOICES = (
-    ("Generic Website", "★"), ("Email", "✉"), ("Weather", "☀"),
-    ("News", "▤"), ("Video", "▶"), ("Shopping", "🛒"),
-    ("Social", "☺"), ("Family", "♥"), ("Bank", "$"),
-    ("Medical", "+"), ("Church", "✝"), ("Travel", "✈"),
-    ("Music", "♪"), ("Photos", "◉"), ("Home", "⌂"),
+    ("Generic Website", "★"),
+    ("Email", "✉"),
+    ("Weather", "☀"),
+    ("News", "▤"),
+    ("Video", "▶"),
+    ("Shopping", "🛒"),
+    ("Social", "☺"),
+    ("Family", "♥"),
+    ("Bank", "$"),
+    ("Medical", "+"),
+    ("Church", "✝"),
+    ("Travel", "✈"),
+    ("Music", "♪"),
+    ("Photos", "◉"),
+    ("Home", "⌂"),
 )
 
 
@@ -68,17 +78,23 @@ class FavoriteDialog(QDialog):
 
     def _validate_and_accept(self) -> None:
         if not self._name.text().strip():
-            QMessageBox.warning(self, "Name Required", "Please enter a name for this shortcut.")
+            QMessageBox.warning(
+                self,
+                "Name Required",
+                "Please enter a name for this shortcut.",
+            )
             self._name.setFocus()
             return
+
         address = self._address.text().strip()
-        url = QUrl(address)
-        if url.scheme().lower() not in {"http", "https"} or not url.host():
+        if not is_valid_home_page_url(address):
             QMessageBox.warning(
                 self,
                 "Website Address Required",
-                "Please enter a complete website address beginning with\nhttp:// or https://",
+                "Please enter a complete website address beginning with\n"
+                "http:// or https://",
             )
             self._address.setFocus()
+            self._address.selectAll()
             return
         self.accept()
