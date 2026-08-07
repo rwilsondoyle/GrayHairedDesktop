@@ -37,11 +37,11 @@ class MainWindow(QMainWindow):
         desktop_layout = QVBoxLayout(desktop)
         desktop_layout.setContentsMargins(16, 16, 16, 16)
         desktop_layout.setSpacing(16)
-        desktop_layout.addWidget(self._browser, 3)
+        desktop_layout.addWidget(self._browser, 1)
         self._favorites = FavoritesPanel(
             PLACEHOLDER_FAVORITES, self._show_favorites_placeholder, desktop
         )
-        desktop_layout.addWidget(self._favorites, 2)
+        desktop_layout.addWidget(self._favorites)
         self.setCentralWidget(desktop)
         self.setStatusBar(QStatusBar(self))
         self.statusBar().showMessage("Ready")

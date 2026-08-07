@@ -87,7 +87,7 @@ Status: Implementation complete; manual Zorin verification pending.
 Status: Implementation complete; manual verification pending.
 
 - Added the permanent **Favorites** area below the Desktop Website display.
-- Added eight large placeholder tiles in a responsive grid with comfortable spacing and readable labels.
+- Added eight compact launcher tiles in a responsive grid with comfortable spacing and readable labels, leaving most vertical space for the Desktop Website.
 - Established a reusable Favorite model containing a title, website address, and icon placeholder.
 - Used the existing status-message mechanism to explain that Favorites will be available in a future update when a tile is clicked.
 - Preserved all Alpha 0.6 desktop environment behavior.

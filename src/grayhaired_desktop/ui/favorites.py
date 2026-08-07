@@ -18,7 +18,7 @@ from grayhaired_desktop.favorites import Favorite
 
 
 class FavoritesPanel(QGroupBox):
-    """Display favorites as large tiles that reflow with the available width."""
+    """Display favorites as compact tiles that reflow with the available width."""
 
     _MINIMUM_TILE_WIDTH = 180
 
@@ -32,9 +32,10 @@ class FavoritesPanel(QGroupBox):
         self._column_count = 0
         self._row_count = 0
         self._tiles: list[QPushButton] = []
+        self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
 
         panel_layout = QVBoxLayout(self)
-        panel_layout.setContentsMargins(16, 20, 16, 16)
+        panel_layout.setContentsMargins(12, 16, 12, 12)
         self._grid_container = QWidget(self)
         self._grid = QGridLayout(self._grid_container)
         self._grid.setContentsMargins(0, 0, 0, 0)
@@ -45,9 +46,9 @@ class FavoritesPanel(QGroupBox):
         for favorite in favorites:
             tile = QPushButton(favorite.title, self._grid_container)
             tile.setCursor(Qt.CursorShape.PointingHandCursor)
-            tile.setMinimumHeight(88)
+            tile.setMinimumHeight(52)
             tile.setSizePolicy(
-                QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding
+                QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed
             )
             tile.setProperty("favoriteTile", True)
             tile.clicked.connect(selected)
@@ -61,7 +62,7 @@ class FavoritesPanel(QGroupBox):
                 border-radius: 12px;
                 font-size: 16px;
                 font-weight: 600;
-                padding: 16px;
+                padding: 8px 12px;
             }
             QPushButton[favoriteTile="true"]:hover {
                 border: 2px solid palette(highlight);

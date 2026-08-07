@@ -9,7 +9,7 @@ Status: Implementation complete; manual verification pending.
 ### Added
 
 - Added a permanent **Favorites** panel below the Desktop Website display.
-- Added eight large placeholder tiles in a responsive, evenly spaced grid.
+- Added eight compact, easy-to-click placeholder tiles in a responsive, evenly spaced launcher grid.
 - Added a reusable immutable Favorite model containing a title, website address, and icon placeholder.
 - Clicking any placeholder tile displays the existing status-message text: **Favorites will be available in a future update.**
 
