@@ -9,7 +9,7 @@ Status: Implementation complete; manual verification pending.
 ### Added
 
 - Added a compact, wrapping shortcut launcher below the Desktop Website with no visible Favorites heading.
-- Added direct **+ Add Shortcut**, **Edit Shortcut**, and confirmation-protected **Remove Shortcut** actions.
+- Added **+ Add Shortcut** plus a right-click menu for **Edit Shortcut** and confirmation-protected **Remove Shortcut**; normal Qt hover help explains how to edit without a permanent edit control.
 - Added persistent ordered shortcuts using `QSettings`, including support for multiple shortcuts of the same type.
 
 ### Changed

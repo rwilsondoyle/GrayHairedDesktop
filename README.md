@@ -24,7 +24,7 @@ GrayHairedDesktop is the current repository name, but the public product name is
 ### Customizable Desktop Shortcuts
 
 - A compact, wrapping shortcut launcher sits below the Desktop Website with no visible Favorites heading.
-- **+ Add Shortcut**, **Edit Shortcut**, and **Remove Shortcut** provide direct, plain-language customization.
+- **+ Add Shortcut** is always visible; hovering gives short right-click help, and the shortcut menu provides **Edit Shortcut** and **Remove Shortcut** without a permanent edit icon.
 - Multiple shortcuts of the same type are allowed, and the complete ordered list persists through `QSettings`.
 - Shortcuts open externally in the operating system's default web application; the Desktop Website remains unchanged and dominant.
 

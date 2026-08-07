@@ -87,7 +87,7 @@ Status: Implementation complete; manual Zorin verification pending.
 Status: Implementation complete; manual verification pending.
 
 - Added a compact, naturally wrapping shortcut launcher below the dominant Desktop Website, without a visible Favorites heading.
-- Added **+ Add Shortcut**, **Edit Shortcut**, and confirmation-protected **Remove Shortcut** controls directly in the launcher.
+- Added **+ Add Shortcut**, concise hover help, and a right-click menu for **Edit Shortcut** and confirmation-protected **Remove Shortcut**, without permanent edit buttons.
 - Allowed multiple shortcuts of the same type and persisted the complete ordered list with `QSettings`.
 - Opened every shortcut externally while leaving the Desktop Website unchanged.
 

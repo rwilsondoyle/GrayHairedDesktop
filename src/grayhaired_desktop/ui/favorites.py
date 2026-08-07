@@ -4,8 +4,13 @@ from __future__ import annotations
 
 from PySide6.QtCore import QPoint, QRect, QSize, Qt
 from PySide6.QtWidgets import (
-    QDialog, QHBoxLayout, QLayout, QMenu, QMessageBox, QPushButton,
-    QSizePolicy, QToolButton, QWidget,
+    QDialog,
+    QLayout,
+    QMenu,
+    QMessageBox,
+    QPushButton,
+    QSizePolicy,
+    QWidget,
 )
 
 from grayhaired_desktop.favorites import load_favorites, save_favorites
@@ -78,12 +83,11 @@ class FavoritesWidget(QWidget):
     """Editable desktop shortcuts without a visible section heading."""
 
     STYLE = """
-        QPushButton, QToolButton { font-size: 14px; min-height: 36px; padding: 0 9px;
+        QPushButton { font-size: 14px; min-height: 36px; padding: 0 9px;
           border: 1px solid #8b929a; border-radius: 7px; background: #f6f7f8; color: #202124; }
-        QPushButton:hover, QToolButton:hover { background: #e4edf7; border-color: #4778a8; }
-        QPushButton:pressed, QToolButton:pressed { background: #cddceb; }
-        QPushButton:focus, QToolButton:focus { border: 2px solid #155ea8; }
-        QToolButton { padding: 0 7px; }
+        QPushButton:hover { background: #e4edf7; border-color: #4778a8; }
+        QPushButton:pressed { background: #cddceb; }
+        QPushButton:focus { border: 2px solid #155ea8; }
     """
 
     def __init__(self, settings, open_external, parent=None) -> None:
@@ -101,31 +105,28 @@ class FavoritesWidget(QWidget):
             item = self._flow.takeAt(0)
             item.widget().deleteLater()
         for index, favorite in enumerate(self._favorites):
-            group = QWidget()
-            row = QHBoxLayout(group)
-            row.setContentsMargins(0, 0, 0, 0)
-            row.setSpacing(2)
             shortcut = QPushButton(f"{favorite.icon_placeholder or '★'}  {favorite.title}")
-            shortcut.setToolTip(f"Open {favorite.title}")
+            shortcut.setToolTip("Right-click to edit this shortcut")
+            shortcut.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
             shortcut.clicked.connect(
                 lambda checked=False, url=favorite.website_address: self._open_external(url)
             )
-            menu_button = QToolButton()
-            menu_button.setText("⋮")
-            menu_button.setToolTip(f"Edit or remove {favorite.title} shortcut")
-            menu_button.setAccessibleName(f"Shortcut options for {favorite.title}")
-            menu = QMenu(menu_button)
-            menu.addAction("Edit Shortcut", lambda checked=False, i=index: self._edit(i))
-            menu.addAction("Remove Shortcut", lambda checked=False, i=index: self._remove(i))
-            menu_button.setMenu(menu)
-            menu_button.setPopupMode(QToolButton.ToolButtonPopupMode.InstantPopup)
-            row.addWidget(shortcut)
-            row.addWidget(menu_button)
-            self._flow.addWidget(group)
+            shortcut.customContextMenuRequested.connect(
+                lambda position, i=index, button=shortcut: self._show_menu(
+                    i, button, position
+                )
+            )
+            self._flow.addWidget(shortcut)
         add = QPushButton("+ Add Shortcut")
         add.clicked.connect(self._add)
         self._flow.addWidget(add)
         self.updateGeometry()
+
+    def _show_menu(self, index: int, shortcut: QPushButton, position: QPoint) -> None:
+        menu = QMenu(shortcut)
+        menu.addAction("Edit Shortcut", lambda: self._edit(index))
+        menu.addAction("Remove Shortcut", lambda: self._remove(index))
+        menu.exec(shortcut.mapToGlobal(position))
 
     def _add(self) -> None:
         dialog = FavoriteDialog(parent=self)
