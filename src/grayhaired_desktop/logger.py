@@ -31,18 +31,21 @@ def configure_logging(level: int = logging.INFO) -> logging.Logger:
         stream_handler.setFormatter(formatter)
         logger.addHandler(stream_handler)
 
+    logger.propagate = False
     path = log_file_path()
-    path.parent.mkdir(parents=True, exist_ok=True)
     if not any(
         isinstance(handler, RotatingFileHandler)
         and Path(handler.baseFilename) == path
         for handler in logger.handlers
     ):
-        file_handler = RotatingFileHandler(
-            path, maxBytes=1024 * 1024, backupCount=3, encoding="utf-8"
-        )
-        file_handler.setFormatter(formatter)
-        logger.addHandler(file_handler)
+        try:
+            path.parent.mkdir(parents=True, exist_ok=True)
+            file_handler = RotatingFileHandler(
+                path, maxBytes=1024 * 1024, backupCount=3, encoding="utf-8"
+            )
+            file_handler.setFormatter(formatter)
+            logger.addHandler(file_handler)
+        except OSError as error:
+            logger.warning("Persistent log file could not be enabled: %s", error)
 
-    logger.propagate = False
     return logger
