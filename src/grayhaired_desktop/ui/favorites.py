@@ -167,10 +167,13 @@ class FavoritesWidget(QWidget):
                 second_width = self._remove_width(second_width, moved_width)
                 overflow.insert(0, moved)
             more_button.clicked.connect(
-                lambda checked=False, button=more_button, items=list(overflow):
-                self._show_more_menu(button, items)
+                lambda checked=False, button=more_button, items=list(overflow): (
+                    self._show_more_menu(button, items)
+                )
             )
             second_row.append((-2, more_button))
+            for _, hidden_button in overflow:
+                hidden_button.hide()
 
         self._add_centered_row(first_row)
         if second_row:
@@ -208,9 +211,7 @@ class FavoritesWidget(QWidget):
         )
         button.setMaximumWidth(self._MAX_BUTTON_WIDTH)
         button.setAccessibleName(favorite.title)
-        button.setToolTip(
-            f"{favorite.title}\nRight-click to edit this shortcut"
-        )
+        button.setToolTip(f"{favorite.title}\nRight-click to edit this shortcut")
         button.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         button.clicked.connect(
             lambda checked=False, url=favorite.website_address: self._open_external(url)
@@ -243,8 +244,9 @@ class FavoritesWidget(QWidget):
             )
             submenu.addAction(
                 "Open",
-                lambda checked=False, url=favorite.website_address:
-                self._open_external(url),
+                lambda checked=False, url=favorite.website_address: (
+                    self._open_external(url)
+                ),
             )
             submenu.addAction(
                 "Edit Shortcut",
