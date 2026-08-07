@@ -9,15 +9,16 @@ Status: Implementation complete; manual verification pending.
 ### Added
 
 - Added a permanent **Favorites** panel below the Desktop Website display.
-- Added eight compact, easy-to-click graphical launcher entries with local symbols and readable sample labels.
+- Added eight compact, content-sized graphical launcher entries with local symbols and readable labels.
 - Added a reusable immutable Favorite model containing a title, website address, and icon placeholder.
-- Clicking a sample Favorite displays the existing future-update status message; **Add Favorite** displays a selection-specific future-update message.
+- Seven temporary sample destinations open in the operating system's default web application for manual testing without changing the Desktop Website; they are not final defaults.
+- **Add Favorite** continues to display a selection-specific future-update status message.
 
 ### Changed
 
 - Updated application version identifiers to `0.7.0a0` and Alpha 0.7 user-visible wording.
 - Preserved Desktop Website, Settings, Menu, Toolbar, Home, Reload, About, and Exit behavior.
-- Favorite editing, deletion, launching, persistence, dialogs, drag and drop, remote website artwork, and context menus remain intentionally deferred.
+- Favorite customization, editing, deletion, persistence, dialogs, drag and drop, remote website artwork, and context menus remain intentionally deferred.
 
 ## Alpha 0.6 — Desktop Website Selection
 

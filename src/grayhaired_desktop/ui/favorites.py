@@ -20,12 +20,12 @@ from grayhaired_desktop.favorites import Favorite
 class FavoritesPanel(QGroupBox):
     """Display favorites as compact tiles that reflow with the available width."""
 
-    _MINIMUM_TILE_WIDTH = 112
+    _MINIMUM_TILE_WIDTH = 106
 
     def __init__(
         self,
         favorites: Sequence[Favorite],
-        selected: Callable[[], None],
+        selected: Callable[[Favorite], None],
         add_selected: Callable[[], None],
         parent: QWidget | None = None,
     ) -> None:
@@ -36,12 +36,13 @@ class FavoritesPanel(QGroupBox):
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
 
         panel_layout = QVBoxLayout(self)
-        panel_layout.setContentsMargins(10, 14, 10, 10)
+        panel_layout.setContentsMargins(8, 12, 8, 8)
         self._grid_container = QWidget(self)
         self._grid = QGridLayout(self._grid_container)
         self._grid.setContentsMargins(0, 0, 0, 0)
-        self._grid.setHorizontalSpacing(8)
-        self._grid.setVerticalSpacing(8)
+        self._grid.setHorizontalSpacing(6)
+        self._grid.setVerticalSpacing(6)
+        self._grid.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)
         panel_layout.addWidget(self._grid_container)
 
         for favorite in favorites:
@@ -51,16 +52,18 @@ class FavoritesPanel(QGroupBox):
             tile = QPushButton(label, self._grid_container)
             tile.setAccessibleName(favorite.title)
             tile.setCursor(Qt.CursorShape.PointingHandCursor)
-            tile.setMinimumHeight(44)
+            tile.setFixedHeight(36)
             tile.setSizePolicy(
-                QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed
+                QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed
             )
             tile.setProperty("favoriteTile", True)
             if favorite.title == "Add Favorite":
                 tile.clicked.connect(add_selected)
                 tile.setProperty("addFavoriteTile", True)
             else:
-                tile.clicked.connect(selected)
+                tile.clicked.connect(
+                    lambda _checked=False, favorite=favorite: selected(favorite)
+                )
             self._tiles.append(tile)
 
         self.setStyleSheet(
@@ -69,9 +72,9 @@ class FavoritesPanel(QGroupBox):
                 background-color: palette(button);
                 border: 1px solid palette(mid);
                 border-radius: 12px;
-                font-size: 15px;
+                font-size: 14px;
                 font-weight: 600;
-                padding: 6px 10px;
+                padding: 3px 8px;
             }
             QPushButton[favoriteTile="true"]:hover {
                 border: 2px solid palette(highlight);
@@ -118,10 +121,10 @@ class FavoritesPanel(QGroupBox):
         for column in range(previous_column_count):
             self._grid.setColumnStretch(column, 0)
         for column in range(column_count):
-            self._grid.setColumnStretch(column, 1)
+            self._grid.setColumnStretch(column, 0)
         for row in range(self._row_count):
             self._grid.setRowStretch(row, 0)
 
         self._row_count = (len(self._tiles) + column_count - 1) // column_count
         for row in range(self._row_count):
-            self._grid.setRowStretch(row, 1)
+            self._grid.setRowStretch(row, 0)

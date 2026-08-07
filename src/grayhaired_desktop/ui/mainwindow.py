@@ -9,7 +9,7 @@ from PySide6.QtWidgets import QMainWindow, QMessageBox, QStatusBar, QVBoxLayout,
 
 from grayhaired_desktop.browser import BrowserView
 from grayhaired_desktop.config import AppMetadata
-from grayhaired_desktop.favorites import PLACEHOLDER_FAVORITES
+from grayhaired_desktop.favorites import Favorite, PLACEHOLDER_FAVORITES
 from grayhaired_desktop.settings import load_preferences, save_preferences
 from grayhaired_desktop.ui.actions import create_actions
 from grayhaired_desktop.ui.favorites import FavoritesPanel
@@ -40,7 +40,7 @@ class MainWindow(QMainWindow):
         desktop_layout.addWidget(self._browser, 1)
         self._favorites = FavoritesPanel(
             PLACEHOLDER_FAVORITES,
-            self._show_favorites_placeholder,
+            self._open_favorite,
             self._show_add_favorite_placeholder,
             desktop,
         )
@@ -115,10 +115,8 @@ class MainWindow(QMainWindow):
             ),
         )
 
-    def _show_favorites_placeholder(self) -> None:
-        self.statusBar().showMessage(
-            "Favorites will be available in a future update.", 5000
-        )
+    def _open_favorite(self, favorite: Favorite) -> None:
+        self._browser.open_external(favorite.website_address)
 
     def _show_add_favorite_placeholder(self) -> None:
         self.statusBar().showMessage(
