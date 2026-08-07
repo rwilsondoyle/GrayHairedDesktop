@@ -12,7 +12,6 @@ def create_toolbar(parent: QMainWindow, actions: ApplicationActions) -> QToolBar
 
     toolbar = QToolBar("Main Toolbar", parent)
     toolbar.setMovable(False)
-    toolbar.addAction(actions.home)
     toolbar.addAction(actions.reload)
     toolbar.addAction(actions.preferences)
     parent.addToolBar(toolbar)

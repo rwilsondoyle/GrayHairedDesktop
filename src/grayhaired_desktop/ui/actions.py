@@ -39,14 +39,16 @@ def create_actions(
 
     home_action = QAction("Home", parent)
     home_action.setShortcut("Alt+Home")
-    home_action.setToolTip("Load the configured home page")
-    home_action.setStatusTip("Load the configured home page")
+    home_action.setToolTip("Return to your saved Desktop Website")
+    home_action.setStatusTip("Return to your saved Desktop Website")
+    home_action.setWhatsThis("Return to your saved Desktop Website")
     home_action.triggered.connect(load_home)
 
     reload_action = QAction("Reload", parent)
     reload_action.setShortcut("Ctrl+R")
-    reload_action.setToolTip("Reload the current page")
-    reload_action.setStatusTip("Reload the current page")
+    reload_action.setToolTip("Refresh the current Desktop Website")
+    reload_action.setStatusTip("Refresh the current Desktop Website")
+    reload_action.setWhatsThis("Refresh the current Desktop Website")
     reload_action.triggered.connect(reload_page)
 
     preferences_action = QAction("Settings", parent)

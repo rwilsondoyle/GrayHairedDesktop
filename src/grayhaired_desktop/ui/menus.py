@@ -14,6 +14,7 @@ def create_menus(menu_bar: QMenuBar, actions: ApplicationActions) -> None:
     file_menu.addAction(actions.exit)
 
     view_menu = menu_bar.addMenu("View")
+    view_menu.setToolTipsVisible(True)
     view_menu.addAction(actions.home)
     view_menu.addAction(actions.reload)
 
