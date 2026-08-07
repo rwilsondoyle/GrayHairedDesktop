@@ -2,6 +2,15 @@
 
 This log records project-level development milestones and verification notes. It is intentionally concise so future contributors can quickly understand what changed and what still needs confirmation.
 
+## Alpha 0.7 — Customizable Desktop Shortcuts
+
+Status: Implementation complete; manual verification pending.
+
+- Implemented a compact launcher below the Desktop Website with no visible Favorites heading.
+- Implemented **+ Add Shortcut**, **Edit Shortcut**, and confirmation-protected **Remove Shortcut** with friendly validation and a built-in symbol chooser.
+- Preserved shortcut order in `QSettings`, allowed multiple shortcuts of the same type, and retained an intentionally empty list.
+- Routed shortcut clicks through the existing external-opening mechanism so the Desktop Website remains unchanged.
+
 ## Milestone history
 
 ### Initial foundation

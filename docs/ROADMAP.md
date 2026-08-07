@@ -82,7 +82,16 @@ Status: Implementation complete; manual Zorin verification pending.
 - Ensured **Preview in Browser** does not save, **Save** applies the selection, and **Cancel** preserves the previous selection.
 - Added no widget system.
 
-## Near-term priorities after Alpha 0.6
+### Alpha 0.7 — Customizable Desktop Shortcuts
+
+Status: Implementation complete; manual verification pending.
+
+- Added a compact, naturally wrapping shortcut launcher below the dominant Desktop Website, without a visible Favorites heading.
+- Added **+ Add Shortcut**, **Edit Shortcut**, and confirmation-protected **Remove Shortcut** controls directly in the launcher.
+- Allowed multiple shortcuts of the same type and persisted the complete ordered list with `QSettings`.
+- Opened every shortcut externally while leaving the Desktop Website unchanged.
+
+## Near-term priorities after Alpha 0.7
 
 - Add lightweight Markdown/documentation checks to the development workflow.
 - Consider smoke-test coverage for importability and non-GUI helpers.

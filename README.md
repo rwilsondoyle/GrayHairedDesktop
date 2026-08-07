@@ -1,14 +1,14 @@
 # GrayHairedDesktop
 
-GrayHairedDesktop is the current repository name for an Alpha 0.6 native Python 3.12+ desktop application for Zorin OS. It uses PySide6 and QtWebEngine as a desktop launch page: the configured home page stays inside the native Qt window, while clicked links open in the operating system's default browser. The public product name is still undecided before Version 1.0.
+GrayHairedDesktop is the current repository name for an Alpha 0.7 native Python 3.12+ desktop application for Zorin OS. It uses PySide6 and QtWebEngine as a desktop launch page: the configured home page stays inside the native Qt window, while clicked links open in the operating system's default browser. The public product name is still undecided before Version 1.0.
 
 ## Naming
 
 GrayHairedDesktop is the current repository name, but the public product name is not final before Version 1.0. Possible future names include PersonalDesktop or MyDesktop; this documentation does not select one. Use neutral wording such as "the application" or "the desktop application" where practical. Ron Doyle and GrayHaired.Tech remain appropriate author/About attribution, but they should not be treated as required long-term product branding.
 
-## Alpha 0.6 features
+## Alpha 0.7 features
 
-- Native `QMainWindow` shell with the title `GrayDesk Alpha 0.6`
+- Native `QMainWindow` shell with the title `GrayDesk Alpha 0.7`
 - Embedded `QWebEngineView` that keeps the selected Desktop Website in the application
 - Ordinary links and new-window requests open in the operating system's default browser
 - **Settings** screen with **Another Website...** first, followed by Bing, DuckDuckGo, Google, MSN, and Yahoo in alphabetical order
@@ -20,6 +20,15 @@ GrayHairedDesktop is the current repository name, but the public product name is
 - Home, Reload, Settings, About, and Exit actions, status messages, and structured logging
 - Zorin setup, update, and run helper scripts
 - No widget system, dashboards, themes, accounts, or cloud synchronization
+
+### Customizable Desktop Shortcuts
+
+- A compact, wrapping shortcut launcher sits below the Desktop Website with no visible Favorites heading.
+- **+ Add Shortcut**, **Edit Shortcut**, and **Remove Shortcut** provide direct, plain-language customization.
+- Multiple shortcuts of the same type are allowed, and the complete ordered list persists through `QSettings`.
+- Shortcuts open externally in the operating system's default web application; the Desktop Website remains unchanged and dominant.
+
+Status: Implementation complete; manual verification pending.
 
 ## Requirements
 
@@ -106,6 +115,8 @@ src/
     settings.py
     ui/
       __init__.py
+      favorite_dialog.py
+      favorites.py
       mainwindow.py
       preferences.py
 ```
