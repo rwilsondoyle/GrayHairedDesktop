@@ -93,13 +93,14 @@ Status: Implementation complete; manual verification pending.
 
 ### Alpha 0.8 — Stability, Performance and Diagnostics
 
-Status: Implementation complete; manual verification pending.
+Status: Implementation complete; manual verification performed on the Inspiron-3147 test system.
 
 - Added persistent rotating logs while retaining terminal output.
 - Added startup timing and numbered Desktop Website load timing for initial, Home, Reload, and Settings-triggered loads.
 - Added external-link handoff timing that measures only the operating-system handoff call.
 - Added diagnostics intended to investigate startup and loading performance; no performance improvement is claimed yet.
 - Left GPU, Vulkan, VA-API, hardware-acceleration, and GPU-rendering settings unchanged.
+- Verified the diagnostic workflow in one machine-specific Zorin run; the observed timings are not universal performance benchmarks.
 
 ## Near-term priorities after Alpha 0.8
 

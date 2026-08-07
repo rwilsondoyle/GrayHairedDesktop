@@ -63,12 +63,14 @@ class LaunchPage(QWebEnginePage):
         elapsed = time.perf_counter() - started_at
         if opened:
             self._logger.info(
-                "External link handoff completed in %.3f seconds: %s", elapsed, safe_url
+                "External link handoff completed in %.1f ms: %s",
+                elapsed * 1000,
+                safe_url,
             )
         else:
             self._logger.error(
-                "External link handoff failed after %.3f seconds: %s",
-                elapsed,
+                "External link handoff failed after %.1f ms: %s",
+                elapsed * 1000,
                 safe_url,
             )
         self.linkOpenFinished.emit(opened)
@@ -78,9 +80,11 @@ def safe_display_url(url: QUrl) -> str:
     """Return a URL suitable for logs, without credentials or query data."""
 
     safe_url = QUrl(url)
-    safe_url.setUserInfo("")
-    safe_url.setQuery("")
-    safe_url.setFragment("")
+    # ``None`` removes each component entirely; an empty string leaves its
+    # delimiter behind (``@``, ``?``, or ``#``) in QUrl output.
+    safe_url.setUserInfo(None)
+    safe_url.setQuery(None)
+    safe_url.setFragment(None)
     return safe_url.toDisplayString()
 
 
@@ -96,6 +100,7 @@ class BrowserView(QWebEngineView):
         self._load_number = 0
         self._load_started_at: float | None = None
         self._next_load_reason = "initial application load"
+        self._next_load_url: QUrl | None = QUrl(self._url)
         self._active_load_reason = self._next_load_reason
         page = LaunchPage(self._logger, self)
         page.linkOpenFinished.connect(self.linkOpenFinished)
@@ -107,12 +112,14 @@ class BrowserView(QWebEngineView):
         """Load the configured GrayHaired Desktop URL."""
 
         self._next_load_reason = reason
+        self._next_load_url = QUrl(self._url)
         self.load(self._url)
 
     def reload_desktop(self) -> None:
         """Reload the Desktop Website and label the diagnostic measurement."""
 
         self._next_load_reason = "Reload action"
+        self._next_load_url = QUrl(self.url() if not self.url().isEmpty() else self._url)
         self.reload()
 
     def set_home_url(self, url: str) -> None:
@@ -130,8 +137,12 @@ class BrowserView(QWebEngineView):
         self._load_number += 1
         self._load_started_at = time.perf_counter()
         self._active_load_reason = self._next_load_reason
+        requested_url = self._next_load_url
         self._next_load_reason = "browser-initiated load"
-        url = safe_display_url(self.url() if not self.url().isEmpty() else self._url)
+        self._next_load_url = None
+        if requested_url is None:
+            requested_url = self.url() if not self.url().isEmpty() else self._url
+        url = safe_display_url(requested_url)
         self._logger.info(
             "Desktop Website load #%d started (%s): %s",
             self._load_number,

@@ -17,7 +17,9 @@ Alpha 0.8 begins performance measurement without changing GPU, Vulkan, VA-API, h
 - Diagnostics intended to investigate startup and loading performance; no performance improvement is claimed yet
 - **Help → Open Log Folder** for direct access to the logs
 
-Status: Implementation complete; manual verification pending.
+Status: Implementation complete; manual verification performed on the Inspiron-3147 test system.
+
+One diagnostic run on that Zorin system verified persistent log creation, **Help → Open Log Folder**, initial and Settings-triggered Desktop Website loads, Home, Reload, and external shortcut handoff. Its observed timings are recorded in the development log; they are machine-specific observations, not universal performance benchmarks.
 
 ## Existing Alpha 0.7 features
 

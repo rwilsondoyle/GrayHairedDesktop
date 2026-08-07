@@ -4,7 +4,7 @@ All notable project changes should be summarized here. This project is currently
 
 ## Alpha 0.8 — Stability, Performance and Diagnostics
 
-Status: Implementation complete; manual verification pending.
+Status: Implementation complete; manual verification performed on the Inspiron-3147 test system.
 
 ### Added
 
@@ -17,6 +17,7 @@ Status: Implementation complete; manual verification pending.
 
 - These diagnostics are intended to investigate startup and loading performance; no performance improvement is claimed yet.
 - GPU, Vulkan, VA-API, hardware-acceleration, and GPU-rendering settings are unchanged.
+- One Zorin diagnostic run on the Inspiron-3147 verified persistent log creation, **Open Log Folder**, initial and Settings-triggered loads, Home, Reload, and external shortcut handoff. Its timings are machine-specific observations, not universal performance benchmarks.
 
 ## Alpha 0.7 — Customizable Desktop Shortcuts
 

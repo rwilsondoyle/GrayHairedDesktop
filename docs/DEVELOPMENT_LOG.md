@@ -4,7 +4,7 @@ This log records project-level development milestones and verification notes. It
 
 ## Alpha 0.8 — Stability, Performance and Diagnostics
 
-Status: Implementation complete; manual verification pending.
+Status: Implementation complete; manual verification performed on the Inspiron-3147 test system.
 
 - Added a persistent rotating log alongside existing terminal output at `~/.local/state/GrayHairedDesktop/grayhaired-desktop.log`.
 - Timed `QApplication` creation, main-window creation, and main-window display from a shared startup timestamp.
@@ -12,6 +12,22 @@ Status: Implementation complete; manual verification pending.
 - Timed only the `QDesktopServices.openUrl()` handoff for clicked links and desktop shortcuts; this is not a measurement of the external browser's page load.
 - Added **Help → Open Log Folder** and documented combined terminal capture for Python, Qt, Chromium, Mesa, and graphics-stack output.
 - Added diagnostics to investigate startup and loading performance. No performance improvement or graphics configuration change is claimed.
+
+### Inspiron-3147 Zorin diagnostic run
+
+Manual testing verified persistent log creation, **Help → Open Log Folder**, a successful initial Desktop Website load, a successful Settings-triggered load, Home, Reload, and external shortcut handoff.
+
+| Measurement | Observed time |
+| --- | ---: |
+| QApplication created | 0.331 seconds |
+| Main window created | 1.644 seconds |
+| Main window shown | 1.725 seconds |
+| Initial Desktop Website load | 3.072 seconds |
+| Settings-triggered load | 2.282 seconds |
+| Home load | 0.554 seconds |
+| Reload | 0.495 seconds |
+
+These measurements are from one diagnostic run on the Inspiron-3147 test system. They are not universal performance benchmarks and do not establish that performance has improved.
 
 ## Alpha 0.7 — Customizable Desktop Shortcuts
 
