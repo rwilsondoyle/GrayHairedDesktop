@@ -18,6 +18,7 @@ class ApplicationActions:
     reload: QAction
     preferences: QAction
     about: QAction
+    open_log_folder: QAction
 
 
 def create_actions(
@@ -28,6 +29,7 @@ def create_actions(
     reload_page: Callable[[], object],
     show_preferences: Callable[[], object],
     show_about: Callable[[], object],
+    open_log_folder: Callable[[], object],
 ) -> ApplicationActions:
     """Create the main-window actions and connect their callbacks."""
 
@@ -57,10 +59,15 @@ def create_actions(
     about_action.setStatusTip("About GrayHaired Desktop")
     about_action.triggered.connect(show_about)
 
+    open_log_folder_action = QAction("Open Log Folder", parent)
+    open_log_folder_action.setStatusTip("Open the folder containing diagnostic logs")
+    open_log_folder_action.triggered.connect(open_log_folder)
+
     return ApplicationActions(
         exit=exit_action,
         home=home_action,
         reload=reload_action,
         preferences=preferences_action,
         about=about_action,
+        open_log_folder=open_log_folder_action,
     )

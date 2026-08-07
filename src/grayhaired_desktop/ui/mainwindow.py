@@ -4,11 +4,13 @@ from __future__ import annotations
 
 import logging
 
-from PySide6.QtCore import QSettings, QSize
+from PySide6.QtCore import QSettings, QSize, QUrl
+from PySide6.QtGui import QDesktopServices
 from PySide6.QtWidgets import QMainWindow, QMessageBox, QStatusBar, QVBoxLayout, QWidget
 
 from grayhaired_desktop.browser import BrowserView
 from grayhaired_desktop.config import AppMetadata
+from grayhaired_desktop.logger import log_file_path
 from grayhaired_desktop.settings import load_preferences, save_preferences
 from grayhaired_desktop.ui.actions import create_actions
 from grayhaired_desktop.ui.favorites import FavoritesWidget
@@ -30,7 +32,7 @@ class MainWindow(QMainWindow):
         self._preferences = load_preferences(settings)
         self._browser = BrowserView(self._preferences.home_page_url, logger, self)
 
-        self.setWindowTitle("GrayDesk Alpha 0.7")
+        self.setWindowTitle("GrayDesk Alpha 0.8")
         self.setMinimumSize(QSize(1024, 720))
         central = QWidget(self)
         layout = QVBoxLayout(central)
@@ -51,16 +53,17 @@ class MainWindow(QMainWindow):
         self._actions = create_actions(
             self,
             close=self.close,
-            load_home=self._browser.load_home,
-            reload_page=self._browser.reload,
+            load_home=lambda: self._browser.load_home("Home action"),
+            reload_page=self._browser.reload_desktop,
             show_preferences=self._show_preferences_dialog,
             show_about=self._show_about_dialog,
+            open_log_folder=self._open_log_folder,
         )
         create_menus(self.menuBar(), self._actions)
         self._toolbar = create_toolbar(self, self._actions)
         self._connect_browser_status()
         self._restore_window_state()
-        self._browser.load_home()
+        self._browser.load_home("initial application load")
 
     def closeEvent(self, event) -> None:  # noqa: N802 - Qt override name
         """Persist window geometry before closing."""
@@ -102,7 +105,7 @@ class MainWindow(QMainWindow):
         save_preferences(self._settings, self._preferences)
         self._favorites.set_theme(self._preferences.shortcut_theme)
         self._browser.set_home_url(self._preferences.home_page_url)
-        self._browser.load_home()
+        self._browser.load_home("Settings-triggered load")
         self._logger.info("Settings saved")
 
     def _show_about_dialog(self) -> None:
@@ -110,10 +113,17 @@ class MainWindow(QMainWindow):
             self,
             "About GrayHaired Desktop",
             (
-                f"GrayDesk Alpha 0.7 ({self._metadata.version})\n\n"
+                f"GrayDesk Alpha 0.8 ({self._metadata.version})\n\n"
                 "A native PySide6 desktop shell for the GrayHaired Tech web experience."
             ),
         )
+
+    def _open_log_folder(self) -> None:
+        """Open the directory containing the persistent application log."""
+
+        opened = QDesktopServices.openUrl(QUrl.fromLocalFile(str(log_file_path().parent)))
+        if not opened:
+            self.statusBar().showMessage("Could not open the log folder.", 5000)
 
     def _restore_window_state(self) -> None:
         geometry = self._settings.value("mainwindow/geometry")

@@ -20,4 +20,5 @@ def create_menus(menu_bar: QMenuBar, actions: ApplicationActions) -> None:
     menu_bar.addAction(actions.preferences)
 
     help_menu = menu_bar.addMenu("Help")
+    help_menu.addAction(actions.open_log_folder)
     help_menu.addAction(actions.about)

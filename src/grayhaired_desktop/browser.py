@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import time
 
 from PySide6.QtCore import QUrl, Signal, Slot
 from PySide6.QtGui import QDesktopServices
@@ -53,20 +54,38 @@ class LaunchPage(QWebEnginePage):
         return current == target
 
     def open_external(self, url: QUrl) -> None:
-        safe_url = QUrl(url)
-        safe_url.setUserInfo("")
-        safe_url.setQuery("")
-        safe_url.setFragment("")
+        safe_url = safe_display_url(url)
         self._logger.info(
-            "Opening link in the default browser: %s", safe_url.toDisplayString()
+            "Handing external link to the default browser: %s", safe_url
         )
+        started_at = time.perf_counter()
         opened = QDesktopServices.openUrl(url)
-        if not opened:
+        elapsed = time.perf_counter() - started_at
+        if opened:
+            self._logger.info(
+                "External link handoff completed in %.1f ms: %s",
+                elapsed * 1000,
+                safe_url,
+            )
+        else:
             self._logger.error(
-                "Could not open link in the default browser: %s",
-                safe_url.toDisplayString(),
+                "External link handoff failed after %.1f ms: %s",
+                elapsed * 1000,
+                safe_url,
             )
         self.linkOpenFinished.emit(opened)
+
+
+def safe_display_url(url: QUrl) -> str:
+    """Return a URL suitable for logs, without credentials or query data."""
+
+    safe_url = QUrl(url)
+    # ``None`` removes each component entirely; an empty string leaves its
+    # delimiter behind (``@``, ``?``, or ``#``) in QUrl output.
+    safe_url.setUserInfo(None)
+    safe_url.setQuery(None)
+    safe_url.setFragment(None)
+    return safe_url.toDisplayString()
 
 
 class BrowserView(QWebEngineView):
@@ -78,16 +97,30 @@ class BrowserView(QWebEngineView):
         super().__init__(parent)
         self._logger = logger.getChild("browser")
         self._url = QUrl(url)
+        self._load_number = 0
+        self._load_started_at: float | None = None
+        self._next_load_reason = "initial application load"
+        self._next_load_url: QUrl | None = QUrl(self._url)
+        self._active_load_reason = self._next_load_reason
         page = LaunchPage(self._logger, self)
         page.linkOpenFinished.connect(self.linkOpenFinished)
         self.setPage(page)
         self.loadStarted.connect(self._on_load_started)
         self.loadFinished.connect(self._on_load_finished)
 
-    def load_home(self) -> None:
+    def load_home(self, reason: str = "Home action") -> None:
         """Load the configured GrayHaired Desktop URL."""
 
+        self._next_load_reason = reason
+        self._next_load_url = QUrl(self._url)
         self.load(self._url)
+
+    def reload_desktop(self) -> None:
+        """Reload the Desktop Website and label the diagnostic measurement."""
+
+        self._next_load_reason = "Reload action"
+        self._next_load_url = QUrl(self.url() if not self.url().isEmpty() else self._url)
+        self.reload()
 
     def set_home_url(self, url: str) -> None:
         """Update the configured home URL."""
@@ -101,11 +134,43 @@ class BrowserView(QWebEngineView):
 
     @Slot()
     def _on_load_started(self) -> None:
-        self._logger.info("Loading page: %s", self.url().toString() or self._url.toString())
+        self._load_number += 1
+        self._load_started_at = time.perf_counter()
+        self._active_load_reason = self._next_load_reason
+        requested_url = self._next_load_url
+        self._next_load_reason = "browser-initiated load"
+        self._next_load_url = None
+        if requested_url is None:
+            requested_url = self.url() if not self.url().isEmpty() else self._url
+        url = safe_display_url(requested_url)
+        self._logger.info(
+            "Desktop Website load #%d started (%s): %s",
+            self._load_number,
+            self._active_load_reason,
+            url,
+        )
 
     @Slot(bool)
     def _on_load_finished(self, ok: bool) -> None:
+        elapsed = (
+            time.perf_counter() - self._load_started_at
+            if self._load_started_at is not None
+            else 0.0
+        )
+        url = safe_display_url(self.url() if not self.url().isEmpty() else self._url)
         if ok:
-            self._logger.info("Finished loading")
+            self._logger.info(
+                "Desktop Website load #%d completed successfully in %.3f seconds (%s): %s",
+                self._load_number,
+                elapsed,
+                self._active_load_reason,
+                url,
+            )
         else:
-            self._logger.error("Load failed: %s", self.url().toString() or self._url.toString())
+            self._logger.error(
+                "Desktop Website load #%d failed after %.3f seconds (%s): %s",
+                self._load_number,
+                elapsed,
+                self._active_load_reason,
+                url,
+            )
