@@ -91,7 +91,17 @@ Status: Implementation complete; manual verification pending.
 - Allowed multiple shortcuts of the same type and persisted the complete ordered list with `QSettings`.
 - Opened every shortcut externally while leaving the Desktop Website unchanged.
 
-## Near-term priorities after Alpha 0.7
+### Alpha 0.8 — Stability, Performance and Diagnostics
+
+Status: Implementation complete; manual verification pending.
+
+- Added persistent rotating logs while retaining terminal output.
+- Added startup timing and numbered Desktop Website load timing for initial, Home, Reload, and Settings-triggered loads.
+- Added external-link handoff timing that measures only the operating-system handoff call.
+- Added diagnostics intended to investigate startup and loading performance; no performance improvement is claimed yet.
+- Left GPU, Vulkan, VA-API, hardware-acceleration, and GPU-rendering settings unchanged.
+
+## Near-term priorities after Alpha 0.8
 
 - Add lightweight Markdown/documentation checks to the development workflow.
 - Consider smoke-test coverage for importability and non-GUI helpers.

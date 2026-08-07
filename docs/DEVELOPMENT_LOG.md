@@ -2,6 +2,17 @@
 
 This log records project-level development milestones and verification notes. It is intentionally concise so future contributors can quickly understand what changed and what still needs confirmation.
 
+## Alpha 0.8 — Stability, Performance and Diagnostics
+
+Status: Implementation complete; manual verification pending.
+
+- Added a persistent rotating log alongside existing terminal output at `~/.local/state/GrayHairedDesktop/grayhaired-desktop.log`.
+- Timed `QApplication` creation, main-window creation, and main-window display from a shared startup timestamp.
+- Added numbered Desktop Website measurements that distinguish initial startup, Home, Reload, and Settings-triggered loads.
+- Timed only the `QDesktopServices.openUrl()` handoff for clicked links and desktop shortcuts; this is not a measurement of the external browser's page load.
+- Added **Help → Open Log Folder** and documented combined terminal capture for Python, Qt, Chromium, Mesa, and graphics-stack output.
+- Added diagnostics to investigate startup and loading performance. No performance improvement or graphics configuration change is claimed.
+
 ## Alpha 0.7 — Customizable Desktop Shortcuts
 
 Status: Implementation complete; manual verification pending.

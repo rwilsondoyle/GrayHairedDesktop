@@ -4,12 +4,13 @@ from __future__ import annotations
 
 import logging
 import sys
+import time
 
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QApplication
 
 from grayhaired_desktop.config import AppMetadata, create_settings
-from grayhaired_desktop.logger import configure_logging
+from grayhaired_desktop.logger import configure_logging, log_file_path
 from grayhaired_desktop.ui.mainwindow import MainWindow
 
 
@@ -29,13 +30,18 @@ def build_application(argv: list[str] | None = None) -> QApplication:
 def run(argv: list[str] | None = None) -> int:
     """Run the GrayHaired Desktop application."""
 
+    started_at = time.perf_counter()
     logger = configure_logging(logging.INFO)
+    logger.info("Log file: %s", log_file_path())
+    logger.info("Application startup began")
     metadata = AppMetadata()
     app = build_application(argv)
+    logger.info("QApplication created after %.3f seconds", time.perf_counter() - started_at)
     settings = create_settings(metadata)
     window = MainWindow(metadata, settings, logger)
+    logger.info("Main window created after %.3f seconds", time.perf_counter() - started_at)
     window.show()
-    logger.info("Application started")
+    logger.info("Main window shown after %.3f seconds", time.perf_counter() - started_at)
     exit_code = app.exec()
     logger.info("Application closed")
     return exit_code

@@ -2,6 +2,22 @@
 
 All notable project changes should be summarized here. This project is currently in alpha, so entries focus on practical milestones rather than formal release packaging.
 
+## Alpha 0.8 — Stability, Performance and Diagnostics
+
+Status: Implementation complete; manual verification pending.
+
+### Added
+
+- Added persistent rotating logs in the user's Linux state directory while preserving terminal logging.
+- Added elapsed timing for application startup milestones and sequential Desktop Website loads.
+- Added timing and success reporting for external-link handoff calls, without representing them as external browser page-load measurements.
+- Added **Open Log Folder** to the Help menu.
+
+### Notes
+
+- These diagnostics are intended to investigate startup and loading performance; no performance improvement is claimed yet.
+- GPU, Vulkan, VA-API, hardware-acceleration, and GPU-rendering settings are unchanged.
+
 ## Alpha 0.7 — Customizable Desktop Shortcuts
 
 Status: Implementation complete; manual verification pending.

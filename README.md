@@ -1,12 +1,25 @@
 # GrayHairedDesktop
 
-GrayHairedDesktop is the current repository name for an Alpha 0.7 native Python 3.12+ desktop application for Zorin OS. It uses PySide6 and QtWebEngine as a desktop launch page: the configured home page stays inside the native Qt window, while clicked links open in the operating system's default browser. The public product name is still undecided before Version 1.0.
+GrayHairedDesktop is the current repository name for an Alpha 0.8 native Python 3.12+ desktop application for Zorin OS. It uses PySide6 and QtWebEngine as a desktop launch page: the configured home page stays inside the native Qt window, while clicked links open in the operating system's default browser. The public product name is still undecided before Version 1.0.
 
 ## Naming
 
 GrayHairedDesktop is the current repository name, but the public product name is not final before Version 1.0. Possible future names include PersonalDesktop or MyDesktop; this documentation does not select one. Use neutral wording such as "the application" or "the desktop application" where practical. Ron Doyle and GrayHaired.Tech remain appropriate author/About attribution, but they should not be treated as required long-term product branding.
 
-## Alpha 0.7 features
+## Alpha 0.8 — Stability, Performance and Diagnostics
+
+Alpha 0.8 begins performance measurement without changing GPU, Vulkan, VA-API, hardware-acceleration, or GPU-rendering settings.
+
+- Persistent terminal and rotating file logging
+- Application startup timing
+- Sequential Desktop Website load timing for startup, Home, Reload, and Settings loads
+- External-link handoff timing (this measures only the call to the operating system, not the external browser's page load)
+- Diagnostics intended to investigate startup and loading performance; no performance improvement is claimed yet
+- **Help → Open Log Folder** for direct access to the logs
+
+Status: Implementation complete; manual verification pending.
+
+## Existing Alpha 0.7 features
 
 - Native `QMainWindow` shell with the title `GrayDesk Alpha 0.7`
 - Embedded `QWebEngineView` that keeps the selected Desktop Website in the application
@@ -28,7 +41,13 @@ GrayHairedDesktop is the current repository name, but the public product name is
 - Multiple shortcuts of the same type are allowed, and the complete ordered list persists through `QSettings`.
 - Shortcuts open externally in the operating system's default web application; the Desktop Website remains unchanged and dominant.
 
-Status: Implementation complete; manual verification pending.
+The persistent log is stored at `~/.local/state/GrayHairedDesktop/grayhaired-desktop.log`. It rotates at approximately 1 MB and retains three old files. To capture Python application logs together with external Qt, Chromium, Mesa, and graphics-stack messages, run:
+
+```bash
+./scripts/run.sh 2>&1 | tee ~/grayhaired-desktop-startup.log
+```
+
+This capture does not suppress or redirect those external messages away from the terminal.
 
 ## Requirements
 
