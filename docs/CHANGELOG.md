@@ -2,6 +2,21 @@
 
 All notable project changes should be summarized here. This project is currently in alpha, so entries focus on practical milestones rather than formal release packaging.
 
+## Alpha 0.7 — Customizable Desktop Shortcuts
+
+Status: Implementation complete; manual verification pending.
+
+### Added
+
+- Added a compact, wrapping shortcut launcher below the Desktop Website with no visible Favorites heading.
+- Added **+ Add Shortcut** plus a right-click menu for **Edit Shortcut** and confirmation-protected **Remove Shortcut**; normal Qt hover help explains how to edit without a permanent edit control.
+- Added persistent ordered shortcuts using `QSettings`, including support for multiple shortcuts of the same type.
+
+### Changed
+
+- Shortcut destinations open externally and leave the dominant Desktop Website unchanged.
+- Starter shortcuts are examples provided on first use only; every shortcut can be edited or removed.
+
 ## Alpha 0.6 — Desktop Website Selection
 
 Status: Implementation complete; manual Zorin verification pending.

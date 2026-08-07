@@ -33,7 +33,7 @@ class LaunchPage(QWebEnginePage):
             and navigation_type == QWebEnginePage.NavigationType.NavigationTypeLinkClicked
             and not self._is_same_page_fragment(url)
         ):
-            self._open_externally(url)
+            self.open_external(url)
             return False
         return super().acceptNavigationRequest(url, navigation_type, is_main_frame)
 
@@ -41,7 +41,7 @@ class LaunchPage(QWebEnginePage):
     def _open_new_window_externally(self, request: object) -> None:
         """Handle target=_blank, window.open, tab, and window requests."""
 
-        self._open_externally(request.requestedUrl())
+        self.open_external(request.requestedUrl())
 
     def _is_same_page_fragment(self, destination: QUrl) -> bool:
         if not destination.hasFragment():
@@ -52,7 +52,7 @@ class LaunchPage(QWebEnginePage):
         target.setFragment("")
         return current == target
 
-    def _open_externally(self, url: QUrl) -> None:
+    def open_external(self, url: QUrl) -> None:
         safe_url = QUrl(url)
         safe_url.setUserInfo("")
         safe_url.setQuery("")
@@ -93,6 +93,11 @@ class BrowserView(QWebEngineView):
         """Update the configured home URL."""
 
         self._url = QUrl(url)
+
+    def open_external(self, url: str) -> None:
+        """Open a website outside the desktop without changing its web surface."""
+
+        self.page().open_external(QUrl(url))
 
     @Slot()
     def _on_load_started(self) -> None:

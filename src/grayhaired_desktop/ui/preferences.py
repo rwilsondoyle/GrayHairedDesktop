@@ -5,6 +5,7 @@ from __future__ import annotations
 from PySide6.QtCore import QUrl
 from PySide6.QtGui import QDesktopServices
 from PySide6.QtWidgets import (
+    QComboBox,
     QDialog,
     QDialogButtonBox,
     QButtonGroup,
@@ -56,6 +57,14 @@ class PreferencesDialog(QDialog):
         if selected_website is None:
             self._another_website.setChecked(True)
         self._website_buttons.buttonToggled.connect(self._update_address_field)
+
+        self._shortcut_theme = QComboBox(self)
+        self._shortcut_theme.addItem("Match Computer", "system")
+        self._shortcut_theme.addItem("Light", "light")
+        self._shortcut_theme.addItem("Dark", "dark")
+        theme_index = self._shortcut_theme.findData(preferences.shortcut_theme)
+        self._shortcut_theme.setCurrentIndex(max(theme_index, 0))
+
         self._create_layout()
         self._update_address_field()
 
@@ -63,7 +72,10 @@ class PreferencesDialog(QDialog):
     def preferences(self) -> UserPreferences:
         """Return the preferences currently entered in the dialog."""
 
-        return UserPreferences(home_page_url=self._selected_address())
+        return UserPreferences(
+            home_page_url=self._selected_address(),
+            shortcut_theme=str(self._shortcut_theme.currentData()),
+        )
 
     def accept(self) -> None:
         """Validate the URL before allowing the dialog to close."""
@@ -95,6 +107,20 @@ class PreferencesDialog(QDialog):
         address_label.setBuddy(self._home_page_url)
         address_help = QLabel("Copy and paste the website address here.", self)
         address_example = QLabel("Example: https://www.google.com", self)
+
+        appearance_separator = QFrame(self)
+        appearance_separator.setFrameShape(QFrame.Shape.HLine)
+        appearance_separator.setFrameShadow(QFrame.Shadow.Sunken)
+        appearance_title = QLabel("Shortcut Appearance", self)
+        appearance_title.setStyleSheet("font-weight: bold; font-size: 16px;")
+        appearance_help = QLabel(
+            "Match Computer follows your Zorin light or dark appearance. "
+            "Choose Light or Dark to override it.",
+            self,
+        )
+        appearance_help.setWordWrap(True)
+        appearance_label = QLabel("Shortcut Theme", self)
+        appearance_label.setBuddy(self._shortcut_theme)
 
         self._open_button = QPushButton("Preview in Browser", self)
         preview_description = (
@@ -134,6 +160,11 @@ class PreferencesDialog(QDialog):
         content_layout.addWidget(separator)
         for button in self._built_in_buttons:
             content_layout.addWidget(button)
+        content_layout.addWidget(appearance_separator)
+        content_layout.addWidget(appearance_title)
+        content_layout.addWidget(appearance_help)
+        content_layout.addWidget(appearance_label)
+        content_layout.addWidget(self._shortcut_theme)
 
         scroll_area = QScrollArea(self)
         scroll_area.setWidgetResizable(True)
@@ -151,7 +182,8 @@ class PreferencesDialog(QDialog):
 
         self.setTabOrder(self._another_website, self._home_page_url)
         self.setTabOrder(self._home_page_url, next(iter(self._built_in_buttons)))
-        self.setTabOrder(list(self._built_in_buttons)[-1], self._open_button)
+        self.setTabOrder(list(self._built_in_buttons)[-1], self._shortcut_theme)
+        self.setTabOrder(self._shortcut_theme, self._open_button)
 
     def _open_home_page(self) -> None:
         """Open the entered address externally without saving it."""
