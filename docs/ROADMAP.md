@@ -82,7 +82,18 @@ Status: Implementation complete; manual Zorin verification pending.
 - Ensured **Preview in Browser** does not save, **Save** applies the selection, and **Cancel** preserves the previous selection.
 - Added no widget system.
 
-## Near-term priorities after Alpha 0.6
+### Alpha 0.7 — Desktop Favorites Foundation
+
+Status: Implementation complete; manual verification pending.
+
+- Added the permanent **Favorites** area below the Desktop Website display.
+- Added eight large placeholder tiles in a responsive grid with comfortable spacing and readable labels.
+- Established a reusable Favorite model containing a title, website address, and icon placeholder.
+- Used the existing status-message mechanism to explain that Favorites will be available in a future update when a tile is clicked.
+- Preserved all Alpha 0.6 desktop environment behavior.
+- Deferred persistence and all editing, deleting, launching, dialog, drag-and-drop, icon, and context-menu functionality.
+
+## Near-term priorities after Alpha 0.7
 
 - Add lightweight Markdown/documentation checks to the development workflow.
 - Consider smoke-test coverage for importability and non-GUI helpers.

@@ -1,14 +1,14 @@
 # GrayHairedDesktop
 
-GrayHairedDesktop is the current repository name for an Alpha 0.6 native Python 3.12+ desktop application for Zorin OS. It uses PySide6 and QtWebEngine as a desktop launch page: the configured home page stays inside the native Qt window, while clicked links open in the operating system's default browser. The public product name is still undecided before Version 1.0.
+GrayHairedDesktop is the current repository name for an Alpha 0.7 native Python 3.12+ desktop application for Zorin OS. It uses PySide6 and QtWebEngine as a desktop launch page: the configured home page stays inside the native Qt window, while clicked links open in the operating system's default browser. The public product name is still undecided before Version 1.0.
 
 ## Naming
 
 GrayHairedDesktop is the current repository name, but the public product name is not final before Version 1.0. Possible future names include PersonalDesktop or MyDesktop; this documentation does not select one. Use neutral wording such as "the application" or "the desktop application" where practical. Ron Doyle and GrayHaired.Tech remain appropriate author/About attribution, but they should not be treated as required long-term product branding.
 
-## Alpha 0.6 features
+## Alpha 0.7 features
 
-- Native `QMainWindow` shell with the title `GrayDesk Alpha 0.6`
+- Native `QMainWindow` shell with the title `GrayDesk Alpha 0.7`
 - Embedded `QWebEngineView` that keeps the selected Desktop Website in the application
 - Ordinary links and new-window requests open in the operating system's default browser
 - **Settings** screen with **Another Website...** first, followed by Bing, DuckDuckGo, Google, MSN, and Yahoo in alphabetical order
@@ -18,6 +18,8 @@ GrayHairedDesktop is the current repository name, but the public product name is
 - **Save** applies and loads the selection; **Cancel** preserves both saved settings and the displayed page
 - Persistent settings and window geometry through `QSettings`
 - Home, Reload, Settings, About, and Exit actions, status messages, and structured logging
+- Permanent **Favorites** area with eight large placeholder tiles in a responsive grid
+- Reusable Favorite data model ready for future website and icon data; editing, deleting, launching, persistence, and icons are intentionally deferred
 - Zorin setup, update, and run helper scripts
 - No widget system, dashboards, themes, accounts, or cloud synchronization
 
@@ -102,10 +104,12 @@ src/
     app.py
     browser.py
     config.py
+    favorites.py
     logger.py
     settings.py
     ui/
       __init__.py
+      favorites.py
       mainwindow.py
       preferences.py
 ```

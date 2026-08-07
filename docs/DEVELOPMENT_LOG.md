@@ -78,6 +78,17 @@ Status: Implementation complete; manual Zorin verification pending.
 - Preserved Alpha 0.5 navigation, external-link, persistence, status, logging, and script behavior.
 - No widget system has been added.
 
+### Alpha 0.7 — Desktop Favorites Foundation
+
+Status: Implementation complete; manual verification pending.
+
+- Added a permanent **Favorites** heading and panel below the Desktop Website display.
+- Added eight equal, large placeholder tiles that remain aligned and reflow naturally as the window is resized.
+- Added a reusable Favorite model with title, website address, and icon-placeholder fields; persistence will come later.
+- Made every placeholder tile display **Favorites will be available in a future update.** through the existing status bar.
+- Preserved Desktop Website, Settings, Menu, Toolbar, Home, Reload, About, Exit, and all other Alpha 0.6 behavior.
+- Deferred editing, deleting, launching, dialogs, drag and drop, icons, and context menus.
+
 ## Zorin verification notes
 
 The project targets Zorin OS, so manual verification on real Zorin computers is part of the alpha process.

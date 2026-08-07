@@ -2,6 +2,23 @@
 
 All notable project changes should be summarized here. This project is currently in alpha, so entries focus on practical milestones rather than formal release packaging.
 
+## Alpha 0.7 — Desktop Favorites Foundation
+
+Status: Implementation complete; manual verification pending.
+
+### Added
+
+- Added a permanent **Favorites** panel below the Desktop Website display.
+- Added eight large placeholder tiles in a responsive, evenly spaced grid.
+- Added a reusable immutable Favorite model containing a title, website address, and icon placeholder.
+- Clicking any placeholder tile displays the existing status-message text: **Favorites will be available in a future update.**
+
+### Changed
+
+- Updated application version identifiers to `0.7.0a0` and Alpha 0.7 user-visible wording.
+- Preserved Desktop Website, Settings, Menu, Toolbar, Home, Reload, About, and Exit behavior.
+- Favorite editing, deletion, launching, persistence, dialogs, drag and drop, icons, and context menus remain intentionally deferred.
+
 ## Alpha 0.6 — Desktop Website Selection
 
 Status: Implementation complete; manual Zorin verification pending.

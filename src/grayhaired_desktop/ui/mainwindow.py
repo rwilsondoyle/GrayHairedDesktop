@@ -5,12 +5,14 @@ from __future__ import annotations
 import logging
 
 from PySide6.QtCore import QSettings, QSize
-from PySide6.QtWidgets import QMainWindow, QMessageBox, QStatusBar
+from PySide6.QtWidgets import QMainWindow, QMessageBox, QStatusBar, QVBoxLayout, QWidget
 
 from grayhaired_desktop.browser import BrowserView
 from grayhaired_desktop.config import AppMetadata
+from grayhaired_desktop.favorites import PLACEHOLDER_FAVORITES
 from grayhaired_desktop.settings import load_preferences, save_preferences
 from grayhaired_desktop.ui.actions import create_actions
+from grayhaired_desktop.ui.favorites import FavoritesPanel
 from grayhaired_desktop.ui.menus import create_menus
 from grayhaired_desktop.ui.preferences import PreferencesDialog
 from grayhaired_desktop.ui.toolbar import create_toolbar
@@ -29,9 +31,18 @@ class MainWindow(QMainWindow):
         self._preferences = load_preferences(settings)
         self._browser = BrowserView(self._preferences.home_page_url, logger, self)
 
-        self.setWindowTitle("GrayDesk Alpha 0.6")
+        self.setWindowTitle("GrayDesk Alpha 0.7")
         self.setMinimumSize(QSize(1024, 720))
-        self.setCentralWidget(self._browser)
+        desktop = QWidget(self)
+        desktop_layout = QVBoxLayout(desktop)
+        desktop_layout.setContentsMargins(16, 16, 16, 16)
+        desktop_layout.setSpacing(16)
+        desktop_layout.addWidget(self._browser, 3)
+        self._favorites = FavoritesPanel(
+            PLACEHOLDER_FAVORITES, self._show_favorites_placeholder, desktop
+        )
+        desktop_layout.addWidget(self._favorites, 2)
+        self.setCentralWidget(desktop)
         self.setStatusBar(QStatusBar(self))
         self.statusBar().showMessage("Ready")
 
@@ -96,9 +107,14 @@ class MainWindow(QMainWindow):
             self,
             "About GrayHaired Desktop",
             (
-                f"GrayDesk Alpha 0.6 ({self._metadata.version})\n\n"
+                f"GrayDesk Alpha 0.7 ({self._metadata.version})\n\n"
                 "A native PySide6 desktop shell for the GrayHaired Tech web experience."
             ),
+        )
+
+    def _show_favorites_placeholder(self) -> None:
+        self.statusBar().showMessage(
+            "Favorites will be available in a future update.", 5000
         )
 
     def _restore_window_state(self) -> None:
