@@ -30,6 +30,7 @@ class FavoritesPanel(QGroupBox):
     ) -> None:
         super().__init__("Favorites", parent)
         self._column_count = 0
+        self._row_count = 0
         self._tiles: list[QPushButton] = []
 
         panel_layout = QVBoxLayout(self)
@@ -102,5 +103,9 @@ class FavoritesPanel(QGroupBox):
             self._grid.setColumnStretch(column, 0)
         for column in range(column_count):
             self._grid.setColumnStretch(column, 1)
-        for row in range((len(self._tiles) + column_count - 1) // column_count):
+        for row in range(self._row_count):
+            self._grid.setRowStretch(row, 0)
+
+        self._row_count = (len(self._tiles) + column_count - 1) // column_count
+        for row in range(self._row_count):
             self._grid.setRowStretch(row, 1)
