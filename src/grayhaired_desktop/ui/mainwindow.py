@@ -11,10 +11,10 @@ from grayhaired_desktop.browser import BrowserView
 from grayhaired_desktop.config import AppMetadata
 from grayhaired_desktop.settings import load_preferences, save_preferences
 from grayhaired_desktop.ui.actions import create_actions
+from grayhaired_desktop.ui.favorites import FavoritesWidget
 from grayhaired_desktop.ui.menus import create_menus
 from grayhaired_desktop.ui.preferences import PreferencesDialog
 from grayhaired_desktop.ui.toolbar import create_toolbar
-from grayhaired_desktop.ui.favorites import FavoritesWidget
 
 
 class MainWindow(QMainWindow):
@@ -37,7 +37,12 @@ class MainWindow(QMainWindow):
         layout.setContentsMargins(8, 8, 8, 6)
         layout.setSpacing(4)
         layout.addWidget(self._browser, 1)
-        self._favorites = FavoritesWidget(settings, self._browser.open_external, central)
+        self._favorites = FavoritesWidget(
+            settings,
+            self._browser.open_external,
+            self._preferences.shortcut_theme,
+            central,
+        )
         layout.addWidget(self._favorites, 0)
         self.setCentralWidget(central)
         self.setStatusBar(QStatusBar(self))
@@ -95,6 +100,7 @@ class MainWindow(QMainWindow):
         updated_preferences = dialog.preferences
         self._preferences = updated_preferences
         save_preferences(self._settings, self._preferences)
+        self._favorites.set_theme(self._preferences.shortcut_theme)
         self._browser.set_home_url(self._preferences.home_page_url)
         self._browser.load_home()
         self._logger.info("Settings saved")
