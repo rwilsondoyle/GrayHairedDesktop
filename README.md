@@ -32,7 +32,8 @@ One diagnostic run on that Zorin system verified persistent log creation, **Help
 - **Preview in Browser** opens the current selection externally without saving or changing the embedded page
 - **Save** applies and loads the selection; **Cancel** preserves both saved settings and the displayed page
 - Persistent settings and window geometry through `QSettings`
-- Home, Reload, Settings, About, and Exit actions, status messages, and structured logging
+- **View → Home** returns to the saved Desktop Website; **Reload** on the toolbar refreshes the currently displayed Desktop Website
+- Settings, About, and Exit actions, status messages, and structured logging
 - Zorin setup, update, and run helper scripts
 - No widget system, dashboards, themes, accounts, or cloud synchronization
 
