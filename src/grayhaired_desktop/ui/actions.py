@@ -17,6 +17,7 @@ class ApplicationActions:
     home: QAction
     reload: QAction
     preferences: QAction
+    desktop_website: QAction
     about: QAction
     open_log_folder: QAction
 
@@ -61,6 +62,18 @@ def create_actions(
     )
     preferences_action.triggered.connect(show_preferences)
 
+    desktop_website_action = QAction("Desktop Website...", parent)
+    desktop_website_action.setToolTip(
+        "Choose the Desktop Website and shortcut appearance"
+    )
+    desktop_website_action.setStatusTip(
+        "Choose the Desktop Website and shortcut appearance"
+    )
+    desktop_website_action.setWhatsThis(
+        "Choose the Desktop Website and shortcut appearance"
+    )
+    desktop_website_action.triggered.connect(show_preferences)
+
     about_action = QAction("About", parent)
     about_action.setStatusTip("About GrayHaired Desktop")
     about_action.setWhatsThis("View information about GrayHaired Desktop")
@@ -75,6 +88,7 @@ def create_actions(
         home=home_action,
         reload=reload_action,
         preferences=preferences_action,
+        desktop_website=desktop_website_action,
         about=about_action,
         open_log_folder=open_log_folder_action,
     )

@@ -29,7 +29,8 @@ def create_menus(menu_bar: QMenuBar, actions: ApplicationActions) -> None:
     view_menu.addAction(actions.home)
     view_menu.addAction(actions.reload)
 
-    menu_bar.addAction(actions.preferences)
+    settings_menu = menu_bar.addMenu("Settings")
+    settings_menu.addAction(actions.desktop_website)
 
     help_menu = menu_bar.addMenu("Help")
     help_menu.addAction(actions.open_log_folder)

@@ -12,7 +12,6 @@ def create_toolbar(parent: QMainWindow, actions: ApplicationActions) -> QToolBar
 
     toolbar = QToolBar("Main Toolbar", parent)
     toolbar.setMovable(False)
-    toolbar.setContentsMargins(4, 2, 4, 2)
     toolbar.layout().setSpacing(6)
 
     toolbar.addAction(actions.reload)
@@ -33,7 +32,6 @@ def create_toolbar(parent: QMainWindow, actions: ApplicationActions) -> QToolBar
         ),
     ):
         if isinstance(button, QToolButton):
-            button.setMinimumHeight(40)
             button.setAccessibleName(name)
             button.setAccessibleDescription(description)
 

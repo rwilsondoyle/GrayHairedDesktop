@@ -113,7 +113,7 @@ Status: Implementation complete; manual verification performed on the Inspiron-3
 
 Status: In progress.
 
-- Began the review with a focused pass on main-toolbar control sizing, spacing, and accessible descriptions.
+- Began the review with a focused pass on accessible control metadata and consistent top-menu behavior.
 
 - Review wording throughout the application.
 - Review keyboard navigation.
