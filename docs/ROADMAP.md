@@ -1,6 +1,6 @@
 # Roadmap
 
-The desktop application is moving toward a dependable, easy-to-install desktop companion for Zorin OS users. The roadmap favors small, verifiable alpha milestones that improve trust, installation confidence, and daily usability without overcomplicating the native shell.
+The desktop application is moving toward a dependable, easy-to-install desktop companion for Zorin OS users. The roadmap favors small, verifiable milestones that improve trust, installation confidence, and daily usability without overcomplicating the native shell.
 
 ## Vision
 
@@ -8,7 +8,7 @@ The project vision is to provide a comfortable desktop entry point: a native win
 
 ## Naming
 
-GrayHairedDesktop is the current repository name, but the public product name is not final before Version 1.0. Possible future names include PersonalDesktop or MyDesktop; this documentation does not select one. Use neutral wording such as "the application" or "the desktop application" where practical. Ron Doyle and GrayHaired.Tech remain appropriate author/About attribution, but they should not be treated as required long-term product branding.
+GrayHaired Desktop is the current repository and product name. GrayHaired Tech is the project attribution. Any later branding change must preserve existing settings and be reviewed with packaging.
 
 ## Alpha milestones
 
@@ -125,8 +125,21 @@ Status: Implementation complete; final manual Zorin verification pending.
 - Completed the final senior-friendly usability pass, clarifying that Shortcut
   Appearance affects shortcut buttons only and aligning explicit Light and Dark
   button outlines without increasing the shortcut area.
-- Next: conduct a separate Version 1.0 release-readiness review after the final
+- Next: complete the separate Version 1.0 release-readiness review and final
   manual Zorin verification. Version 1.0 is not yet declared complete.
+
+## Version 1.0 release readiness
+
+Status: **Version 1.0 implementation review complete; final manual Zorin
+verification pending.** Version 1.0 is not declared complete.
+
+- Audited current product/version wording, About information, installation,
+  update/run paths, persistence, logging, safety, and dependencies.
+- Documented the source-checkout distribution method, public-documentation gaps,
+  release findings, and the required 50-item manual Zorin checklist in
+  [`RELEASE_READINESS.md`](RELEASE_READINESS.md).
+- Retained Version 1.0 as a release decision to be made only after review and
+  successful manual testing.
 
 ## Longer-term ideas
 
@@ -134,3 +147,5 @@ Status: Implementation complete; final manual Zorin verification pending.
 - Add desktop integration assets, such as an icon and `.desktop` launcher, when branding is ready.
 - Explore release packaging only after the alpha setup scripts are consistently verified on target systems.
 - Evaluate accessibility and high-DPI behavior on the target Zorin hardware.
+- Build an equivalent Windows version only as future platform work; Windows and
+  macOS are not supported by the current release candidate.

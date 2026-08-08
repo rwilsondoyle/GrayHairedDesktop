@@ -1,4 +1,4 @@
-"""Focused checks for Alpha 0.9 user-visible terminology."""
+"""Focused checks for user-visible terminology."""
 
 import os
 

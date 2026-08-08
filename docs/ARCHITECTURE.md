@@ -1,6 +1,6 @@
 # Architecture
 
-GrayHairedDesktop is the current repository name for a small native Linux desktop shell. The Alpha 0.6 codebase is intentionally simple: Python starts a Qt application, a main window owns the desktop chrome, and an embedded QtWebEngine launch page loads and retains the configured home URL. Clicked destinations are handed to the operating system's default browser.
+GrayHaired Desktop is a small native Linux desktop application. The codebase is intentionally simple: Python starts a Qt application, a main window owns the desktop controls, and an embedded QtWebEngine launch page loads and retains the configured Desktop Website. Clicked destinations are handed to the operating system's default browser.
 
 ## Runtime stack
 
@@ -11,7 +11,7 @@ GrayHairedDesktop is the current repository name for a small native Linux deskto
 
 ## Naming
 
-GrayHairedDesktop is the current repository name, but the public product name is not final before Version 1.0. Possible future names include PersonalDesktop or MyDesktop; this documentation does not select one. Use neutral wording such as "the application" or "the desktop application" where practical. Ron Doyle and GrayHaired.Tech remain appropriate author/About attribution, but they should not be treated as required long-term product branding.
+The current repository and product name is GrayHaired Desktop. GrayHaired Tech is the project attribution. A later branding change would require a deliberate settings-migration and packaging review.
 
 ## Application flow
 
@@ -52,5 +52,5 @@ The application uses Qt `QSettings` under the current author/About attribution m
 - The desktop launch page retains the configured home page in the application, while clicked links open in the operating system's default browser.
 - The application source code is a native shell only; the configured web destination can evolve as branding and product direction mature.
 - There is no local database, background service, or custom network protocol layer in the desktop app.
-- The app does not currently ship automated GUI tests. Manual Zorin verification remains important for each alpha milestone.
-- Alpha 0.6 does not add a widget system, dashboards, themes, accounts, or synchronization.
+- The app ships focused offscreen Qt tests, but manual Zorin verification remains important for release decisions.
+- The application does not add a widget system, dashboards, accounts, or synchronization.

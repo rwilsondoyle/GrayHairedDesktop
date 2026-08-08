@@ -80,7 +80,7 @@ class MainWindow(QMainWindow):
         self._preferences = load_preferences(settings)
         self._browser = BrowserView(self._preferences.home_page_url, logger, self)
 
-        self.setWindowTitle("GrayDesk Alpha 0.9")
+        self.setWindowTitle(self._metadata.name)
         self.setMinimumSize(QSize(1024, 720))
         central = QWidget(self)
         layout = QVBoxLayout(central)
@@ -224,9 +224,10 @@ class MainWindow(QMainWindow):
             self,
             "About GrayHaired Desktop",
             (
-                f"GrayDesk Alpha 0.9 ({self._metadata.version})\n\n"
-                "GrayHaired Desktop displays your saved Desktop Website and opens "
-                "shortcuts in your default browser."
+                f"{self._metadata.name} {self._metadata.version}\n\n"
+                "Displays your saved Desktop Website and opens its links and your "
+                "shortcuts in the computer's default browser.\n\n"
+                "A GrayHaired Tech project."
             ),
         )
 
