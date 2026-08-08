@@ -81,15 +81,21 @@ class FavoriteDialog(QDialog):
         layout.addLayout(form)
         layout.addWidget(QLabel("Example: https://example.com"))
         buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Cancel)
-        save = QPushButton("Save")
-        save.setMinimumHeight(CONTROL_MINIMUM_HEIGHT)
-        save.setDefault(True)
-        buttons.addButton(save, QDialogButtonBox.ButtonRole.AcceptRole)
-        cancel = buttons.button(QDialogButtonBox.StandardButton.Cancel)
-        cancel.setMinimumHeight(CONTROL_MINIMUM_HEIGHT)
+        self._save_button = QPushButton("Save")
+        self._save_button.setMinimumHeight(CONTROL_MINIMUM_HEIGHT)
+        self._save_button.setDefault(True)
+        buttons.addButton(self._save_button, QDialogButtonBox.ButtonRole.AcceptRole)
+        self._cancel_button = buttons.button(QDialogButtonBox.StandardButton.Cancel)
+        self._cancel_button.setMinimumHeight(CONTROL_MINIMUM_HEIGHT)
         buttons.accepted.connect(self._validate_and_accept)
         buttons.rejected.connect(self.reject)
         layout.addWidget(buttons)
+
+        self.setTabOrder(self._name, self._address)
+        self.setTabOrder(self._address, self._icon)
+        self.setTabOrder(self._icon, self._save_button)
+        self.setTabOrder(self._save_button, self._cancel_button)
+        self.setTabOrder(self._cancel_button, self._name)
 
     @property
     def favorite(self) -> Favorite:

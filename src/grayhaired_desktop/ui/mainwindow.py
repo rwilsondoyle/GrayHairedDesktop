@@ -150,6 +150,12 @@ class MainWindow(QMainWindow):
             self._escape_shortcut,
             visible,
         )
+        if visible:
+            self.menuBar().setFocus(Qt.FocusReason.ShortcutFocusReason)
+        else:
+            # A hidden menu must not retain focus or intercept subsequent keyboard
+            # input intended for the Desktop Website.
+            self._browser.setFocus(Qt.FocusReason.ShortcutFocusReason)
 
     def _toggle_controls(self) -> None:
         """Show or hide controls from the lower-left button."""

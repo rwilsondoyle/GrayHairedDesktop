@@ -118,10 +118,10 @@ Status: In progress.
 - Implemented the click-target and spacing review for shortcuts, menus, and settings dialogs while preserving the compact desktop layout.
 - Implemented a focused wording and terminology review across menus, dialogs, help text, accessibility descriptions, and user-facing messages.
 - Confirmed consistent use of **Settings**, **Desktop Website**, **Website Address**, **Shortcut**, and **Open controls** in the current user interface.
+- Implemented the keyboard-navigation review, including complete dialog focus sequences and reliable focus return to the Desktop Website when native controls close.
 
-- Review keyboard navigation.
-- Review high-contrast and large-text needs.
-- Conduct a senior-friendly usability pass before Version 1.0.
+- Review high-contrast and large-system-text compatibility.
+- Conduct a final senior-friendly usability pass before Version 1.0.
 
 ## Longer-term ideas
 

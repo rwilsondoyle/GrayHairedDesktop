@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from PySide6.QtCore import QUrl
+from PySide6.QtCore import Qt, QUrl
 from PySide6.QtGui import QDesktopServices
 from PySide6.QtWidgets import (
     QComboBox,
@@ -159,6 +159,10 @@ class PreferencesDialog(QDialog):
         button_box.rejected.connect(self.reject)
         for button in button_box.buttons():
             button.setMinimumHeight(CONTROL_MINIMUM_HEIGHT)
+        self._save_button = button_box.button(QDialogButtonBox.StandardButton.Save)
+        self._cancel_button = button_box.button(
+            QDialogButtonBox.StandardButton.Cancel
+        )
 
         action_layout = QHBoxLayout()
         action_layout.setSpacing(10)
@@ -188,6 +192,10 @@ class PreferencesDialog(QDialog):
         content_layout.addWidget(self._shortcut_theme)
 
         scroll_area = QScrollArea(self)
+        # The container is not an interactive control. Keeping it out of the Tab
+        # chain lets focus move directly among the child form controls while the
+        # area continues to scroll them into view as needed.
+        scroll_area.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         scroll_area.setWidgetResizable(True)
         scroll_area.setFrameShape(QFrame.Shape.NoFrame)
         scroll_area.setWidget(content)
@@ -205,6 +213,9 @@ class PreferencesDialog(QDialog):
         self.setTabOrder(self._home_page_url, next(iter(self._built_in_buttons)))
         self.setTabOrder(list(self._built_in_buttons)[-1], self._shortcut_theme)
         self.setTabOrder(self._shortcut_theme, self._open_button)
+        self.setTabOrder(self._open_button, self._save_button)
+        self.setTabOrder(self._save_button, self._cancel_button)
+        self.setTabOrder(self._cancel_button, self._another_website)
 
     def _open_home_page(self) -> None:
         """Open the entered address externally without saving it."""
