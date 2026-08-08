@@ -38,7 +38,7 @@ from grayhaired_desktop.ui.control_visibility import (
 from grayhaired_desktop.ui.favorites import FavoritesWidget
 from grayhaired_desktop.ui.menus import create_menus
 from grayhaired_desktop.ui.preferences import PreferencesDialog
-from grayhaired_desktop.ui.tooltips import install_explicit_tooltips
+from grayhaired_desktop.ui.tooltips import HelpBubble, install_explicit_tooltips
 
 
 def _settings_icon(widget: QWidget) -> QIcon:
@@ -100,8 +100,11 @@ class MainWindow(QMainWindow):
         )
         self._open_controls_button.setMinimumSize(QSize(42, 42))
         self._open_controls_button.setAutoRaise(True)
-        self._open_controls_tooltip_filter = install_explicit_tooltips(
+        self._open_controls_help_bubble = HelpBubble(
             self._open_controls_button
+        )
+        self._open_controls_tooltip_filter = install_explicit_tooltips(
+            self._open_controls_button, self._open_controls_help_bubble
         )
         shortcut_row.addWidget(
             self._open_controls_button, 0, Qt.AlignmentFlag.AlignLeft

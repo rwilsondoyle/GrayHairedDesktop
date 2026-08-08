@@ -6,19 +6,20 @@ import pytest
 
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 pytest.importorskip("PySide6.QtWidgets", exc_type=ImportError)
-from PySide6.QtWidgets import QApplication, QMenu, QToolButton
+from PySide6.QtCore import Qt
+from PySide6.QtWidgets import QMenu, QToolButton
 
 from grayhaired_desktop.ui.tooltips import (
     ExplicitToolTipFilter,
+    HelpBubble,
     MenuHelpBubble,
     MenuHelpController,
 )
 
 
-def test_menu_help_tracks_hovered_action_and_clears() -> None:
+def test_menu_help_tracks_hovered_action_and_clears(qt_app) -> None:
     """Menu help follows action changes and clears without using QToolTip."""
 
-    app = QApplication.instance() or QApplication([])
     menu = QMenu("View")
     bubble = MenuHelpBubble(menu)
     controller = MenuHelpController(menu, bubble)
@@ -36,17 +37,20 @@ def test_menu_help_tracks_hovered_action_and_clears() -> None:
     controller.clear()
     assert controller.pending_text == ""
     assert bubble.isHidden()
-    app.processEvents()
+    qt_app.processEvents()
 
 
-def test_widget_tooltip_resolves_open_controls_metadata() -> None:
-    """The gear's explicit filter reads its retained Open controls tooltip."""
+def test_widget_tooltip_uses_shared_bubble_for_open_controls(qt_app) -> None:
+    """The gear's explicit filter uses the shared non-focusable help bubble."""
 
-    app = QApplication.instance() or QApplication([])
     gear = QToolButton()
     gear.setToolTip("Open controls")
+    bubble = HelpBubble(gear)
+    tooltip_filter = ExplicitToolTipFilter(gear, bubble)
 
-    assert ExplicitToolTipFilter.tooltip_at(gear, gear.rect().center()) == (
-        "Open controls"
-    )
-    app.processEvents()
+    assert tooltip_filter.tooltip_at(gear, gear.rect().center()) == "Open controls"
+    assert bubble.testAttribute(Qt.WidgetAttribute.WA_ShowWithoutActivating)
+    assert bubble.windowFlags() & Qt.WindowType.WindowDoesNotAcceptFocus
+    assert bubble.focusPolicy() == Qt.FocusPolicy.NoFocus
+    assert bubble.margin() == 6
+    qt_app.processEvents()

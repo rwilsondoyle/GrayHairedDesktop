@@ -1,14 +1,17 @@
-"""Explicit tooltip handling for Linux desktop environments."""
+"""Consistent, non-focusable help bubbles for application controls."""
 
 from __future__ import annotations
 
 from PySide6.QtCore import QEvent, QObject, QPoint, Qt, QTimer
 from PySide6.QtGui import QAction, QHelpEvent
-from PySide6.QtWidgets import QApplication, QLabel, QMenu, QToolTip, QWidget
+from PySide6.QtWidgets import QApplication, QLabel, QMenu, QMenuBar, QWidget
 
 
-class MenuHelpBubble(QLabel):
-    """Small non-focusable help window for popup-menu commands."""
+HELP_SHOW_DELAY_MS = 350
+
+
+class HelpBubble(QLabel):
+    """Small non-focusable help window shared by controls and commands."""
 
     def __init__(self, parent: QWidget) -> None:
         super().__init__(parent, Qt.WindowType.ToolTip)
@@ -25,21 +28,41 @@ class MenuHelpBubble(QLabel):
         screen = QApplication.screenAt(position)
         if screen is not None:
             available = screen.availableGeometry()
-            position.setX(min(position.x(), available.right() - self.width()))
-            position.setY(min(position.y(), available.bottom() - self.height()))
+            position.setX(
+                max(
+                    available.left(),
+                    min(position.x(), available.right() - self.width() + 1),
+                )
+            )
+            position.setY(
+                max(
+                    available.top(),
+                    min(position.y(), available.bottom() - self.height() + 1),
+                )
+            )
         self.move(position)
         self.show()
+
+
+# Retain the original public name for callers outside this package.
+MenuHelpBubble = HelpBubble
 
 
 class MenuHelpController(QObject):
     """Drive one shared help bubble from a popup menu's hovered actions."""
 
-    _SHOW_DELAY_MS = 350
+    _SHOW_DELAY_MS = HELP_SHOW_DELAY_MS
 
-    def __init__(self, menu: QMenu, bubble: MenuHelpBubble) -> None:
+    def __init__(
+        self,
+        menu: QMenu | QMenuBar,
+        bubble: HelpBubble,
+        actions: set[QAction] | None = None,
+    ) -> None:
         super().__init__(menu)
         self._menu = menu
         self._bubble = bubble
+        self._actions = actions
         self._pending_action: QAction | None = None
         self._timer = QTimer(self)
         self._timer.setSingleShot(True)
@@ -47,8 +70,9 @@ class MenuHelpController(QObject):
         self._timer.timeout.connect(self._show_pending_help)
         menu.hovered.connect(self.select_action)
         menu.triggered.connect(lambda action: self.clear())
-        menu.aboutToShow.connect(self.clear)
-        menu.aboutToHide.connect(self.clear)
+        if isinstance(menu, QMenu):
+            menu.aboutToShow.connect(self.clear)
+            menu.aboutToHide.connect(self.clear)
         menu.installEventFilter(self)
 
     @property
@@ -64,7 +88,10 @@ class MenuHelpController(QObject):
 
         self._timer.stop()
         self._bubble.hide()
-        self._pending_action = action if action.toolTip() else None
+        action_is_supported = self._actions is None or action in self._actions
+        self._pending_action = (
+            action if action_is_supported and action.toolTip() else None
+        )
         if self._pending_action is not None:
             self._timer.start()
 
@@ -106,6 +133,8 @@ class ExplicitToolTipFilter(QObject):
     def eventFilter(self, watched: QObject, event: QEvent) -> bool:  # noqa: N802
         """Handle tooltip events explicitly instead of relying on platform behavior."""
 
+        if event.type() in {QEvent.Type.Leave, QEvent.Type.Hide}:
+            self._bubble.hide()
         if event.type() != QEvent.Type.ToolTip or not isinstance(event, QHelpEvent):
             return super().eventFilter(watched, event)
         if not isinstance(watched, QWidget):
@@ -113,16 +142,27 @@ class ExplicitToolTipFilter(QObject):
 
         tooltip = self.tooltip_at(watched, event.pos())
         if tooltip:
-            QToolTip.showText(event.globalPos(), tooltip, watched)
+            self._bubble.show_message(tooltip, self._position(watched))
         else:
-            QToolTip.hideText()
+            self._bubble.hide()
         event.accept()
         return True
+    def __init__(self, widget: QWidget, bubble: HelpBubble) -> None:
+        super().__init__(widget)
+        self._bubble = bubble
+
+    @staticmethod
+    def _position(widget: QWidget) -> QPoint:
+        """Place help beside the widget without covering it."""
+
+        return widget.mapToGlobal(QPoint(widget.width() + 8, 0))
 
 
-def install_explicit_tooltips(widget: QWidget) -> ExplicitToolTipFilter:
-    """Install and return a widget-owned explicit tooltip event filter."""
+def install_explicit_tooltips(
+    widget: QWidget, bubble: HelpBubble
+) -> ExplicitToolTipFilter:
+    """Install custom help-bubble handling for a widget's tooltip events."""
 
-    tooltip_filter = ExplicitToolTipFilter(widget)
+    tooltip_filter = ExplicitToolTipFilter(widget, bubble)
     widget.installEventFilter(tooltip_filter)
     return tooltip_filter
