@@ -6,12 +6,12 @@ GrayHaired Desktop is a small native Linux desktop application. The codebase is 
 
 - **Language:** Python 3.12 or newer.
 - **Desktop toolkit:** PySide6, including Qt Widgets and QtWebEngine.
-- **Target environment:** Zorin OS, with compatibility expected on close Ubuntu-based desktop environments when QtWebEngine runtime packages are available.
+- **Tested target environment:** Zorin OS. Other Linux distributions and desktop environments are unverified.
 - **Packaging:** `pyproject.toml` exposes the `grayhaired-desktop` console script, which calls `grayhaired_desktop.app:main`.
 
 ## Naming
 
-The current repository and product name is GrayHaired Desktop. GrayHaired Tech is the project attribution. A later branding change would require a deliberate settings-migration and packaging review.
+GrayHairedDesktop is the repository and package identity. **GrayHaired Desktop** is current working/display wording, not a final public-name decision. The public product name remains undecided before Version 1.0. This review does not rename the repository, Python package, QSettings identity, or application data paths. GrayHaired Tech and Ron Doyle remain appropriate project attribution.
 
 ## Application flow
 

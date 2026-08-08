@@ -8,7 +8,7 @@ The project vision is to provide a comfortable desktop entry point: a native win
 
 ## Naming
 
-GrayHaired Desktop is the current repository and product name. GrayHaired Tech is the project attribution. Any later branding change must preserve existing settings and be reviewed with packaging.
+GrayHairedDesktop is the repository and package identity; GrayHaired Desktop is current working/display wording. The final public product name remains undecided before Version 1.0, and this release-readiness phase does not select one. GrayHaired Tech and Ron Doyle remain appropriate project attribution.
 
 ## Alpha milestones
 

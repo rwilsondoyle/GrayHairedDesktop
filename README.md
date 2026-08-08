@@ -6,6 +6,10 @@ configurable shortcut buttons, and hands ordinary website links and shortcuts to
 the operating system's default browser or web application. It is not itself a
 general-purpose browser.
 
+GrayHairedDesktop is the repository and package identity. "GrayHaired Desktop"
+is the current working display wording; the final public product name has not
+been selected. This release-readiness review does not make that branding decision.
+
 The current implementation-review build is **0.9.0**. Version 1.0 has not been
 declared: code review and the manual Zorin release checklist in
 [`docs/RELEASE_READINESS.md`](docs/RELEASE_READINESS.md) must be completed first.
@@ -13,7 +17,7 @@ Windows and macOS are not supported.
 
 ## Supported environment
 
-- Zorin OS (the current target and manual-test platform)
+- Zorin OS (the only currently tested and supported target)
 - Python 3.12 or newer
 - Internet access for setup and web content
 - PySide6 6.7 or newer, below 7 (installed by the setup script)
@@ -21,6 +25,11 @@ Windows and macOS are not supported.
 QtWebEngine is supplied by PySide6. The setup script also installs the matching
 Python virtual-environment package, `python3-pip`, and `libxcb-cursor0` through
 Zorin/Ubuntu's package manager when they are missing.
+
+Other Linux distributions and desktop environments have not been verified. The
+apt-based `setup-zorin.sh` is specifically the Zorin installation path, not a
+universal Linux installer. See the detailed portability audit in the release
+readiness report.
 
 ## Download and first-time setup
 
