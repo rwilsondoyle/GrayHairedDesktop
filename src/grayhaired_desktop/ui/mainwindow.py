@@ -27,8 +27,14 @@ from grayhaired_desktop.browser import BrowserView
 from grayhaired_desktop.config import AppMetadata
 from grayhaired_desktop.logger import log_file_path
 from grayhaired_desktop.settings import load_preferences, save_preferences
-from grayhaired_desktop.ui.actions import create_actions
-from grayhaired_desktop.ui.control_visibility import ControlVisibilityState
+from grayhaired_desktop.ui.actions import (
+    create_actions,
+    register_window_navigation_actions,
+)
+from grayhaired_desktop.ui.control_visibility import (
+    ControlVisibilityState,
+    apply_control_visibility,
+)
 from grayhaired_desktop.ui.favorites import FavoritesWidget
 from grayhaired_desktop.ui.menus import create_menus
 from grayhaired_desktop.ui.preferences import PreferencesDialog
@@ -118,6 +124,7 @@ class MainWindow(QMainWindow):
             open_log_folder=self._open_log_folder,
         )
         self._controls = ControlVisibilityState()
+        register_window_navigation_actions(self, self._actions)
         create_menus(self.menuBar(), self._actions, self._hide_controls)
         self._open_controls_button.clicked.connect(self._toggle_controls)
         self._escape_shortcut = QShortcut(QKeySequence.Cancel, self)
@@ -133,12 +140,17 @@ class MainWindow(QMainWindow):
     def _set_controls_visible(self, visible: bool) -> None:
         """Apply the transient control state to the menu bar."""
 
-        self.menuBar().setVisible(self._controls.set_visible(visible))
+        apply_control_visibility(
+            self._controls,
+            self.menuBar(),
+            self._escape_shortcut,
+            visible,
+        )
 
     def _toggle_controls(self) -> None:
         """Show or hide controls from the lower-left button."""
 
-        self.menuBar().setVisible(self._controls.toggle())
+        self._set_controls_visible(not self._controls.visible)
 
     def _hide_controls(self) -> None:
         """Return focus to the Desktop Website by hiding the controls."""

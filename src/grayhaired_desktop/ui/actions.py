@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from dataclasses import dataclass
+from typing import Protocol
 
 from PySide6.QtCore import QObject
 from PySide6.QtGui import QAction
@@ -19,6 +20,22 @@ class ApplicationActions:
     desktop_website: QAction
     about: QAction
     open_log_folder: QAction
+
+
+class ActionHost(Protocol):
+    """Qt widget capable of keeping an action active independently of menus."""
+
+    def addAction(self, action: QAction) -> None:  # noqa: N802 - Qt API name
+        """Associate an action with the widget."""
+
+
+def register_window_navigation_actions(
+    host: ActionHost, actions: ApplicationActions
+) -> None:
+    """Keep navigation shortcuts active when their containing menus are hidden."""
+
+    host.addAction(actions.home)
+    host.addAction(actions.reload)
 
 
 def create_actions(
