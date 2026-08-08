@@ -4,19 +4,67 @@ from __future__ import annotations
 
 import logging
 
-from PySide6.QtCore import QSettings, QSize, QUrl
-from PySide6.QtGui import QDesktopServices
-from PySide6.QtWidgets import QMainWindow, QMessageBox, QStatusBar, QVBoxLayout, QWidget
+from PySide6.QtCore import QSettings, QSize, Qt, QUrl
+from PySide6.QtGui import (
+    QDesktopServices,
+    QIcon,
+    QKeySequence,
+    QPainter,
+    QPixmap,
+    QShortcut,
+)
+from PySide6.QtWidgets import (
+    QHBoxLayout,
+    QMainWindow,
+    QMessageBox,
+    QStatusBar,
+    QToolButton,
+    QVBoxLayout,
+    QWidget,
+)
 
 from grayhaired_desktop.browser import BrowserView
 from grayhaired_desktop.config import AppMetadata
 from grayhaired_desktop.logger import log_file_path
 from grayhaired_desktop.settings import load_preferences, save_preferences
-from grayhaired_desktop.ui.actions import create_actions
+from grayhaired_desktop.ui.actions import (
+    create_actions,
+    register_window_navigation_actions,
+)
+from grayhaired_desktop.ui.control_visibility import (
+    ControlVisibilityState,
+    apply_control_visibility,
+)
 from grayhaired_desktop.ui.favorites import FavoritesWidget
 from grayhaired_desktop.ui.menus import create_menus
 from grayhaired_desktop.ui.preferences import PreferencesDialog
-from grayhaired_desktop.ui.toolbar import create_toolbar
+from grayhaired_desktop.ui.tooltips import install_explicit_tooltips
+
+
+def _settings_icon(widget: QWidget) -> QIcon:
+    """Return the first available settings icon, with a Qt-rendered gear fallback."""
+
+    for icon_name in (
+        "preferences-system",
+        "settings",
+        "configure",
+        "system-settings",
+    ):
+        icon = QIcon.fromTheme(icon_name)
+        if not icon.isNull():
+            return icon
+
+    pixmap = QPixmap(24, 24)
+    pixmap.fill(Qt.GlobalColor.transparent)
+    painter = QPainter(pixmap)
+    painter.setRenderHint(QPainter.RenderHint.TextAntialiasing)
+    painter.setPen(widget.palette().buttonText().color())
+    font = painter.font()
+    font.setPixelSize(20)
+    painter.setFont(font)
+    painter.drawText(pixmap.rect(), Qt.AlignmentFlag.AlignCenter, "⚙")
+    painter.end()
+    return QIcon(pixmap)
 
 
 class MainWindow(QMainWindow):
@@ -39,13 +87,33 @@ class MainWindow(QMainWindow):
         layout.setContentsMargins(8, 8, 8, 6)
         layout.setSpacing(4)
         layout.addWidget(self._browser, 1)
+
+        shortcut_row = QHBoxLayout()
+        shortcut_row.setContentsMargins(0, 0, 0, 0)
+        shortcut_row.setSpacing(6)
+        self._open_controls_button = QToolButton(central)
+        self._open_controls_button.setIcon(_settings_icon(self))
+        self._open_controls_button.setToolTip("Open controls")
+        self._open_controls_button.setAccessibleName("Open controls")
+        self._open_controls_button.setAccessibleDescription(
+            "Show application controls and settings"
+        )
+        self._open_controls_button.setMinimumSize(QSize(36, 36))
+        self._open_controls_button.setAutoRaise(True)
+        self._open_controls_tooltip_filter = install_explicit_tooltips(
+            self._open_controls_button
+        )
+        shortcut_row.addWidget(
+            self._open_controls_button, 0, Qt.AlignmentFlag.AlignLeft
+        )
         self._favorites = FavoritesWidget(
             settings,
             self._browser.open_external,
             self._preferences.shortcut_theme,
             central,
         )
-        layout.addWidget(self._favorites, 0)
+        shortcut_row.addWidget(self._favorites, 1)
+        layout.addLayout(shortcut_row, 0)
         self.setCentralWidget(central)
         self.setStatusBar(QStatusBar(self))
         self.statusBar().showMessage("Ready")
@@ -59,11 +127,40 @@ class MainWindow(QMainWindow):
             show_about=self._show_about_dialog,
             open_log_folder=self._open_log_folder,
         )
-        create_menus(self.menuBar(), self._actions)
-        self._toolbar = create_toolbar(self, self._actions)
+        self._controls = ControlVisibilityState()
+        register_window_navigation_actions(self, self._actions)
+        create_menus(self.menuBar(), self._actions, self._hide_controls)
+        self._open_controls_button.clicked.connect(self._toggle_controls)
+        self._escape_shortcut = QShortcut(QKeySequence.Cancel, self)
+        self._escape_shortcut.setContext(Qt.ShortcutContext.WindowShortcut)
+        self._escape_shortcut.activated.connect(self._hide_controls)
         self._connect_browser_status()
         self._restore_window_state()
+        # restoreState may include obsolete toolbar data from an earlier release.
+        # No toolbar is created, and every launch explicitly begins with menus hidden.
+        self._set_controls_visible(False)
         self._browser.load_home("initial application load")
+
+    def _set_controls_visible(self, visible: bool) -> None:
+        """Apply the transient control state to the menu bar."""
+
+        apply_control_visibility(
+            self._controls,
+            self.menuBar(),
+            self._escape_shortcut,
+            visible,
+        )
+
+    def _toggle_controls(self) -> None:
+        """Show or hide controls from the lower-left button."""
+
+        self._set_controls_visible(not self._controls.visible)
+
+    def _hide_controls(self) -> None:
+        """Return focus to the Desktop Website by hiding the controls."""
+
+        if self._controls.visible:
+            self._set_controls_visible(False)
 
     def closeEvent(self, event) -> None:  # noqa: N802 - Qt override name
         """Persist window geometry before closing."""

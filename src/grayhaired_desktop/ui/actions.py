@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from dataclasses import dataclass
+from typing import Protocol
 
 from PySide6.QtCore import QObject
 from PySide6.QtGui import QAction
@@ -21,6 +22,22 @@ class ApplicationActions:
     open_log_folder: QAction
 
 
+class ActionHost(Protocol):
+    """Qt widget capable of keeping an action active independently of menus."""
+
+    def addAction(self, action: QAction) -> None:  # noqa: N802 - Qt API name
+        """Associate an action with the widget."""
+
+
+def register_window_navigation_actions(
+    host: ActionHost, actions: ApplicationActions
+) -> None:
+    """Keep navigation shortcuts active when their containing menus are hidden."""
+
+    host.addAction(actions.home)
+    host.addAction(actions.reload)
+
+
 def create_actions(
     parent: QObject,
     *,
@@ -34,6 +51,7 @@ def create_actions(
     """Create the main-window actions and connect their callbacks."""
 
     exit_action = QAction("Exit", parent)
+    exit_action.setToolTip("Close GrayHaired Desktop")
     exit_action.setStatusTip("Close GrayHaired Desktop")
     exit_action.setWhatsThis("Close GrayHaired Desktop")
     exit_action.triggered.connect(close)
@@ -65,11 +83,15 @@ def create_actions(
     desktop_website_action.triggered.connect(show_preferences)
 
     about_action = QAction("About", parent)
+    about_action.setToolTip("View information about GrayHaired Desktop")
     about_action.setStatusTip("About GrayHaired Desktop")
     about_action.setWhatsThis("View information about GrayHaired Desktop")
     about_action.triggered.connect(show_about)
 
     open_log_folder_action = QAction("Open Log Folder", parent)
+    open_log_folder_action.setToolTip(
+        "Open the folder containing diagnostic logs"
+    )
     open_log_folder_action.setStatusTip("Open the folder containing diagnostic logs")
     open_log_folder_action.triggered.connect(open_log_folder)
 
