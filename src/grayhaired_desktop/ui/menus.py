@@ -5,16 +5,25 @@ from __future__ import annotations
 from collections.abc import Callable
 
 from PySide6.QtGui import QAction, QCursor
-from PySide6.QtWidgets import QMenu, QMenuBar, QToolTip
+from PySide6.QtWidgets import QMenu, QMenuBar, QToolTip, QWidget
 
 from grayhaired_desktop.ui.actions import ApplicationActions
 
 
-def _show_action_tooltip(action: QAction, menu: QMenu) -> None:
+def _show_action_tooltip(action: QAction, parent: QWidget) -> None:
     """Show a menu action's tooltip consistently across desktop environments."""
 
     if tooltip := action.toolTip():
-        QToolTip.showText(QCursor.pos(), tooltip, menu)
+        QToolTip.showText(QCursor.pos(), tooltip, parent)
+
+
+def _enable_menu_action_tooltips(menu: QMenu) -> None:
+    """Use explicit hover tooltips in addition to the desktop's menu behavior."""
+
+    menu.setToolTipsVisible(True)
+    menu.hovered.connect(
+        lambda action: _show_action_tooltip(action, menu)
+    )
 
 
 def create_menus(
@@ -25,20 +34,20 @@ def create_menus(
     """Populate ``menu_bar`` and return its top-level Done action."""
 
     file_menu = menu_bar.addMenu("File")
+    _enable_menu_action_tooltips(file_menu)
     file_menu.addAction(actions.exit)
 
     view_menu = menu_bar.addMenu("View")
-    view_menu.setToolTipsVisible(True)
-    view_menu.hovered.connect(
-        lambda action: _show_action_tooltip(action, view_menu)
-    )
+    _enable_menu_action_tooltips(view_menu)
     view_menu.addAction(actions.home)
     view_menu.addAction(actions.reload)
 
     settings_menu = menu_bar.addMenu("Settings")
+    _enable_menu_action_tooltips(settings_menu)
     settings_menu.addAction(actions.desktop_website)
 
     help_menu = menu_bar.addMenu("Help")
+    _enable_menu_action_tooltips(help_menu)
     help_menu.addAction(actions.open_log_folder)
     help_menu.addAction(actions.about)
 
@@ -54,4 +63,11 @@ def create_menus(
     )
     done_action.triggered.connect(hide_controls)
     menu_bar.addAction(done_action)
+    menu_bar.hovered.connect(
+        lambda action: (
+            _show_action_tooltip(action, menu_bar)
+            if action is done_action
+            else None
+        )
+    )
     return done_action

@@ -59,6 +59,34 @@ def test_key_actions_expose_plain_english_help() -> None:
     assert actions.exit.whatsThis() == "Close GrayHaired Desktop"
 
 
+def test_menu_actions_expose_expected_tooltips() -> None:
+    """Every menu command provides the expected concise hover tooltip."""
+
+    def callback() -> None:
+        pass
+
+    actions = create_actions(
+        QObject(),
+        close=callback,
+        load_home=callback,
+        reload_page=callback,
+        show_preferences=callback,
+        show_about=callback,
+        open_log_folder=callback,
+    )
+
+    assert actions.exit.toolTip() == "Close GrayHaired Desktop"
+    assert actions.home.toolTip() == "Return to your saved Desktop Website"
+    assert actions.reload.toolTip() == "Refresh the current Desktop Website"
+    assert actions.desktop_website.toolTip() == (
+        "Choose the Desktop Website and shortcut appearance"
+    )
+    assert actions.open_log_folder.toolTip() == (
+        "Open the folder containing diagnostic logs"
+    )
+    assert actions.about.toolTip() == "View information about GrayHaired Desktop"
+
+
 def test_desktop_website_action_uses_settings_callback() -> None:
     """The Settings menu item opens the existing Settings workflow."""
 
