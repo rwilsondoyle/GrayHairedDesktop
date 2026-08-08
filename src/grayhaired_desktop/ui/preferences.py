@@ -35,6 +35,10 @@ INVALID_URL_MESSAGE = (
 PREVIEW_DESCRIPTION = (
     "Open the selected website in your default browser without saving changes."
 )
+OPEN_WEBSITE_FAILURE_MESSAGE = (
+    "The selected website could not be opened in your default browser. Check that "
+    "your computer has a working default browser and try again."
+)
 
 CONTROL_MINIMUM_HEIGHT = 40
 RADIO_MINIMUM_HEIGHT = 38
@@ -215,8 +219,7 @@ class PreferencesDialog(QDialog):
             QMessageBox.warning(
                 self,
                 "Could Not Open Website",
-                "The selected website could not be opened. Check the Website Address "
-                "and try again.",
+                OPEN_WEBSITE_FAILURE_MESSAGE,
             )
 
     def _selected_address(self) -> str:

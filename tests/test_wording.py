@@ -16,6 +16,7 @@ from grayhaired_desktop.ui.favorite_dialog import (
 )
 from grayhaired_desktop.ui.preferences import (
     INVALID_URL_MESSAGE,
+    OPEN_WEBSITE_FAILURE_MESSAGE,
     PREVIEW_DESCRIPTION,
     PreferencesDialog,
 )
@@ -43,6 +44,10 @@ def test_settings_uses_approved_desktop_website_terms(qapp) -> None:
     assert dialog._open_button.text() == "Preview in Browser"
     assert dialog._open_button.toolTip() == PREVIEW_DESCRIPTION
     assert "without saving changes" in PREVIEW_DESCRIPTION
+    assert OPEN_WEBSITE_FAILURE_MESSAGE == (
+        "The selected website could not be opened in your default browser. Check that "
+        "your computer has a working default browser and try again."
+    )
 
 
 def test_shortcut_editor_explains_how_to_fix_missing_details(qapp) -> None:
