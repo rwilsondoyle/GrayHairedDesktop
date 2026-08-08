@@ -8,6 +8,7 @@ from PySide6.QtGui import QAction, QCursor
 from PySide6.QtWidgets import QMenu, QMenuBar, QToolTip, QWidget
 
 from grayhaired_desktop.ui.actions import ApplicationActions
+from grayhaired_desktop.ui.tooltips import install_explicit_tooltips
 
 
 def _show_action_tooltip(action: QAction, parent: QWidget) -> None:
@@ -18,12 +19,9 @@ def _show_action_tooltip(action: QAction, parent: QWidget) -> None:
 
 
 def _enable_menu_action_tooltips(menu: QMenu) -> None:
-    """Use explicit hover tooltips in addition to the desktop's menu behavior."""
+    """Handle tooltip events explicitly for commands in ``menu``."""
 
-    menu.setToolTipsVisible(True)
-    menu.hovered.connect(
-        lambda action: _show_action_tooltip(action, menu)
-    )
+    install_explicit_tooltips(menu)
 
 
 def create_menus(
