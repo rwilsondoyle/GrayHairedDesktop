@@ -8,7 +8,7 @@ from PySide6.QtWidgets import QApplication, QMenuBar
 
 from grayhaired_desktop.ui.actions import create_actions
 from grayhaired_desktop.ui.menus import create_menus
-from grayhaired_desktop.ui.tooltips import ToolTipMenu
+from grayhaired_desktop.ui.tooltips import MenuHelpController
 
 
 def test_done_is_final_top_level_action_and_hides_controls() -> None:
@@ -38,9 +38,10 @@ def test_done_is_final_top_level_action_and_hides_controls() -> None:
         "Help",
         "Done",
     ]
+    assert len(menu_bar._menu_help_controllers) == 4
     assert all(
-        isinstance(action.menu(), ToolTipMenu)
-        for action in menu_bar.actions()[:4]
+        isinstance(controller, MenuHelpController)
+        for controller in menu_bar._menu_help_controllers
     )
     assert done.menu() is None
     assert done.toolTip() == "Return to Desktop Website"

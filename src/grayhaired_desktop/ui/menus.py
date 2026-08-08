@@ -5,10 +5,10 @@ from __future__ import annotations
 from collections.abc import Callable
 
 from PySide6.QtGui import QAction, QCursor
-from PySide6.QtWidgets import QMenuBar, QToolTip, QWidget
+from PySide6.QtWidgets import QMenu, QMenuBar, QToolTip, QWidget
 
 from grayhaired_desktop.ui.actions import ApplicationActions
-from grayhaired_desktop.ui.tooltips import ToolTipMenu
+from grayhaired_desktop.ui.tooltips import MenuHelpBubble, MenuHelpController
 
 
 def _show_action_tooltip(action: QAction, parent: QWidget) -> None:
@@ -25,23 +25,32 @@ def create_menus(
 ) -> QAction:
     """Populate ``menu_bar`` and return its top-level Done action."""
 
-    file_menu = ToolTipMenu("File", menu_bar)
+    help_bubble = MenuHelpBubble(menu_bar)
+    menu_help_controllers = []
+
+    file_menu = QMenu("File", menu_bar)
     menu_bar.addMenu(file_menu)
     file_menu.addAction(actions.exit)
 
-    view_menu = ToolTipMenu("View", menu_bar)
+    view_menu = QMenu("View", menu_bar)
     menu_bar.addMenu(view_menu)
     view_menu.addAction(actions.home)
     view_menu.addAction(actions.reload)
 
-    settings_menu = ToolTipMenu("Settings", menu_bar)
+    settings_menu = QMenu("Settings", menu_bar)
     menu_bar.addMenu(settings_menu)
     settings_menu.addAction(actions.desktop_website)
 
-    help_menu = ToolTipMenu("Help", menu_bar)
+    help_menu = QMenu("Help", menu_bar)
     menu_bar.addMenu(help_menu)
     help_menu.addAction(actions.open_log_folder)
     help_menu.addAction(actions.about)
+
+    for menu in (file_menu, view_menu, settings_menu, help_menu):
+        menu_help_controllers.append(MenuHelpController(menu, help_bubble))
+    # Keep explicit Python references in addition to Qt parent ownership.
+    menu_bar._menu_help_bubble = help_bubble
+    menu_bar._menu_help_controllers = menu_help_controllers
 
     done_action = QAction("Done", menu_bar)
     done_action.setToolTip("Return to Desktop Website")

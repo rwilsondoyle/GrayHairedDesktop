@@ -6,23 +6,36 @@ import pytest
 
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 pytest.importorskip("PySide6.QtWidgets", exc_type=ImportError)
-from PySide6.QtWidgets import QApplication, QToolButton
+from PySide6.QtWidgets import QApplication, QMenu, QToolButton
 
-from grayhaired_desktop.ui.tooltips import ExplicitToolTipFilter, ToolTipMenu
+from grayhaired_desktop.ui.tooltips import (
+    ExplicitToolTipFilter,
+    MenuHelpBubble,
+    MenuHelpController,
+)
 
 
-def test_menu_tooltip_resolves_action_under_position() -> None:
-    """Menu tooltip lookup uses the action underneath the help event position."""
+def test_menu_help_tracks_hovered_action_and_clears() -> None:
+    """Menu help follows action changes and clears without using QToolTip."""
 
     app = QApplication.instance() or QApplication([])
-    menu = ToolTipMenu("File")
-    action = menu.addAction("Exit")
-    action.setToolTip("Close GrayHaired Desktop")
-    menu.ensurePolished()
+    menu = QMenu("View")
+    bubble = MenuHelpBubble(menu)
+    controller = MenuHelpController(menu, bubble)
+    home = menu.addAction("Home")
+    home.setToolTip("Return to your saved Desktop Website")
+    reload_action = menu.addAction("Reload")
+    reload_action.setToolTip("Refresh the current Desktop Website")
 
-    tooltip = menu.action_tooltip_at(menu.actionGeometry(action).center())
+    controller.select_action(home)
+    assert controller.pending_text == "Return to your saved Desktop Website"
 
-    assert tooltip == "Close GrayHaired Desktop"
+    controller.select_action(reload_action)
+    assert controller.pending_text == "Refresh the current Desktop Website"
+
+    controller.clear()
+    assert controller.pending_text == ""
+    assert bubble.isHidden()
     app.processEvents()
 
 

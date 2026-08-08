@@ -2,53 +2,96 @@
 
 from __future__ import annotations
 
-from PySide6.QtCore import QEvent, QObject, QPoint
-from PySide6.QtGui import QAction, QHelpEvent, QMouseEvent
-from PySide6.QtWidgets import QMenu, QToolTip, QWidget
+from PySide6.QtCore import QEvent, QObject, QPoint, Qt, QTimer
+from PySide6.QtGui import QAction, QHelpEvent
+from PySide6.QtWidgets import QApplication, QLabel, QMenu, QToolTip, QWidget
 
 
-class ToolTipMenu(QMenu):
-    """Popup menu that displays action tooltips directly from mouse movement."""
+class MenuHelpBubble(QLabel):
+    """Small non-focusable help window for popup-menu commands."""
 
-    def __init__(self, title: str, parent: QWidget | None = None) -> None:
-        super().__init__(title, parent)
-        self.setMouseTracking(True)
-        self._tooltip_action: QAction | None = None
+    def __init__(self, parent: QWidget) -> None:
+        super().__init__(parent, Qt.WindowType.ToolTip)
+        self.setMargin(6)
+        self.setTextFormat(Qt.TextFormat.PlainText)
+        self.setAttribute(Qt.WidgetAttribute.WA_ShowWithoutActivating)
+        self.setWindowFlag(Qt.WindowType.WindowDoesNotAcceptFocus)
 
-    def action_tooltip_at(self, position: QPoint) -> str:
-        """Return the tooltip for the action at a menu-local position."""
+    def show_message(self, text: str, position: QPoint) -> None:
+        """Show plain help text near a menu command without taking focus."""
 
-        action = self.actionAt(position)
-        return action.toolTip() if action is not None else ""
+        self.setText(text)
+        self.adjustSize()
+        screen = QApplication.screenAt(position)
+        if screen is not None:
+            available = screen.availableGeometry()
+            position.setX(min(position.x(), available.right() - self.width()))
+            position.setY(min(position.y(), available.bottom() - self.height()))
+        self.move(position)
+        self.show()
 
-    def mouseMoveEvent(self, event: QMouseEvent) -> None:  # noqa: N802
-        """Update the tooltip when the pointer moves to a different action."""
 
-        super().mouseMoveEvent(event)
-        action = self.actionAt(event.position().toPoint())
-        if action is self._tooltip_action:
+class MenuHelpController(QObject):
+    """Drive one shared help bubble from a popup menu's hovered actions."""
+
+    _SHOW_DELAY_MS = 350
+
+    def __init__(self, menu: QMenu, bubble: MenuHelpBubble) -> None:
+        super().__init__(menu)
+        self._menu = menu
+        self._bubble = bubble
+        self._pending_action: QAction | None = None
+        self._timer = QTimer(self)
+        self._timer.setSingleShot(True)
+        self._timer.setInterval(self._SHOW_DELAY_MS)
+        self._timer.timeout.connect(self._show_pending_help)
+        menu.hovered.connect(self.select_action)
+        menu.triggered.connect(lambda action: self.clear())
+        menu.aboutToShow.connect(self.clear)
+        menu.aboutToHide.connect(self.clear)
+        menu.installEventFilter(self)
+
+    @property
+    def pending_text(self) -> str:
+        """Return the selected help text, primarily for focused tests."""
+
+        if self._pending_action is None:
+            return ""
+        return self._pending_action.toolTip()
+
+    def select_action(self, action: QAction) -> None:
+        """Select a hovered action and restart its short display delay."""
+
+        self._timer.stop()
+        self._bubble.hide()
+        self._pending_action = action if action.toolTip() else None
+        if self._pending_action is not None:
+            self._timer.start()
+
+    def clear(self) -> None:
+        """Cancel pending help and hide any visible bubble."""
+
+        self._timer.stop()
+        self._pending_action = None
+        self._bubble.hide()
+
+    def eventFilter(self, watched: QObject, event: QEvent) -> bool:  # noqa: N802
+        """Clear help when the cursor leaves or the popup closes."""
+
+        if watched is self._menu and event.type() in {
+            QEvent.Type.Leave,
+            QEvent.Type.Hide,
+        }:
+            self.clear()
+        return super().eventFilter(watched, event)
+
+    def _show_pending_help(self) -> None:
+        action = self._pending_action
+        if action is None or not self._menu.isVisible():
             return
-
-        QToolTip.hideText()
-        self._tooltip_action = action
-        if action is not None and (tooltip := action.toolTip()):
-            QToolTip.showText(event.globalPosition().toPoint(), tooltip, self)
-
-    def leaveEvent(self, event: QEvent) -> None:  # noqa: N802
-        """Hide action help when the pointer leaves the popup menu."""
-
-        self._hide_action_tooltip()
-        super().leaveEvent(event)
-
-    def hideEvent(self, event: QEvent) -> None:  # noqa: N802
-        """Hide action help when the popup menu closes."""
-
-        self._hide_action_tooltip()
-        super().hideEvent(event)
-
-    def _hide_action_tooltip(self) -> None:
-        self._tooltip_action = None
-        QToolTip.hideText()
+        action_geometry = self._menu.actionGeometry(action)
+        position = self._menu.mapToGlobal(action_geometry.topRight() + QPoint(8, 0))
+        self._bubble.show_message(action.toolTip(), position)
 
 
 class ExplicitToolTipFilter(QObject):
