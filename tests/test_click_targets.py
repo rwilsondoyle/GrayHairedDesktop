@@ -12,14 +12,17 @@ from grayhaired_desktop.ui.favorites import FavoritesWidget
 from grayhaired_desktop.ui.preferences import PreferencesDialog
 
 
-def _app() -> QApplication:
-    return QApplication.instance() or QApplication([])
+@pytest.fixture(scope="module")
+def qapp():
+    """Keep the single Qt application alive for this module's GUI tests."""
+
+    app = QApplication.instance() or QApplication([])
+    yield app
 
 
-def test_all_visible_shortcut_buttons_have_42_pixel_minimum(tmp_path) -> None:
+def test_all_visible_shortcut_buttons_have_42_pixel_minimum(tmp_path, qapp) -> None:
     """Normal, Add Shortcut, and any More button share the larger target."""
 
-    _app()
     settings = QSettings(str(tmp_path / "settings.ini"), QSettings.Format.IniFormat)
     widget = FavoritesWidget(settings, lambda _url: None)
 
@@ -29,10 +32,9 @@ def test_all_visible_shortcut_buttons_have_42_pixel_minimum(tmp_path) -> None:
     assert widget._ROW_SPACING == 8
 
 
-def test_settings_interactive_controls_have_comfortable_minimums() -> None:
+def test_settings_interactive_controls_have_comfortable_minimums(qapp) -> None:
     """Settings fields, choices, and actions expose non-fragile minimum sizes."""
 
-    _app()
     dialog = PreferencesDialog(UserPreferences())
 
     assert dialog._home_page_url.minimumHeight() >= 40
@@ -41,10 +43,9 @@ def test_settings_interactive_controls_have_comfortable_minimums() -> None:
     assert all(button.minimumHeight() >= 38 for button in dialog._website_buttons.buttons())
 
 
-def test_shortcut_editor_controls_have_40_pixel_minimums() -> None:
+def test_shortcut_editor_controls_have_40_pixel_minimums(qapp) -> None:
     """The shortcut editor fields and dialog actions use comfortable targets."""
 
-    _app()
     dialog = FavoriteDialog()
 
     assert dialog._name.minimumHeight() >= 40
