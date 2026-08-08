@@ -111,7 +111,7 @@ Status: Implementation complete; manual verification performed on the Inspiron-3
 
 ### Alpha 0.9 — Usability and Accessibility Review
 
-Status: In progress.
+Status: Implementation complete; final manual Zorin verification pending.
 
 - Began the review with a focused pass on accessible control metadata and consistent top-menu behavior.
 - Added a toggleable control menu so the Desktop Website gets more screen space while the existing application controls remain easy to reach.
@@ -122,7 +122,11 @@ Status: In progress.
 - Implemented the high-contrast and large-system-text compatibility review by removing fixed native-UI font sizes and retaining system fonts, palettes, focus behavior, and high-DPI handling.
 - Added a focused Zorin compatibility fallback for PySide6 installations where the Fusion palette does not reflect GNOME's current light/dark appearance.
 
-- Conduct a final senior-friendly usability pass before Version 1.0.
+- Completed the final senior-friendly usability pass, clarifying that Shortcut
+  Appearance affects shortcut buttons only and aligning explicit Light and Dark
+  button outlines without increasing the shortcut area.
+- Next: conduct a separate Version 1.0 release-readiness review after the final
+  manual Zorin verification. Version 1.0 is not yet declared complete.
 
 ## Longer-term ideas
 

@@ -94,6 +94,7 @@ def test_explicit_themes_keep_normal_and_focus_borders() -> None:
     """Light and Dark retain their intended borders and focus indication."""
 
     assert "border: 1px solid #a5abb2" in FavoritesWidget._LIGHT_STYLE
+    assert "outline: none" in FavoritesWidget._LIGHT_STYLE
     assert "QPushButton:focus { border: 2px solid #155ea8; }" in (
         FavoritesWidget._LIGHT_STYLE
     )
@@ -102,6 +103,22 @@ def test_explicit_themes_keep_normal_and_focus_borders() -> None:
     assert "QPushButton:focus { border: 2px solid #8ab4f8; }" in (
         FavoritesWidget._DARK_STYLE
     )
+
+
+def test_explicit_shortcut_themes_use_matching_visual_geometry() -> None:
+    """Light and Dark use the same box geometry and suppress native outlines."""
+
+    geometry_rules = (
+        "min-height: 42px",
+        "padding: 0 9px",
+        "border: 1px solid",
+        "border-radius: 7px",
+        "outline: none",
+        ":focus { border: 2px solid",
+    )
+    for rule in geometry_rules:
+        assert rule in FavoritesWidget._LIGHT_STYLE
+        assert rule in FavoritesWidget._DARK_STYLE
 
 
 def test_real_shortcut_keeps_dark_style_across_theme_changes(
