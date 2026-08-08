@@ -78,6 +78,18 @@ def _fusion_dark_palette() -> QPalette:
     palette.setColor(QPalette.ColorRole.Highlight, highlight)
     palette.setColor(QPalette.ColorRole.HighlightedText, QColor(255, 255, 255))
     palette.setColor(QPalette.ColorRole.PlaceholderText, QColor(170, 170, 170))
+
+    disabled_text = QColor(168, 168, 168)
+    disabled_base = QColor(43, 43, 43)
+    disabled_button = QColor(69, 69, 69)
+    disabled_placeholder = QColor(133, 133, 133)
+    disabled = QPalette.ColorGroup.Disabled
+    palette.setColor(disabled, QPalette.ColorRole.WindowText, disabled_text)
+    palette.setColor(disabled, QPalette.ColorRole.Text, disabled_text)
+    palette.setColor(disabled, QPalette.ColorRole.ButtonText, disabled_text)
+    palette.setColor(disabled, QPalette.ColorRole.PlaceholderText, disabled_placeholder)
+    palette.setColor(disabled, QPalette.ColorRole.Base, disabled_base)
+    palette.setColor(disabled, QPalette.ColorRole.Button, disabled_button)
     return palette
 
 
