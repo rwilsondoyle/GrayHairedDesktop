@@ -7,6 +7,7 @@ import pytest
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 pytest.importorskip("PySide6.QtWidgets", exc_type=ImportError)
 from PySide6.QtCore import Qt
+from PySide6.QtTest import QTest
 from PySide6.QtWidgets import QMenu, QMenuBar, QToolButton
 
 from grayhaired_desktop.ui.tooltips import (
@@ -38,6 +39,28 @@ def test_menu_help_tracks_hovered_action_and_clears(qt_app) -> None:
     assert controller.pending_text == ""
     assert bubble.isHidden()
     qt_app.processEvents()
+
+
+def test_widget_activation_hides_help_without_consuming_click(qt_app) -> None:
+    """Pressing the gear hides its help and still activates the button."""
+
+    gear = QToolButton()
+    bubble = HelpBubble(gear)
+    tooltip_filter = ExplicitToolTipFilter(gear, bubble)
+    gear.installEventFilter(tooltip_filter)
+    activations = []
+    gear.clicked.connect(lambda: activations.append(True))
+    gear.show()
+    bubble.setText("Open controls")
+    bubble.show()
+    qt_app.processEvents()
+    assert bubble.isVisible()
+
+    QTest.mouseClick(gear, Qt.MouseButton.LeftButton)
+    qt_app.processEvents()
+
+    assert bubble.isHidden()
+    assert activations == [True]
 
 
 def test_help_bubble_presentation_does_not_depend_on_parent(qt_app) -> None:

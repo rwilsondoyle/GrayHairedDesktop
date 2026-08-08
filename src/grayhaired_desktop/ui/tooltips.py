@@ -145,7 +145,11 @@ class ExplicitToolTipFilter(QObject):
     def eventFilter(self, watched: QObject, event: QEvent) -> bool:  # noqa: N802
         """Handle tooltip events explicitly instead of relying on platform behavior."""
 
-        if event.type() in {QEvent.Type.Leave, QEvent.Type.Hide}:
+        if event.type() in {
+            QEvent.Type.Leave,
+            QEvent.Type.Hide,
+            QEvent.Type.MouseButtonPress,
+        }:
             self._bubble.hide()
         if event.type() != QEvent.Type.ToolTip or not isinstance(event, QHelpEvent):
             return super().eventFilter(watched, event)
@@ -159,6 +163,7 @@ class ExplicitToolTipFilter(QObject):
             self._bubble.hide()
         event.accept()
         return True
+
     def __init__(self, widget: QWidget, bubble: HelpBubble) -> None:
         super().__init__(widget)
         self._bubble = bubble
