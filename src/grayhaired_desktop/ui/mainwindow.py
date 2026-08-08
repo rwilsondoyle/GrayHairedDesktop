@@ -14,9 +14,11 @@ from PySide6.QtGui import (
     QShortcut,
 )
 from PySide6.QtWidgets import (
+    QApplication,
     QHBoxLayout,
     QMainWindow,
     QMessageBox,
+    QPushButton,
     QStatusBar,
     QToolButton,
     QVBoxLayout,
@@ -65,6 +67,23 @@ def _settings_icon(widget: QWidget) -> QIcon:
     painter.drawText(pixmap.rect(), Qt.AlignmentFlag.AlignCenter, "⚙")
     painter.end()
     return QIcon(pixmap)
+
+
+def _palette_summary(widget: QWidget) -> str:
+    """Describe the effective Qt style and palette for runtime diagnostics."""
+
+    palette = widget.palette()
+    window = palette.window().color()
+    button = palette.button().color()
+    button_text = palette.buttonText().color()
+    return (
+        f"class={type(widget).__name__} "
+        f"style={widget.style().objectName() or type(widget.style()).__name__} "
+        f"window={window.name()} button={button.name()} "
+        f"buttonText={button_text.name()} "
+        f"windowIsDark={window.lightness() < 128} "
+        f"localStyleSheet={bool(widget.styleSheet())}"
+    )
 
 
 class MainWindow(QMainWindow):
@@ -120,6 +139,7 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(central)
         self.setStatusBar(QStatusBar(self))
         self.statusBar().showMessage("Ready")
+        self._log_palette_state("startup")
 
         self._actions = create_actions(
             self,
@@ -206,6 +226,7 @@ class MainWindow(QMainWindow):
 
     def _show_preferences_dialog(self) -> None:
         dialog = PreferencesDialog(self._preferences, self)
+        self._logger.info("Qt palette [Settings]: %s", _palette_summary(dialog))
         if dialog.exec() != PreferencesDialog.DialogCode.Accepted:
             return
 
@@ -213,9 +234,46 @@ class MainWindow(QMainWindow):
         self._preferences = updated_preferences
         save_preferences(self._settings, self._preferences)
         self._favorites.set_theme(self._preferences.shortcut_theme)
+        self._log_palette_state("Settings saved")
         self._browser.set_home_url(self._preferences.home_page_url)
         self._browser.load_home("Settings-triggered load")
         self._logger.info("Settings saved")
+
+    def _log_palette_state(self, context: str) -> None:
+        """Log effective palettes without changing native theme behavior."""
+
+        application = QApplication.instance()
+        if application is not None:
+            palette = application.palette()
+            window = palette.window().color()
+            self._logger.info(
+                "Qt palette [%s QApplication]: style=%s window=%s button=%s "
+                "buttonText=%s windowIsDark=%s",
+                context,
+                application.style().objectName()
+                or type(application.style()).__name__,
+                window.name(),
+                palette.button().color().name(),
+                palette.buttonText().color().name(),
+                window.lightness() < 128,
+            )
+        for name, widget in (
+            ("MainWindow", self),
+            ("FavoritesWidget", self._favorites),
+        ):
+            self._logger.info(
+                "Qt palette [%s %s]: %s",
+                context,
+                name,
+                _palette_summary(widget),
+            )
+        for index, button in enumerate(self._favorites.findChildren(QPushButton)):
+            self._logger.info(
+                "Qt palette [%s shortcut button %d]: %s",
+                context,
+                index,
+                _palette_summary(button),
+            )
 
     def _show_about_dialog(self) -> None:
         QMessageBox.about(
