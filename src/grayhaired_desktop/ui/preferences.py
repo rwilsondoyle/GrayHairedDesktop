@@ -32,6 +32,13 @@ from grayhaired_desktop.settings import (
 INVALID_URL_MESSAGE = (
     "Please enter a complete website address beginning with http:// or https://"
 )
+PREVIEW_DESCRIPTION = (
+    "Open the selected website in your default browser without saving changes."
+)
+OPEN_WEBSITE_FAILURE_MESSAGE = (
+    "The selected website could not be opened in your default browser. Check that "
+    "your computer has a working default browser and try again."
+)
 
 CONTROL_MINIMUM_HEIGHT = 40
 RADIO_MINIMUM_HEIGHT = 38
@@ -48,6 +55,10 @@ class PreferencesDialog(QDialog):
         self._home_page_url = QLineEdit(custom_address, self)
         self._home_page_url.setMinimumHeight(CONTROL_MINIMUM_HEIGHT)
         self._home_page_url.setClearButtonEnabled(True)
+        self._home_page_url.setAccessibleName("Website Address")
+        self._home_page_url.setAccessibleDescription(
+            "Enter the complete address for the Desktop Website."
+        )
         self._website_buttons = QButtonGroup(self)
         self._another_website = QRadioButton("Another Website...", self)
         self._another_website.setMinimumHeight(RADIO_MINIMUM_HEIGHT)
@@ -69,6 +80,10 @@ class PreferencesDialog(QDialog):
         self._shortcut_theme.addItem("Match Computer", "system")
         self._shortcut_theme.addItem("Light", "light")
         self._shortcut_theme.addItem("Dark", "dark")
+        self._shortcut_theme.setAccessibleName("Shortcut Theme")
+        self._shortcut_theme.setAccessibleDescription(
+            "Choose how desktop shortcuts look."
+        )
         theme_index = self._shortcut_theme.findData(preferences.shortcut_theme)
         self._shortcut_theme.setCurrentIndex(max(theme_index, 0))
 
@@ -97,9 +112,7 @@ class PreferencesDialog(QDialog):
     def _create_layout(self) -> None:
         section_title = QLabel("Desktop Website", self)
         section_title.setStyleSheet("font-weight: bold; font-size: 16px;")
-        instruction = QLabel(
-            "Choose the website to display inside your desktop.", self
-        )
+        instruction = QLabel("Choose the website to display on your desktop.", self)
         instruction.setWordWrap(True)
         instruction.setSizePolicy(
             QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Minimum
@@ -121,8 +134,8 @@ class PreferencesDialog(QDialog):
         appearance_title = QLabel("Shortcut Appearance", self)
         appearance_title.setStyleSheet("font-weight: bold; font-size: 16px;")
         appearance_help = QLabel(
-            "Match Computer follows your Zorin light or dark appearance. "
-            "Choose Light or Dark to override it.",
+            "Match Computer uses your computer's light or dark appearance. "
+            "Choose Light or Dark to use a different appearance.",
             self,
         )
         appearance_help.setWordWrap(True)
@@ -131,12 +144,10 @@ class PreferencesDialog(QDialog):
 
         self._open_button = QPushButton("Preview in Browser", self)
         self._open_button.setMinimumHeight(CONTROL_MINIMUM_HEIGHT)
-        preview_description = (
-            "Preview the selected website in your default browser without saving changes."
-        )
-        self._open_button.setToolTip(preview_description)
-        self._open_button.setStatusTip(preview_description)
-        self._open_button.setAccessibleDescription(preview_description)
+        self._open_button.setAccessibleName("Preview in Browser")
+        self._open_button.setToolTip(PREVIEW_DESCRIPTION)
+        self._open_button.setStatusTip(PREVIEW_DESCRIPTION)
+        self._open_button.setAccessibleDescription(PREVIEW_DESCRIPTION)
         self._open_button.clicked.connect(self._open_home_page)
 
         button_box = QDialogButtonBox(
@@ -208,7 +219,7 @@ class PreferencesDialog(QDialog):
             QMessageBox.warning(
                 self,
                 "Could Not Open Website",
-                "The selected website could not be opened in your default browser.",
+                OPEN_WEBSITE_FAILURE_MESSAGE,
             )
 
     def _selected_address(self) -> str:

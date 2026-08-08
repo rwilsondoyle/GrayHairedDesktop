@@ -36,6 +36,10 @@ ICON_CHOICES = (
 )
 
 CONTROL_MINIMUM_HEIGHT = 40
+MISSING_NAME_MESSAGE = "Please enter a name for this shortcut."
+INVALID_ADDRESS_MESSAGE = (
+    "Please enter a complete website address beginning with http:// or https://"
+)
 
 
 class FavoriteDialog(QDialog):
@@ -55,6 +59,14 @@ class FavoriteDialog(QDialog):
         self._address = QLineEdit(favorite.website_address if favorite else "")
         self._address.setPlaceholderText("https://example.com")
         self._icon = QComboBox()
+        self._name.setAccessibleName("Name")
+        self._name.setAccessibleDescription("Enter a name for this shortcut.")
+        self._address.setAccessibleName("Website Address")
+        self._address.setAccessibleDescription(
+            "Enter the complete website address for this shortcut."
+        )
+        self._icon.setAccessibleName("Icon")
+        self._icon.setAccessibleDescription("Choose an icon for this shortcut.")
         for control in (self._name, self._address, self._icon):
             control.setMinimumHeight(CONTROL_MINIMUM_HEIGHT)
         for name, symbol in ICON_CHOICES:
@@ -91,8 +103,8 @@ class FavoriteDialog(QDialog):
         if not self._name.text().strip():
             QMessageBox.warning(
                 self,
-                "Name Required",
-                "Please enter a name for this shortcut.",
+                "Check Shortcut Name",
+                MISSING_NAME_MESSAGE,
             )
             self._name.setFocus()
             return
@@ -101,9 +113,8 @@ class FavoriteDialog(QDialog):
         if not is_valid_home_page_url(address):
             QMessageBox.warning(
                 self,
-                "Website Address Required",
-                "Please enter a complete website address beginning with\n"
-                "http:// or https://",
+                "Check Website Address",
+                INVALID_ADDRESS_MESSAGE,
             )
             self._address.setFocus()
             self._address.selectAll()

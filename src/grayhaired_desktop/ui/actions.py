@@ -84,7 +84,7 @@ def create_actions(
 
     about_action = QAction("About", parent)
     about_action.setToolTip("View information about GrayHaired Desktop")
-    about_action.setStatusTip("About GrayHaired Desktop")
+    about_action.setStatusTip("View information about GrayHaired Desktop")
     about_action.setWhatsThis("View information about GrayHaired Desktop")
     about_action.triggered.connect(show_about)
 
@@ -93,6 +93,7 @@ def create_actions(
         "Open the folder containing diagnostic logs"
     )
     open_log_folder_action.setStatusTip("Open the folder containing diagnostic logs")
+    open_log_folder_action.setWhatsThis("Open the folder containing diagnostic logs")
     open_log_folder_action.triggered.connect(open_log_folder)
 
     return ApplicationActions(

@@ -96,7 +96,7 @@ class MainWindow(QMainWindow):
         self._open_controls_button.setToolTip("Open controls")
         self._open_controls_button.setAccessibleName("Open controls")
         self._open_controls_button.setAccessibleDescription(
-            "Show application controls and settings"
+            "Show the File, View, Settings, Help, and Done controls"
         )
         self._open_controls_button.setMinimumSize(QSize(42, 42))
         self._open_controls_button.setAutoRaise(True)
@@ -182,7 +182,10 @@ class MainWindow(QMainWindow):
         if ok:
             self.statusBar().showMessage("Loaded")
         else:
-            self.statusBar().showMessage("Failed")
+            self.statusBar().showMessage(
+                "Desktop Website could not be loaded. Check your connection and "
+                "Website Address."
+            )
 
     def _update_external_link_status(self, opened: bool) -> None:
         if opened:
@@ -211,7 +214,8 @@ class MainWindow(QMainWindow):
             "About GrayHaired Desktop",
             (
                 f"GrayDesk Alpha 0.9 ({self._metadata.version})\n\n"
-                "A native PySide6 desktop shell for the GrayHaired Tech web experience."
+                "GrayHaired Desktop displays your saved Desktop Website and opens "
+                "shortcuts in your default browser."
             ),
         )
 

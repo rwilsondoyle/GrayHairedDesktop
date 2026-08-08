@@ -118,6 +118,8 @@ class FavoritesWidget(QWidget):
         add_button = QPushButton("+ Add Shortcut", self)
         add_button.setMinimumHeight(self._BUTTON_MINIMUM_HEIGHT)
         add_button.setAccessibleName("Add Shortcut")
+        add_button.setAccessibleDescription("Create a new shortcut.")
+        add_button.setToolTip("Create a new shortcut")
         add_button.clicked.connect(self._add)
 
         first_row: list[tuple[int, QPushButton]] = []
@@ -157,6 +159,7 @@ class FavoritesWidget(QWidget):
             more_button = QPushButton("More...", self)
             more_button.setMinimumHeight(self._BUTTON_MINIMUM_HEIGHT)
             more_button.setAccessibleName("More Shortcuts")
+            more_button.setAccessibleDescription("Show additional shortcuts.")
             more_button.setToolTip("Show additional shortcuts")
             more_width = self._item_width(more_button)
             while second_row and not self._fits(second_width, more_width, available_width):
@@ -287,7 +290,7 @@ class FavoritesWidget(QWidget):
         box = QMessageBox(
             QMessageBox.Icon.Question,
             "Remove Shortcut",
-            f'Remove "{favorite.title}" from your desktop shortcuts?',
+            f'Remove the shortcut "{favorite.title}"? This cannot be undone.',
             parent=self,
         )
         remove = box.addButton("Remove", QMessageBox.ButtonRole.DestructiveRole)
