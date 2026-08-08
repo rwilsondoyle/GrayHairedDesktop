@@ -3,11 +3,19 @@
 from __future__ import annotations
 
 from PySide6.QtCore import QEvent, QObject, QPoint, Qt, QTimer
-from PySide6.QtGui import QAction, QHelpEvent
+from PySide6.QtGui import QAction, QFont, QHelpEvent
 from PySide6.QtWidgets import QApplication, QLabel, QMenu, QMenuBar, QWidget
 
 
 HELP_SHOW_DELAY_MS = 350
+HELP_BUBBLE_MARGIN = 6
+HELP_BUBBLE_STYLE = """
+QLabel {
+    background-color: #202020;
+    color: #f5f5f5;
+    border: 1px solid #505050;
+}
+"""
 
 
 class HelpBubble(QLabel):
@@ -15,7 +23,11 @@ class HelpBubble(QLabel):
 
     def __init__(self, parent: QWidget) -> None:
         super().__init__(parent, Qt.WindowType.ToolTip)
-        self.setMargin(6)
+        # Copy the platform's menu font so every bubble starts from the same
+        # system-scaled family, size, and weight, independent of its parent.
+        self.setFont(QFont(QApplication.font("QMenuBar")))
+        self.setStyleSheet(HELP_BUBBLE_STYLE)
+        self.setMargin(HELP_BUBBLE_MARGIN)
         self.setTextFormat(Qt.TextFormat.PlainText)
         self.setAttribute(Qt.WidgetAttribute.WA_ShowWithoutActivating)
         self.setWindowFlag(Qt.WindowType.WindowDoesNotAcceptFocus)
