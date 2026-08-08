@@ -1,6 +1,6 @@
 # Project Principles
 
-The desktop application should remain clear, dependable, and approachable. These principles guide technical decisions and contributor behavior during the alpha phase.
+The desktop application should remain clear, dependable, and approachable. These principles guide technical decisions and contributor behavior.
 
 ## 1. Serve the user first
 
@@ -32,4 +32,4 @@ Documentation-only milestones should not change application source code. Applica
 
 ## 8. Keep branding flexible
 
-GrayHairedDesktop is the repository name, not a final public product name. Ron Doyle and GrayHaired.Tech are appropriate author/About attribution during alpha, while product naming should remain flexible until a Version 1.0 branding decision is made.
+GrayHairedDesktop is the repository and package identity; GrayHaired Desktop is current working/display wording. The final public product name remains undecided before Version 1.0. GrayHaired Tech and Ron Doyle are appropriate project attribution. Release-readiness work must not rename the repository, package, QSettings identity, or application data paths.

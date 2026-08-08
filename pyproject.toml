@@ -4,13 +4,16 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "grayhaired-desktop"
-version = "0.9.0a0"
-description = "Native Qt desktop shell for GrayHaired Tech on Zorin OS."
+version = "0.9.0"
+description = "Native Qt desktop application for displaying a saved Desktop Website on Zorin OS."
 readme = "README.md"
 requires-python = ">=3.12"
 license = { text = "Proprietary" }
 authors = [{ name = "GrayHaired Tech" }]
 dependencies = ["PySide6>=6.7,<7"]
+
+[project.optional-dependencies]
+dev = ["pytest>=8,<10", "ruff>=0.6,<1"]
 
 [project.urls]
 Homepage = "https://grayhaired.tech/"

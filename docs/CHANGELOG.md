@@ -1,6 +1,6 @@
 # Changelog
 
-All notable project changes should be summarized here. This project is currently in alpha, so entries focus on practical milestones rather than formal release packaging.
+All notable project changes should be summarized here. Historical entries retain their milestone names; release packaging begins only after its own review and verification.
 
 ## Alpha 0.8 — Stability, Performance and Diagnostics
 

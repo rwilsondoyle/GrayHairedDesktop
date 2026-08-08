@@ -1,4 +1,4 @@
-"""Focused checks for the Alpha 0.9 keyboard-navigation review."""
+"""Focused checks for keyboard navigation."""
 
 import pytest
 

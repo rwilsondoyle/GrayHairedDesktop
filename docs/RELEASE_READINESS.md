@@ -1,0 +1,316 @@
+# Version 1.0 release-readiness review
+
+Status: **Version 1.0 implementation review complete; final manual Zorin
+verification pending.** This report does not declare Version 1.0 complete.
+
+## Release finding
+
+The reviewed source is a credible Version 1.0 candidate, but it must not be
+released as 1.0 until the manual checklist below passes on a clean, supported
+Zorin installation and the release-readiness pull request is approved.
+
+### Blockers
+
+- Complete all 50 manual Zorin checks below, including clean installation,
+  upgrade persistence, both Zorin appearances, accessibility, and real external
+  browser handoff. These behaviors cannot be fully established in a headless
+  development environment.
+- After those checks pass, make the explicit release decision and change the
+  version from `0.9.0` to `1.0.0` in both version locations. Do not publish
+  mismatched package and runtime versions.
+
+### Non-blocking polish
+
+- Refresh older architecture and development-history prose as the implementation
+  evolves. Historical milestone names and test records are intentionally retained.
+- Decide the final public product name before producing signed, branded artifacts.
+  GrayHairedDesktop remains the repository/package identity, while GrayHaired
+  Desktop is only current working/display wording. This review selects no name.
+
+### Future distribution
+
+- Provide a native package or installer and an application-menu `.desktop`
+  launcher/icon so a public user need not manage a source checkout or terminal.
+- Add a documented uninstaller/removal workflow; today removal is manual.
+- Add release checksums and, if practical, signed artifacts.
+- Publish a concise public instruction sheet and technical release page using the
+  checklists below.
+
+These are distribution improvements rather than blockers for a clearly described
+source-based 1.0 release.
+
+## Audit results
+
+### Product, version, and wording
+
+- The product is a desktop application that displays a saved Desktop Website and
+  provides native controls and shortcuts. It is not described as a browser.
+- `pyproject.toml` is the packaging version source of truth. The runtime mirror in
+  `grayhaired_desktop.__version__` is guarded by an automated consistency test.
+  This repository uses three-part semantic versions, so the eventual release
+  should be `1.0.0`, not `1.0`.
+- The implementation-review version is `0.9.0`. The former prerelease spellings
+  (`0.9.0a0` and `0.9.0-alpha.0`) and normal user-interface `Alpha 0.9` labels
+  were stale and have been removed. Historical Alpha milestone headings remain.
+- The About dialog uses the current display wording and runtime version, gives a
+  short factual description, describes external browser behavior, and attributes
+  the project without prerelease wording, a final-name claim, or marketing claims.
+- The repository, Python package, QSettings identity, and application data paths
+  are unchanged. No settings migration is proposed or needed by this review.
+
+### Installation, update, and run
+
+**What exists now:** the public artifact is the Git source repository (or an
+equivalent source ZIP), `scripts/setup-zorin.sh`, a project-local `.venv`, and
+`scripts/run.sh`. A ZIP does not support `scripts/update.sh`; Git is therefore the
+practical current distribution method.
+
+**Clean-install path:** install Git, clone the repository, enter it, run
+`./scripts/setup-zorin.sh`, then `./scripts/run.sh`. The exact commands are in the
+README. Setup validates Python 3.12+, finds the matching `pythonX.Y-venv` package,
+installs missing `python3-pip` and `libxcb-cursor0`, creates or reuses `.venv`, and
+runs `pip install -e .`. It is rerunnable and deletes no user data. It does require
+terminal use, Git knowledge sufficient to clone, network access, and `sudo` when
+OS dependencies are absent.
+
+There is no `scripts/install.sh`; `scripts/setup-zorin.sh` is the existing install
+entry point. Renaming it or adding a second alias would not remove the larger
+source-distribution usability gap, so this review documents rather than masks it.
+
+**Update path:** from a clean checkout on `main`, close the app, run
+`git switch main`, then `./scripts/update.sh`. It refuses any dirty worktree,
+performs only a fast-forward pull, requires the existing `.venv`, and reinstalls
+the project so dependency metadata is reapplied. It does not delete files.
+Settings and logs are outside the checkout, so updates do not wipe them. The
+script does not automatically switch branches or update in the background.
+
+**Run path:** `./scripts/run.sh` resolves the repository from its own location,
+requires and activates `.venv`, and `exec`s the installed console entry point.
+Failures remain visible in the terminal and persistent application diagnostics
+remain enabled.
+
+### Behavior and persistence
+
+- First-run defaults provide the GrayHaired Tech Desktop Website and starter
+  shortcuts; no saved setting is required for a useful initial page.
+- Stable `QSettings` keys retain the Desktop Website address, shortcut appearance,
+  ordered shortcut list (including duplicates or an intentionally empty list),
+  window geometry, and window state. No key or organization/application identity
+  changes are made by this review.
+- Code and focused tests cover URL validation, non-saving preview/cancel behavior,
+  settings save behavior, external link policy, shortcut editing and persistence,
+  two-row overflow, label eliding, minimum targets, keyboard focus, and shortcut
+  appearance. Real web services and full desktop integration remain manual checks.
+- Zorin appearance detection runs once at startup. Match Computer follows the
+  native application palette; Light and Dark affect only shortcut buttons. System
+  fonts and DPI behavior are inherited, visible focus is retained, and no
+  permanent UI area was enlarged in this review.
+
+### Diagnostics, safety, and dependencies
+
+- A rotating log is created under
+  `~/.local/state/GrayHairedDesktop/grayhaired-desktop.log`, with a 1 MB rotation
+  threshold and three backups. The Help action opens that folder. Timing is
+  limited to useful startup, load, and OS handoff events. URLs are sanitized to
+  scheme/host/path and omit query strings, fragments, user names, and passwords.
+  There is no telemetry or analytics.
+- External destinations accept complete HTTP/HTTPS URLs. Runtime code constructs
+  no shell command from user input. The only subprocess call invokes `gsettings`
+  as a fixed argument list with `shell=False` behavior. The application requests
+  no elevation; setup uses `sudo` only for missing OS packages. Update uses
+  fast-forward Git and neither script removes unrelated files.
+- Runtime dependencies are declared in `pyproject.toml`: Python 3.12+ and
+  `PySide6>=6.7,<7`. PySide6 includes QtWebEngine. `requirements.txt` matches the
+  runtime range. Ruff and pytest are test tools, not runtime requirements. No
+  broad dependency upgrade was made.
+- No user-specific runtime or developer checkout path was found. Test temporary
+  paths are isolated fixtures. Historical references to alpha releases and older
+  architecture terminology remain only where they describe project history.
+
+## Linux portability assessment
+
+Code inspection separates the likely portability of the **application runtime**
+from the much narrower portability of **`scripts/setup-zorin.sh`**. Inspection is
+not a substitute for running the application on each distribution and desktop.
+
+### Tested / supported now
+
+- Zorin OS is the only manually tested and currently supported environment. The
+  Version 1.0 decision in this report is explicitly Zorin-focused.
+- The supported installation route is the repository's Bash/apt-based Zorin setup
+  script followed by its run script. No other distribution setup is supported.
+
+### Likely compatible but unverified
+
+- The core runtime is mostly distribution-neutral Python and PySide6. Once Python
+  3.12+, PySide6/QtWebEngine, a working Qt Linux platform plugin, its system
+  libraries, and a desktop default-URL handler are present, it is reasonable to
+  expect the application to start on another modern graphical Linux distribution.
+  This is an audit conclusion, not a support or test claim.
+- Runtime paths use the current user's home directory for logs. `QSettings` uses
+  Qt's per-user INI behavior, and external links/log folders use
+  `QDesktopServices.openUrl`; none requires a Zorin-specific filesystem path.
+- The runtime contains no explicit X11 or Wayland API. Qt chooses its available
+  platform plugin. Actual windowing, focus, scaling, QtWebEngine sandbox/GPU
+  behavior, and default-browser handoff still require testing under both display
+  systems.
+- Ubuntu LTS with GNOME is the closest likely runtime/setup candidate because
+  Zorin is Ubuntu-based and the appearance fallback reads a GNOME setting.
+  Linux Mint/Cinnamon is also a plausible runtime candidate because Cinnamon
+  commonly provides `gsettings`, but its schema/value behavior must be verified.
+  Debian/GNOME and Fedora Workstation/GNOME look like plausible **runtime**
+  candidates after their dependencies are installed. None is currently supported.
+
+### Distribution-specific installation work needed
+
+- `setup-zorin.sh` is Debian/Ubuntu-family specific: it queries packages with
+  `dpkg-query`, installs with `apt-get`, and assumes Debian/Ubuntu package names
+  `pythonX.Y-venv`, `python3-pip`, and `libxcb-cursor0`. It invokes `sudo` only
+  when one or more of those OS packages is missing.
+- Ubuntu may be able to use the same script and Mint may be able to use a related
+  path, but both are untested. Debian may need repository/version and package-name
+  adjustments, particularly to provide Python 3.12 and the matching venv package.
+- Fedora, Arch, and other non-Debian distributions need separate package-manager
+  prerequisites/instructions; the current setup script will not work unchanged.
+- `run.sh` is otherwise a Bash/virtual-environment launcher, and `update.sh` is a
+  Bash/Git workflow. They are likely portable after a suitable environment and
+  checkout exist, but that has not been verified outside Zorin.
+
+### Known desktop-environment limitations
+
+- The optional appearance correction calls `gsettings get
+  org.gnome.desktop.interface color-scheme` once at startup. On GNOME, this should
+  represent the intended preference. Cinnamon may expose the schema but needs
+  verification. KDE Plasma, XFCE, and MATE do not reliably use this GNOME setting,
+  so **Match Computer** may not receive the extra correction on those desktops.
+- If `gsettings` is absent, the schema/key is absent, the command fails, or it
+  times out, detection returns `UNKNOWN` and applies no fallback palette. The
+  application continues with Qt's existing palette; functionality is unaffected,
+  but automatic appearance matching may be imperfect. Explicit Light and Dark
+  shortcut appearances remain independent of this native-palette correction.
+- There is no live theme monitoring. A theme change during a session requires an
+  application restart, including on Zorin.
+
+### Unknown / requires real testing
+
+- QtWebEngine system-library completeness, multimedia/GPU behavior, sandboxing,
+  native Qt appearance, high DPI, keyboard focus, browser handoff, and per-user
+  settings locations cannot be proven across distributions by code inspection.
+- KDE Plasma is a useful additional desktop-environment check because it exercises
+  a non-GNOME settings and appearance stack. XFCE and MATE remain unknown as well.
+
+Recommended future matrix, in order: Ubuntu LTS/GNOME, Linux Mint/Cinnamon,
+Debian stable/GNOME, Fedora Workstation/GNOME, then KDE Plasma on one maintained
+distribution. Record runtime and clean-install results separately. This broader
+testing is **future compatibility/distribution work, not a blocker** for a
+truthfully labeled, tested-and-supported-on-Zorin Version 1.0 decision. A defect
+found during the required Zorin checklist would still be a release blocker.
+
+## Public documentation preparation
+
+The future public instruction sheet must cover:
+
+- download and integrity verification;
+- installation prerequisites and installation;
+- first launch;
+- choosing the Desktop Website;
+- adding, editing, removing, ordering, and opening shortcuts;
+- Settings and Shortcut Appearance;
+- the gear/Open controls button and Done;
+- external browser behavior;
+- updating;
+- logs and Help;
+- uninstall/removal for the distribution method provided.
+
+The future release website must state:
+
+- supported OS and tested Zorin versions;
+- exact application version;
+- download/artifact type and package size (not yet known);
+- Python/system/install requirements, if still source-based;
+- screenshots of the Desktop Website, controls, Settings, shortcut editing, and
+  light/dark behavior;
+- available checksums and signing status;
+- known limitations, including the startup-only appearance check;
+- a support/contact destination;
+- update instructions.
+
+It must not claim Windows or macOS support.
+
+## Manual Zorin release checklist
+
+Every item remains pending until recorded during final manual verification.
+
+### INSTALL / START
+
+1. Application starts normally from updated main.
+2. No Alpha/Beta wording appears in normal user-facing UI.
+3. Version shown in About is correct.
+4. No developer/debug UI appears.
+5. Desktop Website loads successfully.
+
+### DESKTOP WEBSITE
+
+6. Home works.
+7. Reload works.
+8. Another Website... works.
+9. Website Address validation works.
+10. Preview in Browser works.
+11. Save works.
+12. Cancel works.
+13. Desktop Website links open externally.
+14. Desktop Website stays in place.
+
+### SHORTCUTS
+
+15. Starter shortcuts appear correctly.
+16. Add Shortcut works.
+17. Edit Shortcut works.
+18. Remove Shortcut works.
+19. More... works.
+20. Shortcuts persist after restart.
+21. Shortcut order persists.
+22. Light appearance works.
+23. Dark appearance works.
+24. Match Computer works.
+25. Light/Dark buttons look same visible height.
+26. No third row appears.
+
+### SYSTEM APPEARANCE
+
+27. Zorin Light produces light native UI.
+28. Zorin Dark produces dark native UI.
+29. Settings follows native appearance.
+30. Shortcut Appearance remains independent.
+
+### KEYBOARD / ACCESSIBILITY
+
+31. Alt+H works.
+32. Ctrl+R works.
+33. Escape behavior works.
+34. Tab / Shift+Tab work in dialogs.
+35. Focus remains visible.
+36. Tooltips/help bubbles work.
+37. Larger system text does not clip.
+38. Desktop Website area is unchanged.
+
+### PERSISTENCE / UPDATE
+
+39. Existing shortcuts remain after update.
+40. Existing Desktop Website setting remains after update.
+41. Shortcut Appearance remains after update.
+42. Window state remains sensible.
+
+### DIAGNOSTICS
+
+43. Log file is created.
+44. Help → Open Log Folder works.
+45. No obvious sensitive information is exposed unnecessarily.
+
+### FINAL IMPRESSION
+
+46. Application feels complete rather than experimental.
+47. No obvious release blocker remains.
+48. Nothing requires developer knowledge during normal daily use.
+49. Current public installation path is accurately documented.
+50. Version 1.0 could be released without misrepresenting platform support.

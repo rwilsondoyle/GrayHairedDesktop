@@ -1,17 +1,17 @@
 # Architecture
 
-GrayHairedDesktop is the current repository name for a small native Linux desktop shell. The Alpha 0.6 codebase is intentionally simple: Python starts a Qt application, a main window owns the desktop chrome, and an embedded QtWebEngine launch page loads and retains the configured home URL. Clicked destinations are handed to the operating system's default browser.
+GrayHaired Desktop is a small native Linux desktop application. The codebase is intentionally simple: Python starts a Qt application, a main window owns the desktop controls, and an embedded QtWebEngine launch page loads and retains the configured Desktop Website. Clicked destinations are handed to the operating system's default browser.
 
 ## Runtime stack
 
 - **Language:** Python 3.12 or newer.
 - **Desktop toolkit:** PySide6, including Qt Widgets and QtWebEngine.
-- **Target environment:** Zorin OS, with compatibility expected on close Ubuntu-based desktop environments when QtWebEngine runtime packages are available.
+- **Tested target environment:** Zorin OS. Other Linux distributions and desktop environments are unverified.
 - **Packaging:** `pyproject.toml` exposes the `grayhaired-desktop` console script, which calls `grayhaired_desktop.app:main`.
 
 ## Naming
 
-GrayHairedDesktop is the current repository name, but the public product name is not final before Version 1.0. Possible future names include PersonalDesktop or MyDesktop; this documentation does not select one. Use neutral wording such as "the application" or "the desktop application" where practical. Ron Doyle and GrayHaired.Tech remain appropriate author/About attribution, but they should not be treated as required long-term product branding.
+GrayHairedDesktop is the repository and package identity. **GrayHaired Desktop** is current working/display wording, not a final public-name decision. The public product name remains undecided before Version 1.0. This review does not rename the repository, Python package, QSettings identity, or application data paths. GrayHaired Tech and Ron Doyle remain appropriate project attribution.
 
 ## Application flow
 
@@ -52,5 +52,5 @@ The application uses Qt `QSettings` under the current author/About attribution m
 - The desktop launch page retains the configured home page in the application, while clicked links open in the operating system's default browser.
 - The application source code is a native shell only; the configured web destination can evolve as branding and product direction mature.
 - There is no local database, background service, or custom network protocol layer in the desktop app.
-- The app does not currently ship automated GUI tests. Manual Zorin verification remains important for each alpha milestone.
-- Alpha 0.6 does not add a widget system, dashboards, themes, accounts, or synchronization.
+- The app ships focused offscreen Qt tests, but manual Zorin verification remains important for release decisions.
+- The application does not add a widget system, dashboards, accounts, or synchronization.

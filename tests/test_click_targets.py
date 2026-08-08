@@ -1,4 +1,4 @@
-"""Focused checks for the Alpha 0.9 click-target sizing pass."""
+"""Focused checks for click-target sizing."""
 
 import pytest
 
