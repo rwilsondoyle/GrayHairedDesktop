@@ -4,7 +4,7 @@ import pytest
 
 pytest.importorskip("PySide6.QtWidgets", exc_type=ImportError)
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QApplication, QPushButton
+from PySide6.QtWidgets import QApplication, QPushButton, QScrollArea
 
 from grayhaired_desktop.settings import UserPreferences
 from grayhaired_desktop.ui.favorite_dialog import FavoriteDialog
@@ -28,6 +28,11 @@ def test_settings_actions_complete_the_tab_sequence(qapp) -> None:
     assert dialog._open_button.nextInFocusChain() is dialog._save_button
     assert dialog._save_button.nextInFocusChain() is dialog._cancel_button
     assert dialog._cancel_button.nextInFocusChain() is dialog._another_website
+    assert dialog._another_website.nextInFocusChain() is dialog._home_page_url
+
+    scroll_area = dialog.findChild(QScrollArea)
+    assert scroll_area is not None
+    assert scroll_area.focusPolicy() == Qt.FocusPolicy.NoFocus
 
 
 def test_settings_address_is_enabled_only_for_custom_website(qapp) -> None:

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from PySide6.QtCore import QUrl
+from PySide6.QtCore import Qt, QUrl
 from PySide6.QtGui import QDesktopServices
 from PySide6.QtWidgets import (
     QComboBox,
@@ -192,6 +192,10 @@ class PreferencesDialog(QDialog):
         content_layout.addWidget(self._shortcut_theme)
 
         scroll_area = QScrollArea(self)
+        # The container is not an interactive control. Keeping it out of the Tab
+        # chain lets focus move directly among the child form controls while the
+        # area continues to scroll them into view as needed.
+        scroll_area.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         scroll_area.setWidgetResizable(True)
         scroll_area.setFrameShape(QFrame.Shape.NoFrame)
         scroll_area.setWidget(content)
