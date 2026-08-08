@@ -4,13 +4,13 @@ from __future__ import annotations
 
 from collections.abc import Callable
 
-from PySide6.QtGui import QAction
-from PySide6.QtWidgets import QMenu, QMenuBar
+from PySide6.QtGui import QAction, QFont
+from PySide6.QtWidgets import QApplication, QMenu, QMenuBar
 
 from grayhaired_desktop.ui.actions import ApplicationActions
 from grayhaired_desktop.ui.tooltips import HelpBubble, MenuHelpController
 
-MENU_BAR_STYLE = "QMenuBar::item { padding: 5px 10px; }"
+MENU_BAR_STYLE = "QMenuBar { border: none; } QMenuBar::item { padding: 5px 10px; }"
 MENU_STYLE = "QMenu { padding: 4px 0; } QMenu::item { padding: 7px 28px 7px 24px; }"
 
 
@@ -23,7 +23,13 @@ def create_menus(
 
     help_bubble = HelpBubble(menu_bar)
     menu_help_controllers = []
-    # Add hit area only; colors and other visual details remain native to Qt/Zorin.
+    # Keep the system family/size but discard inherited decoration that can
+    # otherwise underline every top-level menu label permanently.
+    menu_font = QFont(QApplication.font("QMenuBar"))
+    menu_font.setUnderline(False)
+    menu_bar.setFont(menu_font)
+    # Add hit area and suppress Fusion's menu-bar frame; palette colors and
+    # selection painting remain native to Qt/Zorin.
     menu_bar.setStyleSheet(MENU_BAR_STYLE)
 
     file_menu = QMenu("File", menu_bar)
@@ -45,6 +51,10 @@ def create_menus(
     help_menu.addAction(actions.about)
 
     for menu in (file_menu, view_menu, settings_menu, help_menu):
+        popup_font = QFont(QApplication.font("QMenu"))
+        popup_font.setUnderline(False)
+        menu.setFont(popup_font)
+        menu.menuAction().setFont(menu_font)
         menu.setStyleSheet(MENU_STYLE)
         menu_help_controllers.append(MenuHelpController(menu, help_bubble))
     # Keep explicit Python references in addition to Qt parent ownership.
@@ -52,6 +62,7 @@ def create_menus(
     menu_bar._menu_help_controllers = menu_help_controllers
 
     done_action = QAction("Done", menu_bar)
+    done_action.setFont(menu_font)
     done_action.setToolTip("Return to Desktop Website")
     done_action.setStatusTip("Return to Desktop Website")
     done_action.setWhatsThis("Return to Desktop Website")

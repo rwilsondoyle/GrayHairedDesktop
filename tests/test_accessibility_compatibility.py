@@ -6,6 +6,7 @@ import pytest
 
 pytest.importorskip("PySide6.QtWidgets", exc_type=ImportError)
 from PySide6.QtCore import QSettings
+from PySide6.QtGui import QColor, QPalette
 from PySide6.QtWidgets import QApplication, QLabel, QPushButton
 
 from grayhaired_desktop.settings import UserPreferences
@@ -126,6 +127,40 @@ def test_real_shortcut_keeps_dark_style_across_theme_changes(
     assert button.style().metaObject().className() == "QStyleSheetStyle"
 
     widget.deleteLater()
+    qt_app.processEvents()
+
+
+def test_actual_shortcuts_switch_surfaces_over_dark_application(
+    tmp_path, qt_app
+) -> None:
+    """Explicit surfaces reliably replace and restore a dark app palette."""
+
+    original_palette = QPalette(qt_app.palette())
+    dark_palette = QPalette(original_palette)
+    dark_palette.setColor(QPalette.ColorRole.Window, QColor("#353535"))
+    dark_palette.setColor(QPalette.ColorRole.WindowText, QColor("#f0f0f0"))
+    dark_palette.setColor(QPalette.ColorRole.Button, QColor("#353535"))
+    dark_palette.setColor(QPalette.ColorRole.ButtonText, QColor("#f0f0f0"))
+    qt_app.setPalette(dark_palette)
+    settings = QSettings(str(tmp_path / "transitions.ini"), QSettings.Format.IniFormat)
+    widget = FavoritesWidget(settings, lambda _url: None)
+    button = widget.findChildren(QPushButton)[0]
+
+    expected = {
+        "system": ("#353535", "#f0f0f0"),
+        "light": ("#f8f9fa", "#202124"),
+        "dark": ("#2d3034", "#f1f3f4"),
+    }
+    for theme in ("system", "light", "dark", "system", "light", "system"):
+        widget.set_theme(theme)
+        qt_app.processEvents()
+        background, text = expected[theme]
+        assert button.palette().button().color().name() == background
+        assert button.palette().buttonText().color().name() == text
+        assert not button.font().underline()
+
+    widget.deleteLater()
+    qt_app.setPalette(original_palette)
     qt_app.processEvents()
 
 
