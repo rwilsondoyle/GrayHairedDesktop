@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 from PySide6.QtGui import QAction, QCursor
-from PySide6.QtWidgets import QMenu, QMenuBar, QToolTip
+from PySide6.QtCore import Qt
+from PySide6.QtWidgets import QMenu, QMenuBar, QPushButton, QToolTip
 
 from grayhaired_desktop.ui.actions import ApplicationActions
 
@@ -15,8 +16,12 @@ def _show_action_tooltip(action: QAction, menu: QMenu) -> None:
         QToolTip.showText(QCursor.pos(), tooltip, menu)
 
 
-def create_menus(menu_bar: QMenuBar, actions: ApplicationActions) -> None:
-    """Populate ``menu_bar`` with the application's existing menus."""
+def create_menus(
+    menu_bar: QMenuBar,
+    actions: ApplicationActions,
+    hide_controls,
+) -> QPushButton:
+    """Populate ``menu_bar`` and return its Done control."""
 
     file_menu = menu_bar.addMenu("File")
     file_menu.addAction(actions.exit)
@@ -35,3 +40,11 @@ def create_menus(menu_bar: QMenuBar, actions: ApplicationActions) -> None:
     help_menu = menu_bar.addMenu("Help")
     help_menu.addAction(actions.open_log_folder)
     help_menu.addAction(actions.about)
+
+    done_button = QPushButton("Done", menu_bar)
+    done_button.setAccessibleName("Done")
+    done_button.setAccessibleDescription("Hide application controls")
+    done_button.setToolTip("Hide application controls")
+    done_button.clicked.connect(hide_controls)
+    menu_bar.setCornerWidget(done_button, Qt.Corner.TopRightCorner)
+    return done_button

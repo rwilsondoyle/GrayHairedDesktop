@@ -114,6 +114,7 @@ Status: Implementation complete; manual verification performed on the Inspiron-3
 Status: In progress.
 
 - Began the review with a focused pass on accessible control metadata and consistent top-menu behavior.
+- Added a toggleable control menu so the Desktop Website gets more screen space while the existing application controls remain easy to reach.
 
 - Review wording throughout the application.
 - Review keyboard navigation.

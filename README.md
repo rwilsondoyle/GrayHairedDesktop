@@ -8,7 +8,9 @@ GrayHairedDesktop is the current repository name, but the public product name is
 
 ## Alpha 0.9 — Usability and Accessibility Review
 
-Alpha 0.9 is in progress, beginning with accessible control metadata and consistent top-menu behavior.
+Alpha 0.9 is in progress. Its usability review now includes a toggleable control
+menu that leaves more screen space for the Desktop Website while keeping controls
+and settings close to the lower-left shortcut area.
 
 ## Alpha 0.8 — Stability, Performance and Diagnostics
 
@@ -36,7 +38,8 @@ One diagnostic run on that Zorin system verified persistent log creation, **Help
 - **Preview in Browser** opens the current selection externally without saving or changing the embedded page
 - **Save** applies and loads the selection; **Cancel** preserves both saved settings and the displayed page
 - Persistent settings and window geometry through `QSettings`
-- **View → Home** returns to the saved Desktop Website; **Reload** on the toolbar refreshes the currently displayed Desktop Website
+- The lower-left control button reveals **File | View | Settings | Help** only when needed; **Done** returns that space to the Desktop Website
+- **View → Home** returns to the saved Desktop Website; **View → Reload** refreshes the currently displayed Desktop Website, and both keyboard shortcuts remain available while controls are hidden
 - Settings, About, and Exit actions, status messages, and structured logging
 - Zorin setup, update, and run helper scripts
 - No widget system, dashboards, themes, accounts, or cloud synchronization
