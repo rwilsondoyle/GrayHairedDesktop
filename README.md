@@ -118,14 +118,18 @@ No telemetry or analytics are collected.
 
 ## Development
 
-For a manual editable install:
+For an editable contributor install, include the optional development tools:
 
 ```bash
 python3.12 -m venv .venv
 source .venv/bin/activate
 python -m pip install --upgrade pip
-python -m pip install -e .
+python -m pip install -e ".[dev]"
 ```
+
+The normal Zorin setup uses `pip install -e .` without `[dev]`, so it installs
+runtime requirements only. `requirements.txt` likewise lists runtime requirements
+for direct dependency installation; contributors should use the command above.
 
 Run checks with:
 
