@@ -80,9 +80,9 @@ class PreferencesDialog(QDialog):
         self._shortcut_theme.addItem("Match Computer", "system")
         self._shortcut_theme.addItem("Light", "light")
         self._shortcut_theme.addItem("Dark", "dark")
-        self._shortcut_theme.setAccessibleName("Shortcut Theme")
+        self._shortcut_theme.setAccessibleName("Shortcut Appearance")
         self._shortcut_theme.setAccessibleDescription(
-            "Choose how desktop shortcuts look."
+            "Choose the appearance of shortcut buttons."
         )
         theme_index = self._shortcut_theme.findData(preferences.shortcut_theme)
         self._shortcut_theme.setCurrentIndex(max(theme_index, 0))
@@ -136,12 +136,13 @@ class PreferencesDialog(QDialog):
         appearance_title = QLabel("Shortcut Appearance", self)
         appearance_title.setFont(section_title_font)
         appearance_help = QLabel(
-            "Match Computer uses your computer's light or dark appearance. "
-            "Choose Light or Dark to use a different appearance.",
+            "This setting changes shortcut buttons only. Match Computer follows "
+            "your computer's appearance. Light makes the buttons light, and Dark "
+            "makes them dark.",
             self,
         )
         appearance_help.setWordWrap(True)
-        appearance_label = QLabel("Shortcut Theme", self)
+        appearance_label = QLabel("Shortcut Appearance", self)
         appearance_label.setBuddy(self._shortcut_theme)
 
         self._open_button = QPushButton("Preview in Browser", self)

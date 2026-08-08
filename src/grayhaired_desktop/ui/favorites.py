@@ -40,6 +40,7 @@ class FavoritesWidget(QWidget):
             border-radius: 7px;
             background: rgba(248, 249, 250, 235);
             color: #202124;
+            outline: none;
         }
         QPushButton:hover { background: #e7eef6; border-color: #557da5; }
         QPushButton:pressed { background: #d6e2ee; }

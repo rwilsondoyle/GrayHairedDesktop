@@ -43,6 +43,15 @@ def test_settings_uses_approved_desktop_website_terms(qapp) -> None:
     assert dialog._home_page_url.accessibleName() == "Website Address"
     assert dialog._open_button.text() == "Preview in Browser"
     assert dialog._open_button.toolTip() == PREVIEW_DESCRIPTION
+    assert dialog._shortcut_theme.accessibleDescription() == (
+        "Choose the appearance of shortcut buttons."
+    )
+    assert "Shortcut Appearance" in labels
+    appearance_help = next(
+        text for text in labels if text.startswith("This setting changes")
+    )
+    assert "shortcut buttons only" in appearance_help
+    assert "Match Computer" in appearance_help
     assert "without saving changes" in PREVIEW_DESCRIPTION
     assert OPEN_WEBSITE_FAILURE_MESSAGE == (
         "The selected website could not be opened in your default browser. Check that "

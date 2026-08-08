@@ -201,7 +201,9 @@ class MainWindow(QMainWindow):
             self.statusBar().showMessage("Opened link in the default browser.", 5000)
         else:
             self.statusBar().showMessage(
-                "Could not open link in the default browser.", 5000
+                "Could not open the shortcut. Check your default browser and try "
+                "again.",
+                5000,
             )
 
     def _show_preferences_dialog(self) -> None:
