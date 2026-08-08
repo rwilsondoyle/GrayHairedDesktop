@@ -1,10 +1,14 @@
 # GrayHairedDesktop
 
-GrayHairedDesktop is the current repository name for an Alpha 0.8 native Python 3.12+ desktop application for Zorin OS. It uses PySide6 and QtWebEngine as a desktop launch page: the configured home page stays inside the native Qt window, while clicked links open in the operating system's default browser. The public product name is still undecided before Version 1.0.
+GrayHairedDesktop is the current repository name for an Alpha 0.9 native Python 3.12+ desktop application for Zorin OS. It uses PySide6 and QtWebEngine as a desktop launch page: the configured home page stays inside the native Qt window, while clicked links open in the operating system's default browser. The public product name is still undecided before Version 1.0.
 
 ## Naming
 
 GrayHairedDesktop is the current repository name, but the public product name is not final before Version 1.0. Possible future names include PersonalDesktop or MyDesktop; this documentation does not select one. Use neutral wording such as "the application" or "the desktop application" where practical. Ron Doyle and GrayHaired.Tech remain appropriate author/About attribution, but they should not be treated as required long-term product branding.
+
+## Alpha 0.9 — Usability and Accessibility Review
+
+Alpha 0.9 is in progress, beginning with accessible control metadata and consistent top-menu behavior.
 
 ## Alpha 0.8 — Stability, Performance and Diagnostics
 
@@ -21,9 +25,9 @@ Status: Implementation complete; manual verification performed on the Inspiron-3
 
 One diagnostic run on that Zorin system verified persistent log creation, **Help → Open Log Folder**, initial and Settings-triggered Desktop Website loads, Home, Reload, and external shortcut handoff. Its observed timings are recorded in the development log; they are machine-specific observations, not universal performance benchmarks.
 
-## Existing Alpha 0.7 features
+## Existing application features
 
-- Native `QMainWindow` shell with the title `GrayDesk Alpha 0.7`
+- Native `QMainWindow` shell with the title `GrayDesk Alpha 0.9`
 - Embedded `QWebEngineView` that keeps the selected Desktop Website in the application
 - Ordinary links and new-window requests open in the operating system's default browser
 - **Settings** screen with **Another Website...** first, followed by Bing, DuckDuckGo, Google, MSN, and Yahoo in alphabetical order
