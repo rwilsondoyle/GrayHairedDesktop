@@ -5,13 +5,19 @@ from __future__ import annotations
 import logging
 
 from PySide6.QtCore import QSettings, QSize, Qt, QUrl
-from PySide6.QtGui import QDesktopServices, QIcon, QKeySequence, QShortcut
+from PySide6.QtGui import (
+    QDesktopServices,
+    QIcon,
+    QKeySequence,
+    QPainter,
+    QPixmap,
+    QShortcut,
+)
 from PySide6.QtWidgets import (
     QHBoxLayout,
     QMainWindow,
     QMessageBox,
     QStatusBar,
-    QStyle,
     QToolButton,
     QVBoxLayout,
     QWidget,
@@ -26,6 +32,32 @@ from grayhaired_desktop.ui.control_visibility import ControlVisibilityState
 from grayhaired_desktop.ui.favorites import FavoritesWidget
 from grayhaired_desktop.ui.menus import create_menus
 from grayhaired_desktop.ui.preferences import PreferencesDialog
+
+
+def _settings_icon(widget: QWidget) -> QIcon:
+    """Return the first available settings icon, with a Qt-rendered gear fallback."""
+
+    for icon_name in (
+        "preferences-system",
+        "settings",
+        "configure",
+        "system-settings",
+    ):
+        icon = QIcon.fromTheme(icon_name)
+        if not icon.isNull():
+            return icon
+
+    pixmap = QPixmap(24, 24)
+    pixmap.fill(Qt.GlobalColor.transparent)
+    painter = QPainter(pixmap)
+    painter.setRenderHint(QPainter.RenderHint.TextAntialiasing)
+    painter.setPen(widget.palette().buttonText().color())
+    font = painter.font()
+    font.setPixelSize(20)
+    painter.setFont(font)
+    painter.drawText(pixmap.rect(), Qt.AlignmentFlag.AlignCenter, "⚙")
+    painter.end()
+    return QIcon(pixmap)
 
 
 class MainWindow(QMainWindow):
@@ -53,14 +85,7 @@ class MainWindow(QMainWindow):
         shortcut_row.setContentsMargins(0, 0, 0, 0)
         shortcut_row.setSpacing(6)
         self._open_controls_button = QToolButton(central)
-        self._open_controls_button.setIcon(
-            QIcon.fromTheme(
-                "preferences-system",
-                self.style().standardIcon(
-                    QStyle.StandardPixmap.SP_FileDialogDetailedView
-                ),
-            )
-        )
+        self._open_controls_button.setIcon(_settings_icon(self))
         self._open_controls_button.setToolTip("Open controls")
         self._open_controls_button.setAccessibleName("Open controls")
         self._open_controls_button.setAccessibleDescription(

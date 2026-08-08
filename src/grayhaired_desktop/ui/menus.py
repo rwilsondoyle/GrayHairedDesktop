@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
+
 from PySide6.QtGui import QAction, QCursor
-from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QMenu, QMenuBar, QPushButton, QToolTip
+from PySide6.QtWidgets import QMenu, QMenuBar, QToolTip
 
 from grayhaired_desktop.ui.actions import ApplicationActions
 
@@ -19,9 +20,9 @@ def _show_action_tooltip(action: QAction, menu: QMenu) -> None:
 def create_menus(
     menu_bar: QMenuBar,
     actions: ApplicationActions,
-    hide_controls,
-) -> QPushButton:
-    """Populate ``menu_bar`` and return its Done control."""
+    hide_controls: Callable[[], object],
+) -> QAction:
+    """Populate ``menu_bar`` and return its top-level Done action."""
 
     file_menu = menu_bar.addMenu("File")
     file_menu.addAction(actions.exit)
@@ -41,10 +42,16 @@ def create_menus(
     help_menu.addAction(actions.open_log_folder)
     help_menu.addAction(actions.about)
 
-    done_button = QPushButton("Done", menu_bar)
-    done_button.setAccessibleName("Done")
-    done_button.setAccessibleDescription("Hide application controls")
-    done_button.setToolTip("Hide application controls")
-    done_button.clicked.connect(hide_controls)
-    menu_bar.setCornerWidget(done_button, Qt.Corner.TopRightCorner)
-    return done_button
+    done_action = QAction("Done", menu_bar)
+    done_action.setToolTip("Return to Desktop Website")
+    done_action.setStatusTip("Return to Desktop Website")
+    done_action.setWhatsThis("Return to Desktop Website")
+    # QAction accessibility derives its name from its visible text. Keep explicit
+    # properties as metadata for accessibility bridges that inspect QObject data.
+    done_action.setProperty("accessibleName", "Done")
+    done_action.setProperty(
+        "accessibleDescription", "Return to Desktop Website"
+    )
+    done_action.triggered.connect(hide_controls)
+    menu_bar.addAction(done_action)
+    return done_action
