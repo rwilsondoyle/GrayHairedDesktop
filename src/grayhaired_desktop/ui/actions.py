@@ -38,7 +38,7 @@ def create_actions(
     exit_action.triggered.connect(close)
 
     home_action = QAction("Home", parent)
-    home_action.setShortcut("Alt+Home")
+    home_action.setShortcut("Alt+H")
     home_action.setToolTip("Return to your saved Desktop Website")
     home_action.setStatusTip("Return to your saved Desktop Website")
     home_action.setWhatsThis("Return to your saved Desktop Website")
