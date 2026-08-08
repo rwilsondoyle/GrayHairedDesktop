@@ -98,7 +98,7 @@ class MainWindow(QMainWindow):
         self._open_controls_button.setAccessibleDescription(
             "Show application controls and settings"
         )
-        self._open_controls_button.setMinimumSize(QSize(36, 36))
+        self._open_controls_button.setMinimumSize(QSize(42, 42))
         self._open_controls_button.setAutoRaise(True)
         self._open_controls_tooltip_filter = install_explicit_tooltips(
             self._open_controls_button

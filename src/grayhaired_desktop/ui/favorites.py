@@ -23,19 +23,20 @@ class FavoritesWidget(QWidget):
 
     _MAX_BUTTON_WIDTH = 220
     _BUTTON_TEXT_WIDTH = 180
-    _ROW_SPACING = 7
+    _BUTTON_MINIMUM_HEIGHT = 42
+    _ROW_SPACING = 8
 
     _SYSTEM_STYLE = """
         QPushButton {
             font-size: 14px;
-            min-height: 36px;
+            min-height: 42px;
             padding: 0 9px;
         }
     """
     _LIGHT_STYLE = """
         QPushButton {
             font-size: 14px;
-            min-height: 36px;
+            min-height: 42px;
             padding: 0 9px;
             border: 1px solid #a5abb2;
             border-radius: 7px;
@@ -49,7 +50,7 @@ class FavoritesWidget(QWidget):
     _DARK_STYLE = """
         QPushButton {
             font-size: 14px;
-            min-height: 36px;
+            min-height: 42px;
             padding: 0 9px;
             border: 1px solid #666c73;
             border-radius: 7px;
@@ -115,6 +116,7 @@ class FavoritesWidget(QWidget):
             for index, favorite in enumerate(self._favorites)
         ]
         add_button = QPushButton("+ Add Shortcut", self)
+        add_button.setMinimumHeight(self._BUTTON_MINIMUM_HEIGHT)
         add_button.setAccessibleName("Add Shortcut")
         add_button.clicked.connect(self._add)
 
@@ -153,6 +155,7 @@ class FavoritesWidget(QWidget):
 
         if overflow:
             more_button = QPushButton("More...", self)
+            more_button.setMinimumHeight(self._BUTTON_MINIMUM_HEIGHT)
             more_button.setAccessibleName("More Shortcuts")
             more_button.setToolTip("Show additional shortcuts")
             more_width = self._item_width(more_button)
@@ -202,6 +205,7 @@ class FavoritesWidget(QWidget):
     def _make_shortcut_button(self, index: int, favorite: Favorite) -> QPushButton:
         display = f"{favorite.icon_placeholder or '★'}  {favorite.title}"
         button = QPushButton(self)
+        button.setMinimumHeight(self._BUTTON_MINIMUM_HEIGHT)
         button.setText(
             button.fontMetrics().elidedText(
                 display,

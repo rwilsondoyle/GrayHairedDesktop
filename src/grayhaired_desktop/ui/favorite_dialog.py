@@ -35,6 +35,8 @@ ICON_CHOICES = (
     ("Home", "⌂"),
 )
 
+CONTROL_MINIMUM_HEIGHT = 40
+
 
 class FavoriteDialog(QDialog):
     """Reusable, validated shortcut editor."""
@@ -44,11 +46,17 @@ class FavoriteDialog(QDialog):
         self.setWindowTitle("Edit Shortcut" if favorite else "Add Shortcut")
         self.setMinimumWidth(430)
         layout = QVBoxLayout(self)
+        layout.setContentsMargins(20, 20, 20, 20)
+        layout.setSpacing(16)
         form = QFormLayout()
+        form.setHorizontalSpacing(14)
+        form.setVerticalSpacing(12)
         self._name = QLineEdit(favorite.title if favorite else "")
         self._address = QLineEdit(favorite.website_address if favorite else "")
         self._address.setPlaceholderText("https://example.com")
         self._icon = QComboBox()
+        for control in (self._name, self._address, self._icon):
+            control.setMinimumHeight(CONTROL_MINIMUM_HEIGHT)
         for name, symbol in ICON_CHOICES:
             self._icon.addItem(f"{name}   {symbol}", symbol)
         if favorite and favorite.icon_placeholder:
@@ -62,8 +70,11 @@ class FavoriteDialog(QDialog):
         layout.addWidget(QLabel("Example: https://example.com"))
         buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Cancel)
         save = QPushButton("Save")
+        save.setMinimumHeight(CONTROL_MINIMUM_HEIGHT)
         save.setDefault(True)
         buttons.addButton(save, QDialogButtonBox.ButtonRole.AcceptRole)
+        cancel = buttons.button(QDialogButtonBox.StandardButton.Cancel)
+        cancel.setMinimumHeight(CONTROL_MINIMUM_HEIGHT)
         buttons.accepted.connect(self._validate_and_accept)
         buttons.rejected.connect(self.reject)
         layout.addWidget(buttons)

@@ -33,6 +33,9 @@ INVALID_URL_MESSAGE = (
     "Please enter a complete website address beginning with http:// or https://"
 )
 
+CONTROL_MINIMUM_HEIGHT = 40
+RADIO_MINIMUM_HEIGHT = 38
+
 
 class PreferencesDialog(QDialog):
     """Dialog for editing persistent user preferences."""
@@ -43,13 +46,16 @@ class PreferencesDialog(QDialog):
         selected_website = find_built_in_website(preferences.home_page_url)
         custom_address = preferences.home_page_url if selected_website is None else ""
         self._home_page_url = QLineEdit(custom_address, self)
+        self._home_page_url.setMinimumHeight(CONTROL_MINIMUM_HEIGHT)
         self._home_page_url.setClearButtonEnabled(True)
         self._website_buttons = QButtonGroup(self)
         self._another_website = QRadioButton("Another Website...", self)
+        self._another_website.setMinimumHeight(RADIO_MINIMUM_HEIGHT)
         self._website_buttons.addButton(self._another_website)
         self._built_in_buttons: dict[QRadioButton, str] = {}
         for website in BUILT_IN_WEBSITES:
             button = QRadioButton(website.display_name, self)
+            button.setMinimumHeight(RADIO_MINIMUM_HEIGHT)
             self._website_buttons.addButton(button)
             self._built_in_buttons[button] = website.address
             if website == selected_website:
@@ -59,6 +65,7 @@ class PreferencesDialog(QDialog):
         self._website_buttons.buttonToggled.connect(self._update_address_field)
 
         self._shortcut_theme = QComboBox(self)
+        self._shortcut_theme.setMinimumHeight(CONTROL_MINIMUM_HEIGHT)
         self._shortcut_theme.addItem("Match Computer", "system")
         self._shortcut_theme.addItem("Light", "light")
         self._shortcut_theme.addItem("Dark", "dark")
@@ -123,6 +130,7 @@ class PreferencesDialog(QDialog):
         appearance_label.setBuddy(self._shortcut_theme)
 
         self._open_button = QPushButton("Preview in Browser", self)
+        self._open_button.setMinimumHeight(CONTROL_MINIMUM_HEIGHT)
         preview_description = (
             "Preview the selected website in your default browser without saving changes."
         )
@@ -138,9 +146,11 @@ class PreferencesDialog(QDialog):
         )
         button_box.accepted.connect(self.accept)
         button_box.rejected.connect(self.reject)
+        for button in button_box.buttons():
+            button.setMinimumHeight(CONTROL_MINIMUM_HEIGHT)
 
         action_layout = QHBoxLayout()
-        action_layout.setSpacing(8)
+        action_layout.setSpacing(10)
         action_layout.addWidget(self._open_button)
         action_layout.addStretch(1)
         action_layout.addWidget(button_box)
@@ -148,7 +158,7 @@ class PreferencesDialog(QDialog):
         content = QWidget(self)
         content_layout = QVBoxLayout(content)
         content_layout.setContentsMargins(20, 28, 20, 16)
-        content_layout.setSpacing(14)
+        content_layout.setSpacing(16)
         content_layout.addWidget(section_title)
         content_layout.addSpacing(4)
         content_layout.addWidget(instruction)
@@ -173,7 +183,7 @@ class PreferencesDialog(QDialog):
 
         layout = QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 16)
-        layout.setSpacing(12)
+        layout.setSpacing(14)
         layout.addWidget(scroll_area)
         action_layout.setContentsMargins(20, 0, 20, 0)
         layout.addLayout(action_layout)

@@ -115,10 +115,10 @@ Status: In progress.
 
 - Began the review with a focused pass on accessible control metadata and consistent top-menu behavior.
 - Added a toggleable control menu so the Desktop Website gets more screen space while the existing application controls remain easy to reach.
+- Implemented the click-target and spacing review for shortcuts, menus, and settings dialogs while preserving the compact desktop layout.
 
 - Review wording throughout the application.
 - Review keyboard navigation.
-- Review click-target sizes and spacing.
 - Review high-contrast and large-text needs.
 - Confirm consistent use of **Settings** terminology.
 - Conduct a senior-friendly usability pass before Version 1.0.
