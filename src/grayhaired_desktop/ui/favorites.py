@@ -53,6 +53,7 @@ class FavoritesWidget(QWidget):
             border-radius: 7px;
             background: rgba(45, 48, 52, 235);
             color: #f1f3f4;
+            outline: none;
         }
         QPushButton:hover { background: #3d4f61; border-color: #7aa2c8; }
         QPushButton:pressed { background: #324354; }

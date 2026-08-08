@@ -97,9 +97,36 @@ def test_explicit_themes_keep_normal_and_focus_borders() -> None:
         FavoritesWidget._LIGHT_STYLE
     )
     assert "border: 1px solid #666c73" in FavoritesWidget._DARK_STYLE
+    assert "outline: none" in FavoritesWidget._DARK_STYLE
     assert "QPushButton:focus { border: 2px solid #8ab4f8; }" in (
         FavoritesWidget._DARK_STYLE
     )
+
+
+def test_real_shortcut_keeps_dark_style_across_theme_changes(
+    tmp_path, qt_app
+) -> None:
+    """Dark styling reaches actual buttons and survives a native-theme round trip."""
+
+    settings = QSettings(str(tmp_path / "dark.ini"), QSettings.Format.IniFormat)
+    widget = FavoritesWidget(settings, lambda _url: None)
+
+    for theme in ("dark", "system", "dark"):
+        widget.set_theme(theme)
+        qt_app.processEvents()
+        assert widget._shortcut_theme == theme
+        assert widget.styleSheet() == (
+            FavoritesWidget._DARK_STYLE if theme == "dark" else ""
+        )
+
+    button = widget.findChildren(QPushButton)[0]
+    assert button.palette().button().color().name() == "#2d3034"
+    assert button.palette().buttonText().color().name() == "#f1f3f4"
+    assert not button.font().underline()
+    assert button.style().metaObject().className() == "QStyleSheetStyle"
+
+    widget.deleteLater()
+    qt_app.processEvents()
 
 
 def test_native_ui_sources_do_not_set_fixed_font_pixel_sizes() -> None:
