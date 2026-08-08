@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 from PySide6.QtCore import QPoint, Qt
+from PySide6.QtGui import QFont
 from PySide6.QtWidgets import (
+    QApplication,
     QDialog,
     QHBoxLayout,
     QMenu,
@@ -26,16 +28,12 @@ class FavoritesWidget(QWidget):
     _BUTTON_MINIMUM_HEIGHT = 42
     _ROW_SPACING = 8
 
-    _SYSTEM_STYLE = """
-        QPushButton {
-            font-size: 14px;
-            min-height: 42px;
-            padding: 0 9px;
-        }
-    """
+    # An empty style keeps Match Computer on Qt's native button drawing path.
+    # Geometry is set on each button, rather than by opting native buttons into
+    # QStyleSheetStyle just to provide a minimum height.
+    _SYSTEM_STYLE = ""
     _LIGHT_STYLE = """
         QPushButton {
-            font-size: 14px;
             min-height: 42px;
             padding: 0 9px;
             border: 1px solid #a5abb2;
@@ -49,13 +47,13 @@ class FavoritesWidget(QWidget):
     """
     _DARK_STYLE = """
         QPushButton {
-            font-size: 14px;
             min-height: 42px;
             padding: 0 9px;
             border: 1px solid #666c73;
             border-radius: 7px;
             background: rgba(45, 48, 52, 235);
             color: #f1f3f4;
+            outline: none;
         }
         QPushButton:hover { background: #3d4f61; border-color: #7aa2c8; }
         QPushButton:pressed { background: #324354; }
@@ -75,6 +73,14 @@ class FavoritesWidget(QWidget):
         self._favorites = load_favorites(settings)
         self._shortcut_theme = "system"
         self._last_layout_width = -1
+
+        # Some desktop accessibility themes decorate the application font used
+        # by link-like content. Start with Qt's button font so the family and
+        # system-selected size still scale, while keeping shortcut labels normal
+        # button text rather than carrying an inherited underline.
+        shortcut_font = QFont(QApplication.font("QPushButton"))
+        shortcut_font.setUnderline(False)
+        self.setFont(shortcut_font)
 
         self._layout = QVBoxLayout(self)
         self._layout.setContentsMargins(0, 4, 0, 4)
@@ -96,7 +102,8 @@ class FavoritesWidget(QWidget):
         elif normalized == "dark":
             self.setStyleSheet(self._DARK_STYLE)
         else:
-            # Leave colors to Qt/Zorin so the buttons follow the computer theme.
+            # Leave all painting to Qt/Zorin so native palette colors, borders,
+            # and focus indication follow the computer theme.
             self.setStyleSheet(self._SYSTEM_STYLE)
 
     def resizeEvent(self, event) -> None:  # noqa: N802 - Qt override name
