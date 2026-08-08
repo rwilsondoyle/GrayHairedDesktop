@@ -4,21 +4,14 @@ from __future__ import annotations
 
 from collections.abc import Callable
 
-from PySide6.QtGui import QAction, QCursor
-from PySide6.QtWidgets import QMenu, QMenuBar, QToolTip, QWidget
+from PySide6.QtGui import QAction
+from PySide6.QtWidgets import QMenu, QMenuBar
 
 from grayhaired_desktop.ui.actions import ApplicationActions
-from grayhaired_desktop.ui.tooltips import MenuHelpBubble, MenuHelpController
+from grayhaired_desktop.ui.tooltips import HelpBubble, MenuHelpController
 
 MENU_BAR_STYLE = "QMenuBar::item { padding: 5px 10px; }"
 MENU_STYLE = "QMenu { padding: 4px 0; } QMenu::item { padding: 7px 28px 7px 24px; }"
-
-
-def _show_action_tooltip(action: QAction, parent: QWidget) -> None:
-    """Show a menu action's tooltip consistently across desktop environments."""
-
-    if tooltip := action.toolTip():
-        QToolTip.showText(QCursor.pos(), tooltip, parent)
 
 
 def create_menus(
@@ -28,7 +21,7 @@ def create_menus(
 ) -> QAction:
     """Populate ``menu_bar`` and return its top-level Done action."""
 
-    help_bubble = MenuHelpBubble(menu_bar)
+    help_bubble = HelpBubble(menu_bar)
     menu_help_controllers = []
     # Add hit area only; colors and other visual details remain native to Qt/Zorin.
     menu_bar.setStyleSheet(MENU_BAR_STYLE)
@@ -70,11 +63,8 @@ def create_menus(
     )
     done_action.triggered.connect(hide_controls)
     menu_bar.addAction(done_action)
-    menu_bar.hovered.connect(
-        lambda action: (
-            _show_action_tooltip(action, menu_bar)
-            if action is done_action
-            else None
-        )
+    done_help_controller = MenuHelpController(
+        menu_bar, help_bubble, actions={done_action}
     )
+    menu_help_controllers.append(done_help_controller)
     return done_action
