@@ -130,8 +130,14 @@ Status: Implementation complete; final manual Zorin verification pending.
 
 ## Version 1.0 release readiness
 
-Status: **Version 1.0 implementation review complete; final manual Zorin
-verification pending.** Version 1.0 is not declared complete.
+Status: **Desktop Mode implementation review and final manual Zorin verification
+pending.** Version 1.0 is not declared complete.
+
+- Desktop Mode is an important pre-1.0 requirement, not post-release polish.
+- The first implementation uses an EWMH desktop-type Qt window on X11 and a
+  truthful normal/windowed fallback on Wayland or uncertain sessions.
+- X11 desktop icons, panels, focus, Show Desktop, multi-monitor behavior,
+  autostart login, and recovery still require testing on the target Zorin system.
 
 - Audited current product/version wording, About information, installation,
   update/run paths, persistence, logging, safety, and dependencies.

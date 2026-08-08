@@ -1,7 +1,7 @@
 # Version 1.0 release-readiness review
 
-Status: **Version 1.0 implementation review complete; final manual Zorin
-verification pending.** This report does not declare Version 1.0 complete.
+Status: **Desktop Mode implementation and final manual Zorin verification are
+pending.** This report does not declare Version 1.0 complete.
 
 ## Release finding
 
@@ -11,6 +11,13 @@ Zorin installation and the release-readiness pull request is approved.
 
 ### Blockers
 
+- Complete Desktop Mode verification on the user's actual Zorin X11/Xorg
+  session. The implementation uses Qt's standards-based X11 desktop window type;
+  this behavior cannot be established by headless automated tests.
+- On Wayland, a normal Qt application cannot reliably insert an interactive
+  window beneath the compositor-managed shell wallpaper. The implementation
+  therefore remains in normal/windowed mode and reports the fallback rather than
+  presenting a borderless fullscreen window as Desktop Mode.
 - Complete all 50 manual Zorin checks below, including clean installation,
   upgrade persistence, both Zorin appearances, accessibility, and real external
   browser handoff. These behaviors cannot be fully established in a headless
@@ -38,6 +45,52 @@ Zorin installation and the release-readiness pull request is approved.
 
 These are distribution improvements rather than blockers for a clearly described
 source-based 1.0 release.
+
+## Desktop Mode feasibility and implementation
+
+Desktop Mode restores the original goal of showing the live Desktop Website and
+interactive shortcuts as a desktop/background layer. It is opt-in and normal
+windowed mode remains the default and safe fallback.
+
+- Session detection combines `XDG_SESSION_TYPE` with Qt's runtime platform name.
+  X11 support is selected only when the session says X11/Xorg **and** Qt uses
+  `xcb`; contradictory or unknown results are unsupported and logged. The current
+  desktop name is logged only to distinguish GNOME/Zorin behavior.
+- On X11, the main window uses Qt's `Desktop`, `FramelessWindowHint`, and
+  `WindowStaysOnBottomHint` window flags. Qt maps the desktop window type to the
+  EWMH `_NET_WM_WINDOW_TYPE_DESKTOP` hint. The window targets its current/primary
+  screen's full geometry. Panels are expected to remain above an EWMH desktop
+  window, but that and Zorin's Show Desktop behavior require manual testing.
+- On Wayland, Desktop Mode safely falls back to the ordinary window with a short
+  explanation. No compositor bypass, layer-shell extension, static wallpaper,
+  or ordinary fullscreen substitute is used.
+- GNOME/Zorin desktop-icon extensions commonly own their own desktop surface.
+  EWMH does not define a reliable ordering layer between wallpaper and those
+  icons, so icon coexistence is explicitly unverified. This application neither
+  hides icons nor implements an icon manager.
+- Multi-monitor support deliberately targets one current/primary screen. Qt
+  screen geometry is read when mode is entered; live monitor add/remove handling
+  and one-window-per-screen behavior remain future work.
+- Desktop Mode does not use a no-focus flag: its shortcuts and controls remain
+  interactive. The desktop window type and stays-below hint avoid promoting it
+  over ordinary windows. Actual GNOME focus behavior remains a manual check.
+- Settings always remain available from the lower-left controls button. Saving
+  Desktop Mode Off returns to windowed mode. `Ctrl+Shift+D` is an additional
+  recovery shortcut that turns the setting off; unlike `Ctrl+Alt+D`, it is not a
+  common GNOME Show Desktop binding. Exit remains in the File menu.
+- Optional sign-in startup creates exactly one user entry at
+  `~/.config/autostart/grayhaired-desktop.desktop` (or under
+  `$XDG_CONFIG_HOME`). It uses the absolute installed console-script path,
+  requires no root/daemon/systemd, writes idempotently, and removes the file when
+  disabled. The present source setup installs that command inside the checkout's
+  `.venv`, which is not a stable distribution launcher: enabling autostart in
+  that setup therefore fails safely rather than recording a branch/check-out
+  path. The implementation becomes available when a future package supplies a
+  stable installed console-script path.
+
+No claim is made yet about real Zorin icon ordering, panel ordering, Show Desktop,
+focus, monitor changes, logout, or compositor behavior. All require the manual
+Desktop Mode checklist requested for this development task.
 
 ## Audit results
 

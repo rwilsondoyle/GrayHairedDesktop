@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from pathlib import Path
 
 from PySide6.QtCore import QSettings, QSize, Qt, QUrl
 from PySide6.QtGui import (
@@ -24,7 +25,13 @@ from PySide6.QtWidgets import (
 )
 
 from grayhaired_desktop.browser import BrowserView
+from grayhaired_desktop.autostart import set_autostart
 from grayhaired_desktop.config import AppMetadata
+from grayhaired_desktop.desktop_mode import (
+    DesktopModePath,
+    SessionInfo,
+    select_desktop_mode,
+)
 from grayhaired_desktop.logger import log_file_path
 from grayhaired_desktop.settings import load_preferences, save_preferences
 from grayhaired_desktop.ui.actions import (
@@ -71,13 +78,23 @@ class MainWindow(QMainWindow):
     """Native application window hosting the GrayHaired web experience."""
 
     def __init__(
-        self, metadata: AppMetadata, settings: QSettings, logger: logging.Logger
+        self,
+        metadata: AppMetadata,
+        settings: QSettings,
+        logger: logging.Logger,
+        session_info: SessionInfo,
+        launch_executable: Path | None,
     ) -> None:
         super().__init__()
         self._metadata = metadata
         self._settings = settings
         self._logger = logger.getChild("mainwindow")
         self._preferences = load_preferences(settings)
+        self._session_info = session_info
+        self._launch_executable = launch_executable
+        self._desktop_mode_active = False
+        self._normal_window_flags = self.windowFlags()
+        self._normal_geometry = None
         self._browser = BrowserView(self._preferences.home_page_url, logger, self)
 
         self.setWindowTitle(self._metadata.name)
@@ -137,12 +154,80 @@ class MainWindow(QMainWindow):
         self._escape_shortcut = QShortcut(QKeySequence.Cancel, self)
         self._escape_shortcut.setContext(Qt.ShortcutContext.WindowShortcut)
         self._escape_shortcut.activated.connect(self._hide_controls)
+        self._desktop_recovery_shortcut = QShortcut(QKeySequence("Ctrl+Shift+D"), self)
+        self._desktop_recovery_shortcut.setContext(Qt.ShortcutContext.ApplicationShortcut)
+        self._desktop_recovery_shortcut.activated.connect(self._leave_desktop_mode)
         self._connect_browser_status()
         self._restore_window_state()
         # restoreState may include obsolete toolbar data from an earlier release.
         # No toolbar is created, and every launch explicitly begins with menus hidden.
         self._set_controls_visible(False)
         self._browser.load_home("initial application load")
+
+    def apply_startup_mode(self) -> DesktopModePath:
+        """Apply the requested mode before the window is first shown."""
+
+        return self._apply_desktop_mode(self._preferences.desktop_mode)
+
+    @property
+    def desktop_mode_requested(self) -> bool:
+        """Return the persisted opt-in state for startup coordination."""
+
+        return self._preferences.desktop_mode
+
+    def _apply_desktop_mode(self, requested: bool) -> DesktopModePath:
+        path = select_desktop_mode(self._session_info, requested)
+        if path is DesktopModePath.X11_DESKTOP:
+            if not self._desktop_mode_active:
+                self._normal_geometry = self.saveGeometry()
+            self.setWindowFlags(
+                Qt.WindowType.Desktop
+                | Qt.WindowType.FramelessWindowHint
+                | Qt.WindowType.WindowStaysOnBottomHint
+            )
+            screen = self.screen()
+            if screen is not None:
+                # One primary/current screen is deliberate: spanning mixed monitor
+                # geometries is not reliable without per-screen desktop windows.
+                self.setGeometry(screen.geometry())
+            self.statusBar().hide()
+            self._desktop_mode_active = True
+        else:
+            self.setWindowFlags(self._normal_window_flags)
+            if self._desktop_mode_active and self._normal_geometry is not None:
+                self.restoreGeometry(self._normal_geometry)
+            self.statusBar().show()
+            self._desktop_mode_active = False
+        self._logger.info("Desktop Mode path selected: %s", path.value)
+        return path
+
+    def show_desktop_mode_fallback(self) -> None:
+        """Explain a startup fallback after the ordinary window is visible."""
+
+        QMessageBox.information(
+            self,
+            "Desktop Mode Unavailable",
+            "Desktop Mode is not available in this computer session. "
+            "GrayHaired Desktop will open normally instead.",
+        )
+
+    def _leave_desktop_mode(self) -> None:
+        """Keyboard recovery: persist and return to an ordinary window."""
+
+        if not self._desktop_mode_active:
+            return
+        self._preferences = type(self._preferences)(
+            home_page_url=self._preferences.home_page_url,
+            shortcut_theme=self._preferences.shortcut_theme,
+            desktop_mode=False,
+            autostart=self._preferences.autostart,
+        )
+        save_preferences(self._settings, self._preferences)
+        self._apply_desktop_mode(False)
+        self.show()
+        self.raise_()
+        self.activateWindow()
+        self.statusBar().showMessage("Desktop Mode turned off.", 5000)
 
     def _set_controls_visible(self, visible: bool) -> None:
         """Apply the transient control state to the menu bar."""
@@ -174,8 +259,9 @@ class MainWindow(QMainWindow):
     def closeEvent(self, event) -> None:  # noqa: N802 - Qt override name
         """Persist window geometry before closing."""
 
-        self._settings.setValue("mainwindow/geometry", self.saveGeometry())
-        self._settings.setValue("mainwindow/windowState", self.saveState())
+        if not self._desktop_mode_active:
+            self._settings.setValue("mainwindow/geometry", self.saveGeometry())
+            self._settings.setValue("mainwindow/windowState", self.saveState())
         self._logger.info("Window state saved")
         super().closeEvent(event)
 
@@ -212,12 +298,51 @@ class MainWindow(QMainWindow):
             return
 
         updated_preferences = dialog.preferences
+        if updated_preferences.autostart != self._preferences.autostart:
+            if self._launch_executable is None and updated_preferences.autostart:
+                QMessageBox.warning(
+                    self,
+                    "Could Not Start Automatically",
+                    "Automatic start needs the installed GrayHaired Desktop launcher.",
+                )
+                updated_preferences = type(updated_preferences)(
+                    home_page_url=updated_preferences.home_page_url,
+                    shortcut_theme=updated_preferences.shortcut_theme,
+                    desktop_mode=updated_preferences.desktop_mode,
+                    autostart=False,
+                )
+            else:
+                try:
+                    set_autostart(
+                        updated_preferences.autostart,
+                        self._launch_executable or Path("/unavailable"),
+                    )
+                except OSError as error:
+                    self._logger.warning("Autostart update failed: %s", error)
+                    QMessageBox.warning(
+                        self,
+                        "Could Not Change Automatic Start",
+                        "GrayHaired Desktop could not change the sign-in setting.",
+                    )
+                    return
         self._preferences = updated_preferences
         save_preferences(self._settings, self._preferences)
         self._favorites.set_theme(self._preferences.shortcut_theme)
         self._browser.set_home_url(self._preferences.home_page_url)
         self._browser.load_home("Settings-triggered load")
         self._logger.info("Settings saved")
+        mode_path = self._apply_desktop_mode(self._preferences.desktop_mode)
+        self.show()
+        if (
+            self._preferences.desktop_mode
+            and mode_path is DesktopModePath.UNSUPPORTED
+        ):
+            QMessageBox.information(
+                self,
+                "Desktop Mode Unavailable",
+                "Desktop Mode is not available in this computer session. "
+                "GrayHaired Desktop will open normally instead.",
+            )
 
     def _show_about_dialog(self) -> None:
         QMessageBox.about(

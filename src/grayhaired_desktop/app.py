@@ -6,7 +6,7 @@ import logging
 import sys
 import time
 
-from PySide6.QtCore import Qt
+from PySide6.QtCore import QTimer, Qt
 from PySide6.QtWidgets import QApplication
 
 from grayhaired_desktop.appearance import (
@@ -14,7 +14,13 @@ from grayhaired_desktop.appearance import (
     detect_system_appearance,
     palette_appearance,
 )
+from grayhaired_desktop.autostart import installed_launch_executable
 from grayhaired_desktop.config import AppMetadata, create_settings
+from grayhaired_desktop.desktop_mode import (
+    DesktopModePath,
+    detect_session,
+    select_desktop_mode,
+)
 from grayhaired_desktop.logger import configure_logging, log_file_path
 from grayhaired_desktop.ui.mainwindow import MainWindow
 
@@ -52,9 +58,33 @@ def run(argv: list[str] | None = None) -> int:
     )
     logger.info("QApplication created after %.3f seconds", time.perf_counter() - started_at)
     settings = create_settings(metadata)
-    window = MainWindow(metadata, settings, logger)
+    session_info = detect_session(app.platformName())
+    logger.info(
+        "Graphical session: type=%s; Qt platform=%s; desktop=%s",
+        session_info.session_type,
+        session_info.qt_platform,
+        session_info.desktop_environment,
+    )
+    launch_executable = installed_launch_executable(sys.argv[0])
+    window = MainWindow(
+        metadata, settings, logger, session_info, launch_executable
+    )
+    mode_path = window.apply_startup_mode()
+    desktop_available = (
+        select_desktop_mode(session_info, True) is DesktopModePath.X11_DESKTOP
+    )
+    logger.info(
+        "Desktop Mode available: %s; implementation/fallback: %s",
+        "yes" if desktop_available else "no",
+        mode_path.value,
+    )
     logger.info("Main window created after %.3f seconds", time.perf_counter() - started_at)
     window.show()
+    if (
+        window.desktop_mode_requested
+        and mode_path is DesktopModePath.UNSUPPORTED
+    ):
+        QTimer.singleShot(0, window.show_desktop_mode_fallback)
     logger.info("Main window shown after %.3f seconds", time.perf_counter() - started_at)
     exit_code = app.exec()
     logger.info("Application closed")
