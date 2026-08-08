@@ -10,6 +10,9 @@ from PySide6.QtWidgets import QMenu, QMenuBar, QToolTip, QWidget
 from grayhaired_desktop.ui.actions import ApplicationActions
 from grayhaired_desktop.ui.tooltips import MenuHelpBubble, MenuHelpController
 
+MENU_BAR_STYLE = "QMenuBar::item { padding: 5px 10px; }"
+MENU_STYLE = "QMenu { padding: 4px 0; } QMenu::item { padding: 7px 28px 7px 24px; }"
+
 
 def _show_action_tooltip(action: QAction, parent: QWidget) -> None:
     """Show a menu action's tooltip consistently across desktop environments."""
@@ -27,6 +30,8 @@ def create_menus(
 
     help_bubble = MenuHelpBubble(menu_bar)
     menu_help_controllers = []
+    # Add hit area only; colors and other visual details remain native to Qt/Zorin.
+    menu_bar.setStyleSheet(MENU_BAR_STYLE)
 
     file_menu = QMenu("File", menu_bar)
     menu_bar.addMenu(file_menu)
@@ -47,6 +52,7 @@ def create_menus(
     help_menu.addAction(actions.about)
 
     for menu in (file_menu, view_menu, settings_menu, help_menu):
+        menu.setStyleSheet(MENU_STYLE)
         menu_help_controllers.append(MenuHelpController(menu, help_bubble))
     # Keep explicit Python references in addition to Qt parent ownership.
     menu_bar._menu_help_bubble = help_bubble
