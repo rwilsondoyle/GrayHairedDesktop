@@ -35,6 +35,7 @@ def create_actions(
 
     exit_action = QAction("Exit", parent)
     exit_action.setStatusTip("Close GrayHaired Desktop")
+    exit_action.setWhatsThis("Close GrayHaired Desktop")
     exit_action.triggered.connect(close)
 
     home_action = QAction("Home", parent)
@@ -55,10 +56,14 @@ def create_actions(
     preferences_action.setIconText("Settings")
     preferences_action.setToolTip("Settings...")
     preferences_action.setStatusTip("Choose the desktop website")
+    preferences_action.setWhatsThis(
+        "Choose the Desktop Website and shortcut appearance"
+    )
     preferences_action.triggered.connect(show_preferences)
 
     about_action = QAction("About", parent)
     about_action.setStatusTip("About GrayHaired Desktop")
+    about_action.setWhatsThis("View information about GrayHaired Desktop")
     about_action.triggered.connect(show_about)
 
     open_log_folder_action = QAction("Open Log Folder", parent)
