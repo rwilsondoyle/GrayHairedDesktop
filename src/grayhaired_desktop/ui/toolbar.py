@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from PySide6.QtWidgets import QMainWindow, QToolBar
+from PySide6.QtWidgets import QMainWindow, QToolBar, QToolButton
 
 from grayhaired_desktop.ui.actions import ApplicationActions
 
@@ -12,7 +12,15 @@ def create_toolbar(parent: QMainWindow, actions: ApplicationActions) -> QToolBar
 
     toolbar = QToolBar("Main Toolbar", parent)
     toolbar.setMovable(False)
+    toolbar.layout().setSpacing(6)
+
     toolbar.addAction(actions.reload)
-    toolbar.addAction(actions.preferences)
+    reload_button = toolbar.widgetForAction(actions.reload)
+    if isinstance(reload_button, QToolButton):
+        reload_button.setAccessibleName("Reload")
+        reload_button.setAccessibleDescription(
+            "Refresh the current Desktop Website"
+        )
+
     parent.addToolBar(toolbar)
     return toolbar
