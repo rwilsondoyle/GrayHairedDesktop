@@ -120,6 +120,7 @@ Status: In progress.
 - Confirmed consistent use of **Settings**, **Desktop Website**, **Website Address**, **Shortcut**, and **Open controls** in the current user interface.
 - Implemented the keyboard-navigation review, including complete dialog focus sequences and reliable focus return to the Desktop Website when native controls close.
 - Implemented the high-contrast and large-system-text compatibility review by removing fixed native-UI font sizes and retaining system fonts, palettes, focus behavior, and high-DPI handling.
+- Added a focused Zorin compatibility fallback for PySide6 installations where the Fusion palette does not reflect GNOME's current light/dark appearance.
 
 - Conduct a final senior-friendly usability pass before Version 1.0.
 

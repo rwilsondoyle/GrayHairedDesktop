@@ -105,6 +105,25 @@ class FavoritesWidget(QWidget):
             # Leave all painting to Qt/Zorin so native palette colors, borders,
             # and focus indication follow the computer theme.
             self.setStyleSheet(self._SYSTEM_STYLE)
+        self._refresh_button_styles()
+
+    def _refresh_button_styles(self) -> None:
+        """Apply and repolish the selected surface on every real button."""
+
+        styles = {
+            "light": self._LIGHT_STYLE,
+            "dark": self._DARK_STYLE,
+            "system": self._SYSTEM_STYLE,
+        }
+        style_sheet = styles[self._shortcut_theme]
+        for button in self.findChildren(QPushButton):
+            # Direct rules avoid stale inherited QSS after row widgets are
+            # rebuilt and reparented over a different application palette.
+            button.setStyleSheet(style_sheet)
+            button.style().unpolish(button)
+            button.style().polish(button)
+            button.update()
+        self.update()
 
     def resizeEvent(self, event) -> None:  # noqa: N802 - Qt override name
         """Re-center and repack shortcuts when the available width changes."""
@@ -191,6 +210,7 @@ class FavoritesWidget(QWidget):
         self._add_centered_row(first_row)
         if second_row:
             self._add_centered_row(second_row)
+        self._refresh_button_styles()
         self.updateGeometry()
 
     def _clear_rows(self) -> None:

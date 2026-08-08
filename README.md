@@ -51,6 +51,16 @@ One diagnostic run on that Zorin system verified persistent log creation, **Help
 - Multiple shortcuts of the same type are allowed, and the complete ordered list persists through `QSettings`.
 - Shortcuts open externally in the operating system's default web application; the Desktop Website remains unchanged and dominant.
 
+### Zorin system appearance
+
+The native application UI follows Zorin's startup appearance. PySide6 can fall
+back to Qt's Fusion style with a light palette when its bundled Linux platform
+theme integration does not reflect GNOME's dark preference. At startup, the
+application reads `org.gnome.desktop.interface color-scheme` once and corrects
+only a mismatched application palette. **Shortcut Appearance** remains an
+independent setting: **Match Computer** uses that application palette, while
+**Light** and **Dark** affect shortcut buttons only.
+
 The persistent log is stored at `~/.local/state/GrayHairedDesktop/grayhaired-desktop.log`. It rotates at approximately 1 MB and retains three old files. To capture Python application logs together with external Qt, Chromium, Mesa, and graphics-stack messages, run:
 
 ```bash

@@ -4,7 +4,7 @@ import pytest
 
 pytest.importorskip("PySide6.QtWidgets", exc_type=ImportError)
 from PySide6.QtCore import QObject
-from PySide6.QtWidgets import QMenuBar
+from PySide6.QtWidgets import QMenu, QMenuBar
 
 from grayhaired_desktop.ui.actions import create_actions
 from grayhaired_desktop.ui.menus import create_menus
@@ -16,7 +16,10 @@ def test_done_is_final_top_level_action_and_hides_controls(qt_app) -> None:
 
     parent = QObject()
     hide_requests = []
-    callback = lambda: None
+
+    def callback() -> None:
+        pass
+
     actions = create_actions(
         parent,
         close=callback,
@@ -37,6 +40,10 @@ def test_done_is_final_top_level_action_and_hides_controls(qt_app) -> None:
         "Help",
         "Done",
     ]
+    assert not menu_bar.font().underline()
+    assert "border: none" in menu_bar.styleSheet()
+    assert all(not menu.font().underline() for menu in menu_bar.findChildren(QMenu))
+    assert all(not action.font().underline() for action in menu_bar.actions())
     assert len(menu_bar._menu_help_controllers) == 5
     assert all(
         isinstance(controller, MenuHelpController)

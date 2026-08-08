@@ -9,6 +9,11 @@ import time
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QApplication
 
+from grayhaired_desktop.appearance import (
+    apply_system_appearance,
+    detect_system_appearance,
+    palette_appearance,
+)
 from grayhaired_desktop.config import AppMetadata, create_settings
 from grayhaired_desktop.logger import configure_logging, log_file_path
 from grayhaired_desktop.ui.mainwindow import MainWindow
@@ -36,6 +41,15 @@ def run(argv: list[str] | None = None) -> int:
     logger.info("Application startup began")
     metadata = AppMetadata()
     app = build_application(argv)
+    system_appearance = detect_system_appearance()
+    fallback_applied = apply_system_appearance(app, system_appearance)
+    logger.info("System appearance detected: %s", system_appearance.value)
+    logger.info(
+        "Qt application palette: %s; Qt style: %s; palette fallback: %s",
+        palette_appearance(app.palette()).value,
+        app.style().objectName(),
+        "applied" if fallback_applied else "not needed",
+    )
     logger.info("QApplication created after %.3f seconds", time.perf_counter() - started_at)
     settings = create_settings(metadata)
     window = MainWindow(metadata, settings, logger)
