@@ -159,6 +159,10 @@ class PreferencesDialog(QDialog):
         button_box.rejected.connect(self.reject)
         for button in button_box.buttons():
             button.setMinimumHeight(CONTROL_MINIMUM_HEIGHT)
+        self._save_button = button_box.button(QDialogButtonBox.StandardButton.Save)
+        self._cancel_button = button_box.button(
+            QDialogButtonBox.StandardButton.Cancel
+        )
 
         action_layout = QHBoxLayout()
         action_layout.setSpacing(10)
@@ -205,6 +209,9 @@ class PreferencesDialog(QDialog):
         self.setTabOrder(self._home_page_url, next(iter(self._built_in_buttons)))
         self.setTabOrder(list(self._built_in_buttons)[-1], self._shortcut_theme)
         self.setTabOrder(self._shortcut_theme, self._open_button)
+        self.setTabOrder(self._open_button, self._save_button)
+        self.setTabOrder(self._save_button, self._cancel_button)
+        self.setTabOrder(self._cancel_button, self._another_website)
 
     def _open_home_page(self) -> None:
         """Open the entered address externally without saving it."""
