@@ -111,7 +111,9 @@ class PreferencesDialog(QDialog):
 
     def _create_layout(self) -> None:
         section_title = QLabel("Desktop Website", self)
-        section_title.setStyleSheet("font-weight: bold; font-size: 16px;")
+        section_title_font = section_title.font()
+        section_title_font.setBold(True)
+        section_title.setFont(section_title_font)
         instruction = QLabel("Choose the website to display on your desktop.", self)
         instruction.setWordWrap(True)
         instruction.setSizePolicy(
@@ -132,7 +134,7 @@ class PreferencesDialog(QDialog):
         appearance_separator.setFrameShape(QFrame.Shape.HLine)
         appearance_separator.setFrameShadow(QFrame.Shadow.Sunken)
         appearance_title = QLabel("Shortcut Appearance", self)
-        appearance_title.setStyleSheet("font-weight: bold; font-size: 16px;")
+        appearance_title.setFont(section_title_font)
         appearance_help = QLabel(
             "Match Computer uses your computer's light or dark appearance. "
             "Choose Light or Dark to use a different appearance.",

@@ -28,14 +28,12 @@ class FavoritesWidget(QWidget):
 
     _SYSTEM_STYLE = """
         QPushButton {
-            font-size: 14px;
             min-height: 42px;
             padding: 0 9px;
         }
     """
     _LIGHT_STYLE = """
         QPushButton {
-            font-size: 14px;
             min-height: 42px;
             padding: 0 9px;
             border: 1px solid #a5abb2;
@@ -49,7 +47,6 @@ class FavoritesWidget(QWidget):
     """
     _DARK_STYLE = """
         QPushButton {
-            font-size: 14px;
             min-height: 42px;
             padding: 0 9px;
             border: 1px solid #666c73;

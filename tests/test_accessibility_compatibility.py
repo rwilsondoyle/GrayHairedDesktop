@@ -1,0 +1,91 @@
+"""Focused checks for system text, contrast, and compact layout compatibility."""
+
+from pathlib import Path
+
+import pytest
+
+pytest.importorskip("PySide6.QtWidgets", exc_type=ImportError)
+from PySide6.QtCore import QSettings
+from PySide6.QtWidgets import QLabel
+
+from grayhaired_desktop.settings import UserPreferences
+from grayhaired_desktop.ui.favorites import FavoritesWidget
+from grayhaired_desktop.ui.preferences import PreferencesDialog
+from grayhaired_desktop.ui.tooltips import HelpBubble
+
+
+def test_shortcut_themes_inherit_the_application_font() -> None:
+    """Shortcut themes must not block operating-system font scaling."""
+
+    for style in (
+        FavoritesWidget._SYSTEM_STYLE,
+        FavoritesWidget._LIGHT_STYLE,
+        FavoritesWidget._DARK_STYLE,
+    ):
+        assert "font-size" not in style
+
+
+def test_settings_section_titles_inherit_system_font(qt_app) -> None:
+    """Section titles add emphasis without replacing the system-selected size."""
+
+    dialog = PreferencesDialog(UserPreferences())
+    titles = {
+        label.text(): label for label in dialog.findChildren(QLabel)
+    }
+
+    for text in ("Desktop Website", "Shortcut Appearance"):
+        title = titles[text]
+        assert title.font().bold()
+        assert title.font().pointSizeF() == dialog.font().pointSizeF()
+        assert title.font().pixelSize() == dialog.font().pixelSize()
+
+    dialog.deleteLater()
+    qt_app.processEvents()
+
+
+def test_help_bubble_uses_application_menu_font(qt_app) -> None:
+    """Help text follows the shared, system-scaled menu font."""
+
+    from PySide6.QtWidgets import QApplication, QWidget
+
+    parent = QWidget()
+    bubble = HelpBubble(parent)
+    menu_font = QApplication.font("QMenuBar")
+
+    assert bubble.font().family() == menu_font.family()
+    assert bubble.font().pointSizeF() == menu_font.pointSizeF()
+    assert bubble.font().pixelSize() == menu_font.pixelSize()
+
+    parent.deleteLater()
+    qt_app.processEvents()
+
+
+def test_compact_shortcut_geometry_contract_is_unchanged(tmp_path, qt_app) -> None:
+    """Font compatibility must not consume more Desktop Website space."""
+
+    settings = QSettings(str(tmp_path / "settings.ini"), QSettings.Format.IniFormat)
+    widget = FavoritesWidget(settings, lambda _url: None)
+
+    assert widget._BUTTON_MINIMUM_HEIGHT == 42
+    assert widget._layout.count() <= 2
+
+    widget.deleteLater()
+    qt_app.processEvents()
+
+
+def test_native_ui_sources_do_not_set_fixed_font_pixel_sizes() -> None:
+    """Native controls should inherit fonts rather than override pixel sizes."""
+
+    ui_dir = Path(__file__).parents[1] / "src" / "grayhaired_desktop" / "ui"
+    audited_sources = (
+        "favorites.py",
+        "preferences.py",
+        "favorite_dialog.py",
+        "tooltips.py",
+        "menus.py",
+    )
+
+    for source_name in audited_sources:
+        source = (ui_dir / source_name).read_text(encoding="utf-8")
+        assert "font-size:" not in source
+        assert ".setPixelSize(" not in source
