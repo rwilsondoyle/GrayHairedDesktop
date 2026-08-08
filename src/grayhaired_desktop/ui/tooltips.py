@@ -3,8 +3,52 @@
 from __future__ import annotations
 
 from PySide6.QtCore import QEvent, QObject, QPoint
-from PySide6.QtGui import QHelpEvent
+from PySide6.QtGui import QAction, QHelpEvent, QMouseEvent
 from PySide6.QtWidgets import QMenu, QToolTip, QWidget
+
+
+class ToolTipMenu(QMenu):
+    """Popup menu that displays action tooltips directly from mouse movement."""
+
+    def __init__(self, title: str, parent: QWidget | None = None) -> None:
+        super().__init__(title, parent)
+        self.setMouseTracking(True)
+        self._tooltip_action: QAction | None = None
+
+    def action_tooltip_at(self, position: QPoint) -> str:
+        """Return the tooltip for the action at a menu-local position."""
+
+        action = self.actionAt(position)
+        return action.toolTip() if action is not None else ""
+
+    def mouseMoveEvent(self, event: QMouseEvent) -> None:  # noqa: N802
+        """Update the tooltip when the pointer moves to a different action."""
+
+        super().mouseMoveEvent(event)
+        action = self.actionAt(event.position().toPoint())
+        if action is self._tooltip_action:
+            return
+
+        QToolTip.hideText()
+        self._tooltip_action = action
+        if action is not None and (tooltip := action.toolTip()):
+            QToolTip.showText(event.globalPosition().toPoint(), tooltip, self)
+
+    def leaveEvent(self, event: QEvent) -> None:  # noqa: N802
+        """Hide action help when the pointer leaves the popup menu."""
+
+        self._hide_action_tooltip()
+        super().leaveEvent(event)
+
+    def hideEvent(self, event: QEvent) -> None:  # noqa: N802
+        """Hide action help when the popup menu closes."""
+
+        self._hide_action_tooltip()
+        super().hideEvent(event)
+
+    def _hide_action_tooltip(self) -> None:
+        self._tooltip_action = None
+        QToolTip.hideText()
 
 
 class ExplicitToolTipFilter(QObject):
@@ -14,9 +58,6 @@ class ExplicitToolTipFilter(QObject):
     def tooltip_at(widget: QWidget, position: QPoint) -> str:
         """Return the tooltip for the widget or menu action at ``position``."""
 
-        if isinstance(widget, QMenu):
-            action = widget.actionAt(position)
-            return action.toolTip() if action is not None else ""
         return widget.toolTip()
 
     def eventFilter(self, watched: QObject, event: QEvent) -> bool:  # noqa: N802

@@ -5,10 +5,10 @@ from __future__ import annotations
 from collections.abc import Callable
 
 from PySide6.QtGui import QAction, QCursor
-from PySide6.QtWidgets import QMenu, QMenuBar, QToolTip, QWidget
+from PySide6.QtWidgets import QMenuBar, QToolTip, QWidget
 
 from grayhaired_desktop.ui.actions import ApplicationActions
-from grayhaired_desktop.ui.tooltips import install_explicit_tooltips
+from grayhaired_desktop.ui.tooltips import ToolTipMenu
 
 
 def _show_action_tooltip(action: QAction, parent: QWidget) -> None:
@@ -18,12 +18,6 @@ def _show_action_tooltip(action: QAction, parent: QWidget) -> None:
         QToolTip.showText(QCursor.pos(), tooltip, parent)
 
 
-def _enable_menu_action_tooltips(menu: QMenu) -> None:
-    """Handle tooltip events explicitly for commands in ``menu``."""
-
-    install_explicit_tooltips(menu)
-
-
 def create_menus(
     menu_bar: QMenuBar,
     actions: ApplicationActions,
@@ -31,21 +25,21 @@ def create_menus(
 ) -> QAction:
     """Populate ``menu_bar`` and return its top-level Done action."""
 
-    file_menu = menu_bar.addMenu("File")
-    _enable_menu_action_tooltips(file_menu)
+    file_menu = ToolTipMenu("File", menu_bar)
+    menu_bar.addMenu(file_menu)
     file_menu.addAction(actions.exit)
 
-    view_menu = menu_bar.addMenu("View")
-    _enable_menu_action_tooltips(view_menu)
+    view_menu = ToolTipMenu("View", menu_bar)
+    menu_bar.addMenu(view_menu)
     view_menu.addAction(actions.home)
     view_menu.addAction(actions.reload)
 
-    settings_menu = menu_bar.addMenu("Settings")
-    _enable_menu_action_tooltips(settings_menu)
+    settings_menu = ToolTipMenu("Settings", menu_bar)
+    menu_bar.addMenu(settings_menu)
     settings_menu.addAction(actions.desktop_website)
 
-    help_menu = menu_bar.addMenu("Help")
-    _enable_menu_action_tooltips(help_menu)
+    help_menu = ToolTipMenu("Help", menu_bar)
+    menu_bar.addMenu(help_menu)
     help_menu.addAction(actions.open_log_folder)
     help_menu.addAction(actions.about)
 

@@ -6,23 +6,21 @@ import pytest
 
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 pytest.importorskip("PySide6.QtWidgets", exc_type=ImportError)
-from PySide6.QtWidgets import QApplication, QMenu, QToolButton
+from PySide6.QtWidgets import QApplication, QToolButton
 
-from grayhaired_desktop.ui.tooltips import ExplicitToolTipFilter
+from grayhaired_desktop.ui.tooltips import ExplicitToolTipFilter, ToolTipMenu
 
 
 def test_menu_tooltip_resolves_action_under_position() -> None:
     """Menu tooltip lookup uses the action underneath the help event position."""
 
     app = QApplication.instance() or QApplication([])
-    menu = QMenu()
+    menu = ToolTipMenu("File")
     action = menu.addAction("Exit")
     action.setToolTip("Close GrayHaired Desktop")
     menu.ensurePolished()
 
-    tooltip = ExplicitToolTipFilter.tooltip_at(
-        menu, menu.actionGeometry(action).center()
-    )
+    tooltip = menu.action_tooltip_at(menu.actionGeometry(action).center())
 
     assert tooltip == "Close GrayHaired Desktop"
     app.processEvents()
