@@ -2,9 +2,17 @@
 
 from __future__ import annotations
 
-from PySide6.QtWidgets import QMenuBar
+from PySide6.QtGui import QAction, QCursor
+from PySide6.QtWidgets import QMenu, QMenuBar, QToolTip
 
 from grayhaired_desktop.ui.actions import ApplicationActions
+
+
+def _show_action_tooltip(action: QAction, menu: QMenu) -> None:
+    """Show a menu action's tooltip consistently across desktop environments."""
+
+    if tooltip := action.toolTip():
+        QToolTip.showText(QCursor.pos(), tooltip, menu)
 
 
 def create_menus(menu_bar: QMenuBar, actions: ApplicationActions) -> None:
@@ -15,6 +23,9 @@ def create_menus(menu_bar: QMenuBar, actions: ApplicationActions) -> None:
 
     view_menu = menu_bar.addMenu("View")
     view_menu.setToolTipsVisible(True)
+    view_menu.hovered.connect(
+        lambda action: _show_action_tooltip(action, view_menu)
+    )
     view_menu.addAction(actions.home)
     view_menu.addAction(actions.reload)
 
