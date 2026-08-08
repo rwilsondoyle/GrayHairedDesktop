@@ -15,25 +15,12 @@ def create_toolbar(parent: QMainWindow, actions: ApplicationActions) -> QToolBar
     toolbar.layout().setSpacing(6)
 
     toolbar.addAction(actions.reload)
-    toolbar.addAction(actions.preferences)
     reload_button = toolbar.widgetForAction(actions.reload)
-    settings_button = toolbar.widgetForAction(actions.preferences)
-
-    for button, name, description in (
-        (
-            reload_button,
-            "Reload",
-            "Refresh the current Desktop Website",
-        ),
-        (
-            settings_button,
-            "Settings",
-            "Choose the Desktop Website and shortcut appearance",
-        ),
-    ):
-        if isinstance(button, QToolButton):
-            button.setAccessibleName(name)
-            button.setAccessibleDescription(description)
+    if isinstance(reload_button, QToolButton):
+        reload_button.setAccessibleName("Reload")
+        reload_button.setAccessibleDescription(
+            "Refresh the current Desktop Website"
+        )
 
     parent.addToolBar(toolbar)
     return toolbar

@@ -16,7 +16,6 @@ class ApplicationActions:
     exit: QAction
     home: QAction
     reload: QAction
-    preferences: QAction
     desktop_website: QAction
     about: QAction
     open_log_folder: QAction
@@ -53,15 +52,6 @@ def create_actions(
     reload_action.setWhatsThis("Refresh the current Desktop Website")
     reload_action.triggered.connect(reload_page)
 
-    preferences_action = QAction("Settings", parent)
-    preferences_action.setIconText("Settings")
-    preferences_action.setToolTip("Settings...")
-    preferences_action.setStatusTip("Choose the desktop website")
-    preferences_action.setWhatsThis(
-        "Choose the Desktop Website and shortcut appearance"
-    )
-    preferences_action.triggered.connect(show_preferences)
-
     desktop_website_action = QAction("Desktop Website...", parent)
     desktop_website_action.setToolTip(
         "Choose the Desktop Website and shortcut appearance"
@@ -87,7 +77,6 @@ def create_actions(
         exit=exit_action,
         home=home_action,
         reload=reload_action,
-        preferences=preferences_action,
         desktop_website=desktop_website_action,
         about=about_action,
         open_log_folder=open_log_folder_action,

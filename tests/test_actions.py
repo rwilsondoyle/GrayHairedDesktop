@@ -48,9 +48,6 @@ def test_key_actions_expose_plain_english_help() -> None:
 
     assert actions.home.whatsThis() == "Return to your saved Desktop Website"
     assert actions.reload.whatsThis() == "Refresh the current Desktop Website"
-    assert actions.preferences.whatsThis() == (
-        "Choose the Desktop Website and shortcut appearance"
-    )
     assert actions.desktop_website.text() == "Desktop Website..."
     assert actions.desktop_website.whatsThis() == (
         "Choose the Desktop Website and shortcut appearance"
@@ -59,8 +56,8 @@ def test_key_actions_expose_plain_english_help() -> None:
     assert actions.exit.whatsThis() == "Close GrayHaired Desktop"
 
 
-def test_toolbar_and_menu_settings_actions_share_callback() -> None:
-    """Both Settings entry points open the existing Settings workflow."""
+def test_desktop_website_action_uses_settings_callback() -> None:
+    """The Settings menu item opens the existing Settings workflow."""
 
     settings_requests = []
 
@@ -77,7 +74,6 @@ def test_toolbar_and_menu_settings_actions_share_callback() -> None:
         open_log_folder=callback,
     )
 
-    actions.preferences.trigger()
     actions.desktop_website.trigger()
 
-    assert settings_requests == ["requested", "requested"]
+    assert settings_requests == ["requested"]
