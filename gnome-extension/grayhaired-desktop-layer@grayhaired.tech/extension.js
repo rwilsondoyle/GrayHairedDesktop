@@ -115,19 +115,15 @@ export default class GrayHairedDesktopLayerExtension extends Extension {
         this._watchWindows(grayWindow, iconWindows);
         this._applyDesktopGeometry(grayWindow);
 
-        // Client windows remain in Mutter's authoritative window stack. Lower
-        // GrayHaired first, then assign every icon window the consecutive slots
-        // immediately above it. This runs only in response to lifecycle/state
-        // events; there is no timer or continuous restacking loop.
+        // GNOME 46 exposes lower() and stack sorting, but no documented absolute
+        // stack-position setters. Lower the icon windows first and GrayHaired
+        // last: conventional Mutter lower() semantics should make the most
+        // recently lowered window bottom-most. The sorted result below is the
+        // authority; failure restores GrayHaired to ordinary-window behavior.
         this._stacking = true;
-        grayWindow.lower();
         const orderedIcons = global.display.sort_windows_by_stacking(iconWindows);
-        const grayPosition = grayWindow.get_stack_position();
-        orderedIcons.forEach((window, index) => {
-            const wantedPosition = grayPosition + index + 1;
-            if (window.get_stack_position() !== wantedPosition)
-                window.set_stack_position(wantedPosition);
-        });
+        orderedIcons.forEach(window => window.lower());
+        grayWindow.lower();
         this._stacking = false;
 
         if (!this._hasRequiredOrder(grayWindow, orderedIcons)) {
@@ -151,19 +147,20 @@ export default class GrayHairedDesktopLayerExtension extends Extension {
     _supportsRelativeStacking(grayWindow, iconWindows) {
         return typeof global.display.sort_windows_by_stacking === 'function' &&
             typeof grayWindow.lower === 'function' &&
-            typeof grayWindow.get_stack_position === 'function' &&
-            iconWindows.every(window =>
-                typeof window.get_stack_position === 'function' &&
-                typeof window.set_stack_position === 'function');
+            iconWindows.every(window => typeof window.lower === 'function');
     }
 
     _hasRequiredOrder(grayWindow, iconWindows) {
-        const relevant = global.display.sort_windows_by_stacking([
-            grayWindow,
-            ...iconWindows,
-        ]);
-        return relevant[0] === grayWindow &&
-            relevant.slice(1).every((window, index) => window === iconWindows[index]);
+        const allWindows = global.display.sort_windows_by_stacking(this._windows());
+        const grayIndex = allWindows.indexOf(grayWindow);
+        const iconIndexes = iconWindows.map(window => allWindows.indexOf(window));
+        if (grayIndex < 0 || iconIndexes.some(index => index <= grayIndex))
+            return false;
+
+        const highestIconIndex = Math.max(...iconIndexes);
+        const managedWindows = new Set([grayWindow, ...iconWindows]);
+        return allWindows.every((window, index) =>
+            managedWindows.has(window) || index > highestIconIndex);
     }
 
     _watchWindows(grayWindow, iconWindows) {

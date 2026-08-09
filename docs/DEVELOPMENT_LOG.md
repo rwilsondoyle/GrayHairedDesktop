@@ -16,8 +16,11 @@ Status: Development-only relative-stacking prototype added; manual testing pendi
   including Wayland desktop semantics, lowering, workspace behavior, Activities
   filtering, and per-monitor positioning.
 - Retained the proven conclusion that pure Qt window hints cannot preserve the
-  required layer. Added an independent GNOME 46 source-only prototype to test
-  relative Mutter stack positions below the real icon windows.
+  required layer. Removed unverified absolute stack-position calls from the
+  independent GNOME 46 prototype; it now tests a controlled `lower()` sequence,
+  verifies the resulting full stack, and fails back on mismatch.
+- Added a read-only installed-GI probe for the real GNOME 46 `Meta.Window` and
+  `Meta.Display` method surface. Prototype installation is blocked until review.
 - Added a stable Qt Wayland application ID and X11 `WM_CLASS` without changing
   QSettings identity. Nothing is installed or enabled automatically. Version
   remains 0.9.0, and Desktop Mode remains a pre-1.0 investigation item.

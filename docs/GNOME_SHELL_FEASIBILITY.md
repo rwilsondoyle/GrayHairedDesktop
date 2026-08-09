@@ -5,9 +5,10 @@
 This investigation remains open. Real testing has proved that pure Qt window
 hints do not provide the required GNOME desktop layer, but it has **not** proved
 that cooperation with the installed Zorin desktop-icon extension is impossible.
-No GNOME Shell extension prototype is included, installed, or enabled in this
-phase. The project remains version `0.9.0`, and a safe Zorin/Wayland Desktop Mode
-remains a pre-Version 1.0 investigation requirement.
+A GNOME Shell prototype is included as uninstalled source, but installation and
+enablement are blocked pending the real GNOME 46 API report. The project remains
+version `0.9.0`, and a safe Zorin/Wayland Desktop Mode remains a pre-Version 1.0
+investigation requirement.
 
 The required order is:
 
@@ -208,6 +209,38 @@ Prototype source and deferred manual installation/removal steps are in
 [`gnome-extension/README.md`](../gnome-extension/README.md). Nothing in normal
 application startup installs or enables it.
 
+### GNOME 46 API verification gate
+
+The initial prototype incorrectly treated `get_stack_position()` and
+`set_stack_position()` as GNOME 46 `Meta.Window` methods. They are absent from the
+current official `Meta.Window` method list and from the inspected Zorin source,
+which uses `lower()` plus `global.display.sort_windows_by_stacking()`. The
+absolute-position design and every call to those methods have been removed.
+
+Run the read-only GI probe on the target before installing the prototype:
+
+```bash
+./scripts/collect-mutter-window-api.sh | tee mutter-window-api.txt
+```
+
+It reports whether GNOME Shell 46's installed introspection data exposes
+`lower`, `raise`, the two disputed stack-position names, layer/type methods,
+stickiness, window-list methods, `sort_windows_by_stacking`, or any enumerated
+stack/restack method on `Meta.Display`. It does not connect to, move, or alter a
+live window and does not install or enable an extension.
+
+The evidence status is deliberately separated:
+
+- **confirmed in installed Zorin code:** `Meta.Window.lower()`, sticky/window-list
+  desktop treatment, map lifecycle, and
+  `global.display.sort_windows_by_stacking()`;
+- **not exposed by current official `Meta.Window` documentation and unused by
+  installed Zorin code:** `get_stack_position()` and `set_stack_position()`;
+- **possibly present in another Mutter version:** irrelevant until the installed
+  GNOME 46 GI probe reports it; and
+- **still experimental:** the order produced by a controlled series of
+  `lower()` calls and its stability over later Shell events.
+
 The event-driven algorithm is:
 
 1. observe `global.window_manager` `map`/`destroy`, each managed window's
@@ -218,11 +251,12 @@ The event-driven algorithm is:
    sufficient by itself;
 4. if either party is absent, restore the saved GrayHaired geometry/workspace
    state and leave it as an ordinary window;
-5. call `Meta.Window.lower()` for GrayHaired Desktop, obtain icon order through
-   `global.display.sort_windows_by_stacking()`, and use
-   `get_stack_position()`/`set_stack_position()` to assign the consecutive slots
-   immediately above GrayHaired Desktop; and
-6. sort again and verify the relative order, falling back if it is not achieved.
+5. lower each icon window first, then lower GrayHaired Desktop last, based on the
+   conventional—but target-test-required—semantics that the most recently lowered
+   window becomes bottom-most; and
+6. use `global.display.sort_windows_by_stacking()` over the full client list to
+   verify that GrayHaired is below all icon windows and all other client windows
+   are above them, falling back if either invariant is false.
 
 Mutter's client-window stack remains authoritative; the prototype does not
 reparent window actors. `GLib.idle_add()` coalesces event bursts, but there is no
@@ -230,11 +264,12 @@ timer, polling, or continuous restacking loop. It deliberately does not alter
 private Overview filters because a safe reversible API has not yet been proven;
 the window may appear in Overview during this experiment.
 
-The algorithm is technically credible because it extends the same GNOME 46
-client-window model that Zorin demonstrates and because Mutter exposes explicit
-relative stack positions. It is not yet a product conclusion: target testing must
-show that Zorin's own lowering does not race or reverse the desired order and
-that focus, Show Desktop, recreation, workspace, and monitor events are complete.
+The algorithm is testable because it extends the same GNOME 46 client-window
+model that Zorin demonstrates, not because a direct relative-stack API has been
+confirmed. It is not yet a product conclusion: the API report and target testing
+must show the real lowering semantics, whether Zorin's own lowering races or
+reverses the desired order, and whether focus, Show Desktop, recreation,
+workspace, and monitor events are complete.
 
 ## Required behavior matrix
 
@@ -281,8 +316,10 @@ if the installed provider exposes a usable actor group or window lifecycle. The
 X11 session facts do not establish native-Wayland behavior, and Wayland security
 must remain intact.
 
-The revised conclusion is: **pure Qt is insufficient, but event-driven relative
-`Meta.Window` ordering appears technically feasible enough for a manual GNOME 46
-prototype**. Physical Wayland results—not source inspection alone—will decide
-whether the ordering is reliable. Desktop Mode on Zorin/Wayland remains under
-investigation for Version 1.0; Version 1.0 is not complete.
+The revised conclusion is: **pure Qt is insufficient, and event-driven controlled
+lowering is a credible experiment, but no supported direct relative-stack API is
+yet confirmed**. Installation is blocked until the real GNOME 46 API report is
+reviewed. Physical Wayland results—not source inspection alone—will decide
+whether the verified lowering sequence is reliable. Desktop Mode on
+Zorin/Wayland remains under investigation for Version 1.0; Version 1.0 is not
+complete.
