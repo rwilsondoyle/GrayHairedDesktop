@@ -64,9 +64,11 @@ The application uses Qt `QSettings` under the current author/About attribution m
 
 The confirmed target is Zorin OS 18.1 with GNOME Shell 46.0. Its real desktop-
 icon provider is the active `zorin-desktop-icons@zorinos.com` extension, named
-**Zorin Desktop Icons**. It describes itself as a fork of the original Desktop
-Icons extension with enhancements; it is not confirmed to be Desktop Icons NG
-(DING), and its architecture must not be inferred from DING.
+**Zorin Desktop Icons**. Its metadata describes a fork of the original Desktop
+Icons extension, while installed source headers identify substantial code as
+“DING: Desktop Icons New Generation for GNOME Shell.” Provider identity and
+implementation ancestry are therefore distinct: this is Zorin Desktop Icons with
+DING-derived code, and the exact Zorin modifications still require inspection.
 
 The pure-Qt trials still establish an application boundary: a normal PySide6
 window cannot independently guarantee the required background → application →

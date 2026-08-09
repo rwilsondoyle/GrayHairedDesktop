@@ -36,6 +36,7 @@ Information collected on the real target computer establishes this baseline:
 | Name | Zorin Desktop Icons |
 | State | ACTIVE |
 | Installed path | `/usr/share/gnome-shell/extensions/zorin-desktop-icons@zorinos.com` |
+| Declared Shell versions | 46, 47, 48, 49, and 50 |
 | Description | “Adds icons to the desktop. Fork of the original Desktop Icons extension, with several enhancements.” |
 
 Other active or relevant Zorin integration includes `zorin-taskbar@zorinos.com`,
@@ -43,11 +44,13 @@ Other active or relevant Zorin integration includes `zorin-taskbar@zorinos.com`,
 `zorin-appindicator@zorinos.com`. Any prototype must preserve their Shell chrome
 and must not assume upstream GNOME’s unmodified panel layout.
 
-The reported icon provider is **not Desktop Icons NG (DING)**. Earlier DING-based
-assumptions are withdrawn for this target. Zorin Desktop Icons says it is a fork
-of the original Desktop Icons extension, and it must be inspected directly; its
-process model, actor layout, and stacking behavior must not be inferred from
-DING or from a similarly named extension.
+The provider identity is **Zorin Desktop Icons**, not an upstream DING UUID.
+However, the installed files contain many source headers reading “DING: Desktop
+Icons New Generation for GNOME Shell.” The implementation therefore contains
+substantial DING-derived code even though Zorin's metadata describes a fork of
+the original Desktop Icons extension. Neither fact supersedes the other: the
+provider is Zorin's extension, its implementation has DING ancestry, and the
+exact Zorin modifications must be established from the installed source.
 
 The current physical result is from X11. Wayland is still the primary product
 requirement, so the same version/provider facts and behavior must also be checked
@@ -82,8 +85,29 @@ It reads only that directory and reports:
 
 It does not accept an alternate path and does not write to the extension. It does
 not modify, copy, patch, install, remove, enable, disable, or restart anything.
-The general `collect-gnome-info.sh` remains useful for session facts, but the new
-script is the source-architecture collector for the confirmed provider.
+The general `collect-gnome-info.sh` remains useful for session facts, while this
+first-stage script provides a broad source inventory for the confirmed provider.
+
+The first broad report did not answer the actor-versus-window question. Matches
+from unrelated application files, especially `app/autoAr.js`, consumed its global
+320-line context limit before the most important Shell integration files were
+printed. It confirmed the provider and DING-derived headers, but it is not
+architecture evidence for A, B, or C below.
+
+Use the more focused second-stage collector:
+
+```bash
+./scripts/collect-zorin-shell-layer-info.sh \
+  | tee zorin-shell-layer-info.txt
+```
+
+This read-only script prints bounded opening sections and per-file contextual
+matches from `extension.js`, `gnomeShellOverride.js`, `visibleArea.js`, and
+`emulateX11WindowType.js`. It searches only relevant portions of `app/ding.js`,
+`app/desktopManager.js`, and `app/desktopGrid.js`. A separate limit for every
+file prevents a noisy early file from hiding later Shell integration evidence.
+The fixed root and path-containment check prevent it from reading a supplied
+alternate directory or following a target file outside the installed extension.
 
 ## Question the source inspection must answer
 
@@ -122,6 +146,20 @@ in it, and a process launcher does not prove that actor ordering is irrelevant.
 
 Until the diagnostic output is reviewed, this report does not select A, B, or C
 and does not claim that the required layer is either possible or impossible.
+
+In particular, the next report must determine:
+
+1. whether the visible icons are rendered in one or more GTK/client windows;
+2. whether `extension.js` or `gnomeShellOverride.js` identifies those windows as
+   `Meta.Window` objects;
+3. whether it manipulates window actors or Mutter stacking;
+4. which X11 behavior `emulateX11WindowType.js` emulates;
+5. whether the provider assigns a special desktop-window role or classification;
+6. how that classification and the icon windows behave under Wayland;
+7. whether an existing lifecycle hook can place another recognized surface
+   directly below every icon window; and
+8. whether that hook is a practical GNOME 46 insertion point for the required
+   wallpaper → GrayHaired Desktop → icons → applications → Shell chrome order.
 
 ## GNOME Shell 46 integration constraints
 

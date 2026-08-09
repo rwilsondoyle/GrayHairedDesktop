@@ -9,10 +9,12 @@ Status: Architecture investigation in progress; no extension prototype shipped.
 - Confirmed the target as Zorin OS 18.1, GNOME Shell 46.0, with the current test
   session on X11 and `zorin:GNOME` as the desktop environment.
 - Confirmed `zorin-desktop-icons@zorinos.com` (**Zorin Desktop Icons**) as the
-  active provider. It is a fork of the original Desktop Icons extension, not a
-  confirmed DING installation.
-- Added bounded, read-only inspection tooling for the installed extension so its
-  actor/window architecture can be established from the real system files.
+  active provider. Its metadata names the original Desktop Icons extension, while
+  installed headers confirm substantial DING-derived implementation code.
+- The initial broad source report was exhausted by unrelated matches before the
+  important Shell integration files, so it did not establish actors vs. client
+  windows. Added a per-file bounded, read-only Shell-layer collector to inspect
+  the relevant lifecycle and stacking code directly.
 - Retained the proven conclusion that pure Qt window hints cannot preserve the
   required layer. Whether GNOME 46 integration can cooperate with the actual
   Zorin extension remains open pending inspection.

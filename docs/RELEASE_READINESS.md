@@ -170,8 +170,9 @@ Mode is not accepted.
 
 The confirmed Zorin OS 18.1 target implements desktop icons with the active
 `zorin-desktop-icons@zorinos.com` extension (**Zorin Desktop Icons**), a fork of
-the original Desktop Icons extension. It is not confirmed to be Desktop Icons NG
-(DING), and its actor/window architecture must be inspected directly. EWMH offers
+the original Desktop Icons extension. Installed source headers also confirm
+substantial DING-derived code under Zorin's provider identity. The exact Zorin
+changes and actor/window architecture must be inspected directly. EWMH offers
 a desktop type and a below state, but pure Qt exposes no standard ordering level
 between GNOME's background and the icon provider. Testing demonstrated both sides
 of that Qt limit: the desktop-type attempt was hidden below GNOME's desktop
