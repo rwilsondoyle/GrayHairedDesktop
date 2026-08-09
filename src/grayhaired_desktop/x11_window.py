@@ -23,6 +23,14 @@ class WindowConfigurationTarget(Protocol):
 
     def setWindowFlags(self, flags: Qt.WindowType) -> None: ...
 
+    def setGeometry(self, geometry) -> None: ...
+
+
+class ScreenTarget(Protocol):
+    """QScreen surface used to choose panel-preserving work-area geometry."""
+
+    def availableGeometry(self): ...
+
 
 def apply_x11_below_window(target: WindowConfigurationTarget) -> None:
     """Create a visible normal window with frameless and stays-below hints."""
@@ -40,3 +48,13 @@ def restore_windowed_window(
 
     target.setAttribute(X11_DESKTOP_ATTRIBUTE, False)
     target.setWindowFlags(normal_flags)
+
+
+def apply_x11_work_area(
+    target: WindowConfigurationTarget, screen: ScreenTarget
+):
+    """Fill the screen work area so shell panels remain reachable."""
+
+    geometry = screen.availableGeometry()
+    target.setGeometry(geometry)
+    return geometry

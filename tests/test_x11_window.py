@@ -8,6 +8,7 @@ x11_window = pytest.importorskip("grayhaired_desktop.x11_window", exc_type=Impor
 X11_DESKTOP_ATTRIBUTE = x11_window.X11_DESKTOP_ATTRIBUTE
 X11_BELOW_WINDOW_FLAGS = x11_window.X11_BELOW_WINDOW_FLAGS
 apply_x11_below_window = x11_window.apply_x11_below_window
+apply_x11_work_area = x11_window.apply_x11_work_area
 restore_windowed_window = x11_window.restore_windowed_window
 
 
@@ -20,6 +21,17 @@ class FakeWindow:
 
     def setWindowFlags(self, flags):  # noqa: N802 - Qt-compatible API
         self.calls.append(("flags", flags))
+
+    def setGeometry(self, geometry):  # noqa: N802 - Qt-compatible API
+        self.calls.append(("geometry", geometry))
+
+
+class FakeScreen:
+    def __init__(self, geometry):
+        self.geometry = geometry
+
+    def availableGeometry(self):  # noqa: N802 - Qt-compatible API
+        return self.geometry
 
 
 def test_x11_strategy_clears_desktop_type_before_creating_below_normal_window():
@@ -47,3 +59,13 @@ def test_windowed_mode_clears_attribute_before_restoring_flags():
         ("attribute", X11_DESKTOP_ATTRIBUTE, False),
         ("flags", normal_flags),
     ]
+
+
+def test_x11_geometry_fills_panel_preserving_work_area():
+    window = FakeWindow()
+    work_area = (0, 32, 1920, 1048)
+
+    selected = apply_x11_work_area(window, FakeScreen(work_area))
+
+    assert selected == work_area
+    assert window.calls == [("geometry", work_area)]

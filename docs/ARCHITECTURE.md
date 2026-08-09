@@ -38,6 +38,7 @@ GrayHairedDesktop is the repository and package identity. **GrayHaired Desktop**
 | `ui/toolbar.py` | Builds the non-movable main toolbar from the shared actions. |
 | `ui/mainwindow.py` | Main desktop window coordination, external-link status messages, Settings and About dialogs, window state persistence. |
 | `ui/preferences.py` | Settings dialog for choosing, previewing, and applying a built-in or custom Desktop Website. |
+| `ui/recovery.py` | Application-local Desktop Mode recovery filter that catches the reserved shortcut before focused child widgets. |
 | `scripts/setup-zorin.sh` | First-time Zorin/Ubuntu setup, system dependency checks, virtual environment creation, editable install. |
 | `scripts/run.sh` | Starts the installed app from the project virtual environment. |
 | `scripts/update.sh` | Safely updates a clean checkout and reinstalls into the existing virtual environment. |

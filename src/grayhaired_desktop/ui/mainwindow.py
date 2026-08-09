@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 from pathlib import Path
 
-from PySide6.QtCore import QSettings, QSize, Qt, QUrl
+from PySide6.QtCore import QSettings, QSize, Qt, QTimer, QUrl
 from PySide6.QtGui import (
     QDesktopServices,
     QIcon,
@@ -15,6 +15,7 @@ from PySide6.QtGui import (
     QShortcut,
 )
 from PySide6.QtWidgets import (
+    QApplication,
     QHBoxLayout,
     QMainWindow,
     QMessageBox,
@@ -46,9 +47,11 @@ from grayhaired_desktop.ui.control_visibility import (
 from grayhaired_desktop.ui.favorites import FavoritesWidget
 from grayhaired_desktop.ui.menus import create_menus
 from grayhaired_desktop.ui.preferences import PreferencesDialog
+from grayhaired_desktop.ui.recovery import DesktopModeRecoveryFilter
 from grayhaired_desktop.ui.tooltips import HelpBubble, install_explicit_tooltips
 from grayhaired_desktop.x11_window import (
     apply_x11_below_window,
+    apply_x11_work_area,
     restore_windowed_window,
 )
 
@@ -160,9 +163,10 @@ class MainWindow(QMainWindow):
         self._escape_shortcut = QShortcut(QKeySequence.Cancel, self)
         self._escape_shortcut.setContext(Qt.ShortcutContext.WindowShortcut)
         self._escape_shortcut.activated.connect(self._hide_controls)
-        self._desktop_recovery_shortcut = QShortcut(QKeySequence("Ctrl+Shift+D"), self)
-        self._desktop_recovery_shortcut.setContext(Qt.ShortcutContext.ApplicationShortcut)
-        self._desktop_recovery_shortcut.activated.connect(self._leave_desktop_mode)
+        self._desktop_recovery_filter = DesktopModeRecoveryFilter(
+            lambda: self._desktop_mode_active, self._leave_desktop_mode, self
+        )
+        QApplication.instance().installEventFilter(self._desktop_recovery_filter)
         self._connect_browser_status()
         self._restore_window_state()
         # restoreState may include obsolete toolbar data from an earlier release.
@@ -207,19 +211,21 @@ class MainWindow(QMainWindow):
             if screen is not None:
                 # One primary/current screen is deliberate: spanning mixed monitor
                 # geometries is not reliable without per-screen desktop windows.
-                self.setGeometry(screen.geometry())
-                geometry = self.geometry()
+                target_geometry = apply_x11_work_area(self, screen)
                 self._logger.info(
                     "Desktop Mode X11 strategy: below-normal-window; "
                     "type=normal; below=yes; sticky=no; skip-taskbar=no; "
-                    "geometry=%dx%d%+d%+d",
-                    geometry.width(),
-                    geometry.height(),
-                    geometry.x(),
-                    geometry.y(),
+                    "target-work-area=%dx%d%+d%+d; normal-geometry=overridden",
+                    target_geometry.width(),
+                    target_geometry.height(),
+                    target_geometry.x(),
+                    target_geometry.y(),
                 )
             self.statusBar().hide()
             self._desktop_mode_active = True
+            # Reassert geometry after the window manager maps the recreated
+            # top-level window; pre-show geometry alone was not reliable on Zorin.
+            QTimer.singleShot(0, self._finalize_desktop_geometry)
         else:
             # Clear the EWMH classification before setWindowFlags recreates the
             # ordinary native top-level window.
@@ -231,11 +237,36 @@ class MainWindow(QMainWindow):
         self._logger.info("Desktop Mode path selected: %s", path.value)
         return path
 
+    def _finalize_desktop_geometry(self) -> None:
+        """Reapply and log work-area geometry after the X11 window is mapped."""
+
+        if not self._desktop_mode_active:
+            return
+        screen = self.screen()
+        if screen is None:
+            self._logger.warning("Desktop Mode geometry unavailable: no target screen")
+            return
+        target = apply_x11_work_area(self, screen)
+        final = self.geometry()
+        self._logger.info(
+            "Desktop Mode geometry finalized: target=%dx%d%+d%+d; "
+            "applied=%dx%d%+d%+d; normal-geometry-restoration=skipped",
+            target.width(),
+            target.height(),
+            target.x(),
+            target.y(),
+            final.width(),
+            final.height(),
+            final.x(),
+            final.y(),
+        )
+
     def _leave_desktop_mode(self) -> None:
         """Keyboard recovery: persist and return to an ordinary window."""
 
         if not self._desktop_mode_active:
             return
+        self._logger.info("Desktop Mode recovery shortcut fired")
         self._preferences = type(self._preferences)(
             home_page_url=self._preferences.home_page_url,
             shortcut_theme=self._preferences.shortcut_theme,

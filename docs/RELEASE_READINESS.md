@@ -135,6 +135,26 @@ surface. Applying a standards-correct hint is therefore not treated as success.
 The new `below-normal-window` strategy remains pending manual confirmation for
 visibility, stacking, panels, icons, focus, Show Desktop, and recovery.
 
+A subsequent real X11 test improved visibility but did not meet the product goal:
+the application and Desktop Website were visible, remained visible with the
+desktop exposed, and shortcuts were clickable, but the surface was a smaller,
+offset application-like page with wallpaper around it. Bottom controls were hard
+to reach, `Ctrl+Shift+D` did not recover windowed mode, and stacking and panel
+behavior were not proven. The implementation had applied geometry only before the
+window manager mapped the recreated normal window and used full screen geometry,
+which did not reserve the shell panel. It now applies the target screen's
+`availableGeometry()` before mapping and reasserts that work area on the next
+event-loop turn after mapping. Saved normal geometry is retained only for later
+recovery and is explicitly overridden while Desktop Mode is active.
+
+Recovery now uses an application-local event filter so `Ctrl+Shift+D` is caught
+before the focused Desktop Website child can consume it. This is not a global
+keyboard hook and works only while this application receives keyboard events.
+The lower-left controls button remains the mouse-based route to Settings and Exit;
+work-area sizing is intended to keep it above the panel. This geometry and
+recovery refinement still requires real X11 retesting. Wayland's safe windowed
+fallback remains the only verified mode path.
+
 ### Manual Desktop Mode decision checklist
 
 Before judging desktop-layer behavior on Zorin, record from the application log:
