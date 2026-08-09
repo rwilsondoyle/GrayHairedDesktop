@@ -142,3 +142,8 @@ PYTHONPATH=src python -m pytest
 Project history and design details are in [`docs/`](docs/), including the
 [`roadmap`](docs/ROADMAP.md), [`architecture`](docs/ARCHITECTURE.md), and current
 [`release-readiness report`](docs/RELEASE_READINESS.md).
+
+The GNOME Wayland desktop-layer investigation and its read-only target-system
+diagnostic steps are in
+[`docs/GNOME_SHELL_FEASIBILITY.md`](docs/GNOME_SHELL_FEASIBILITY.md). The project
+does not install or enable a GNOME Shell extension automatically.

@@ -76,3 +76,11 @@ back to the normal window so user files are not hidden. A future solution requir
 a separately reviewed GNOME Shell integration coordinated with the installed
 desktop-icons extension on both X11 and Wayland. This application does not build
 a replacement icon manager or shell.
+
+That review is now documented in
+[`GNOME_SHELL_FEASIBILITY.md`](GNOME_SHELL_FEASIBILITY.md). It found that a Shell
+extension can inspect and manipulate compositor windows, but has no supported
+contract for inserting the existing Qt Wayland surface between Shell background
+actors and DING's client surfaces. The structurally correct alternative would be
+Shell-owned rendered content with explicit icon-provider cooperation, which
+cannot host the existing PySide6 window and is not a thin integration.

@@ -2,6 +2,25 @@
 
 This log records project-level development milestones and verification notes. It is intentionally concise so future contributors can quickly understand what changed and what still needs confirmation.
 
+## GNOME Shell Desktop Integration Feasibility
+
+Status: Architecture investigation complete; no extension prototype shipped.
+
+- Recorded the missing graphical-session boundary in the development container
+  and added a read-only collector for the actual Zorin target session.
+- Identified DING as the expected, but target-system-verifiable, Zorin desktop-
+  icon provider and documented why its surfaces are not wallpaper children.
+- Determined that lowering an identified PySide6 window from privileged Shell
+  code cannot guarantee the required wallpaper → Desktop Website → real-icons
+  ordering across remaps, overview, Show Desktop, and workspaces.
+- Determined that a reliable layer would need Shell-owned content and explicit
+  cooperation with the icon provider. GNOME Shell cannot embed the existing
+  native Wayland Qt surface, so that alternative is not thin integration.
+- Retained normal/windowed behavior on GNOME Wayland and the existing Qt
+  candidate only for non-GNOME X11. No extension is installed, enabled, or
+  modified automatically.
+- Version remains 0.9.0; Version 1.0 is not declared complete.
+
 ## Alpha 0.8 — Stability, Performance and Diagnostics
 
 Status: Implementation complete; manual verification performed on the Inspiron-3147 test system.
