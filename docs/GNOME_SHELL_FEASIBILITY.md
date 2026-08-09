@@ -109,57 +109,38 @@ file prevents a noisy early file from hiding later Shell integration evidence.
 The fixed root and path-containment check prevent it from reading a supplied
 alternate directory or following a target file outside the installed extension.
 
-## Question the source inspection must answer
+## Confirmed Zorin window architecture
 
-The installed JavaScript must establish which model Zorin Desktop Icons uses:
+The targeted source report establishes the client-window model:
 
-### A. Shell-owned icon actors
+1. a separate desktop application renders the visible icons in client windows;
+2. the Shell extension obtains each client window as a `Meta.Window` from its
+   window actor and manages it on `global.window_manager`'s `map` lifecycle;
+3. Wayland support in `emulateX11WindowType.js` reproduces the desktop-window
+   semantics that the X11 implementation receives from its window type;
+4. the extension verifies its own Wayland client identity before applying the
+   title convention—windows beginning with `Desktop Icons ` are not accepted by
+   title alone;
+5. those windows are kept at the bottom with `Meta.Window.lower()`, shown on all
+   workspaces, hidden from normal window lists, fixed, and positioned per monitor;
+   and
+6. `gnomeShellOverride.js` excludes them from normal Activities/window-list and
+   workspace-animation behavior.
 
-Icons might be `Clutter`/`St` actors attached directly to a Shell-owned group. If
-so, determine the parent group, per-monitor organization, whether the extension
-uses `Main.layoutManager`, `addChrome()`, `global.window_group`, or sibling-order
-methods, and what it does during overview, workspace, and monitor changes.
+This proves that GNOME Shell 46 can give recognized, trusted Wayland client
+windows desktop behavior without weakening Wayland. It materially changes the
+feasibility result: an interactive client-window Desktop Mode is not
+architecturally ruled out. GrayHaired Desktop must retain its own identity; it
+must never use the `Desktop Icons ` title convention or impersonate Zorin's
+Wayland client.
 
-This model may expose a plausible actor insertion point between background and
-icons. It is feasible only if that point is stable in GNOME 46, can preserve
-input and accessibility, and does not depend on mutating Zorin's system files or
-private state with no lifecycle contract.
-
-### B. Separate compositor/client windows
-
-The extension might launch a process that creates desktop windows and then track
-them through `Meta.Window` or window-created signals. If so, determine its stable
-window identity, window type, one-window-per-monitor behavior, workspace rules,
-and exact stacking operations.
-
-This model might allow a GNOME 46 extension to place the PySide6 window relative
-to the icon windows through Mutter. It is not proven reliable until remapping,
-focus, overview, Show Desktop, workspace, lock/unlock, and monitor changes are
-tested on both Wayland and X11.
-
-### C. A combination
-
-The extension may use Shell actors for coordination and separate client windows
-for icon rendering. In that case both halves and their enable/disable ordering
-must be understood. An apparent actor group does not prove that icon pixels live
-in it, and a process launcher does not prove that actor ordering is irrelevant.
-
-Until the diagnostic output is reviewed, this report does not select A, B, or C
-and does not claim that the required layer is either possible or impossible.
-
-In particular, the next report must determine:
-
-1. whether the visible icons are rendered in one or more GTK/client windows;
-2. whether `extension.js` or `gnomeShellOverride.js` identifies those windows as
-   `Meta.Window` objects;
-3. whether it manipulates window actors or Mutter stacking;
-4. which X11 behavior `emulateX11WindowType.js` emulates;
-5. whether the provider assigns a special desktop-window role or classification;
-6. how that classification and the icon windows behave under Wayland;
-7. whether an existing lifecycle hook can place another recognized surface
-   directly below every icon window; and
-8. whether that hook is a practical GNOME 46 insertion point for the required
-   wallpaper → GrayHaired Desktop → icons → applications → Shell chrome order.
+The remaining question is narrower: can Mutter maintain GrayHaired Desktop at
+the bottom of the client-window stack, with all Zorin icon windows in consecutive
+positions directly above it and all ordinary windows above those? Shell wallpaper
+actors remain below Mutter client windows, and Shell chrome remains separately
+above them, but the exact relative client ordering still needs physical GNOME 46
+validation through map/remap, focus, Overview, Show Desktop, workspaces, icon-
+window recreation, and monitor changes.
 
 ## GNOME Shell 46 integration constraints
 
@@ -193,10 +174,16 @@ both required evidence.
 
 ## Identifying the existing PySide6 surface
 
-A future experiment should set and verify an explicit reverse-DNS application or
-desktop-file ID before its first window. On GNOME 46, inspect the corresponding
-`Meta.Window` in Looking Glass and record all identifiers actually exposed by
-native Wayland and X11.
+The application now configures `tech.grayhaired.GrayHairedDesktop` before the
+first native window. Qt's desktop-file name supplies the native Wayland
+application ID, while `QT_WM_CLASS` supplies the X11 resource class. Existing
+QSettings organization/application keys are unchanged, so this compositor
+identity does not relocate user preferences.
+
+The development extension requires an exact match from `get_wm_class()`,
+`get_wm_class_instance()`, or `get_gtk_application_id()`; it never uses the title.
+The precise property populated by PySide6 must be recorded in GNOME Looking Glass
+on native Wayland and X11 before this identity is considered physically verified.
 
 | Identifier | Role | Limitation |
 | --- | --- | --- |
@@ -210,45 +197,49 @@ No extension may manage a window solely because its title resembles GrayHaired
 Desktop. Identification is necessary for integration, but it does not grant a
 layering capability.
 
-## Candidate mechanisms after source inspection
+## Development-only relative-stacking prototype
 
-### Relative compositor stacking
+The confirmed client-window architecture is strong enough for a small source-only
+prototype under `gnome-extension/`. It independently uses GNOME 46 APIs rather
+than copying Zorin/DING implementation code. It contains no network renderer and
+does not modify or import Zorin's extension.
 
-If Zorin Desktop Icons uses identifiable `Meta.Window` client surfaces and its
-source already establishes a GNOME 46 stacking policy, a small extension may be
-able to integrate GrayHaired Desktop into that policy. The desired operation is
-not merely “lower the application”; it must keep the application immediately
-below every icon surface and above the Shell background across every remap.
+Prototype source and deferred manual installation/removal steps are in
+[`gnome-extension/README.md`](../gnome-extension/README.md). Nothing in normal
+application startup installs or enables it.
 
-This is now a candidate, not a conclusion. It must not use a polling loop or
-blindly call `lower()` because those approaches can flicker or fight Mutter. It
-must follow the provider's actual lifecycle and fail back to a normal window.
+The event-driven algorithm is:
 
-### Shell actor insertion
+1. observe `global.window_manager` `map`/`destroy`, each managed window's
+   `raised` signal, active-workspace, Overview, and monitor changes;
+2. find GrayHaired Desktop only by its exact compositor ID;
+3. find Zorin icon windows only when both the observed Wayland GTK application ID
+   `com.rastersoft.ding` and `Desktop Icons ` prefix match—the title is never
+   sufficient by itself;
+4. if either party is absent, restore the saved GrayHaired geometry/workspace
+   state and leave it as an ordinary window;
+5. call `Meta.Window.lower()` for GrayHaired Desktop, obtain icon order through
+   `global.display.sort_windows_by_stacking()`, and use
+   `get_stack_position()`/`set_stack_position()` to assign the consecutive slots
+   immediately above GrayHaired Desktop; and
+6. sort again and verify the relative order, falling back if it is not achieved.
 
-If icon rendering is Shell-owned, a future prototype may create one actor per
-monitor above the relevant background actor and below the provider's icon group.
-The provider's source must reveal a stable insertion point or a safe cooperative
-signal. Directly editing its actor tree through undocumented incidental fields
-would carry significant GNOME/Zorin update risk.
+Mutter's client-window stack remains authoritative; the prototype does not
+reparent window actors. `GLib.idle_add()` coalesces event bursts, but there is no
+timer, polling, or continuous restacking loop. It deliberately does not alter
+private Overview filters because a safe reversible API has not yet been proven;
+the window may appear in Overview during this experiment.
 
-A native Qt Wayland surface cannot simply be reparented into a Clutter actor.
-Therefore an actor-only solution may still require a supported content-sharing
-mechanism or a larger renderer change. Screenshot proxying is not accepted as an
-interactive Desktop Website implementation.
-
-### Provider cooperation
-
-If neither public stacking nor a stable group is present, a narrowly reviewed
-upstream change or documented API in Zorin Desktop Icons could be the smallest
-reliable solution. This investigation may describe such cooperation, but this PR
-must not patch `/usr/share`, replace the provider, or copy a modified system
-extension.
+The algorithm is technically credible because it extends the same GNOME 46
+client-window model that Zorin demonstrates and because Mutter exposes explicit
+relative stack positions. It is not yet a product conclusion: target testing must
+show that Zorin's own lowering does not race or reverse the desired order and
+that focus, Show Desktop, recreation, workspace, and monitor events are complete.
 
 ## Required behavior matrix
 
-A prototype is justified only after source inspection identifies a concrete
-mechanism. It must then be manually tested for:
+Source inspection identified the concrete client-window mechanism. The prototype
+must now be manually tested for:
 
 - native Wayland first, plus X11 compatibility;
 - application-first and extension-first startup;
@@ -290,8 +281,8 @@ if the installed provider exposes a usable actor group or window lifecycle. The
 X11 session facts do not establish native-Wayland behavior, and Wayland security
 must remain intact.
 
-The honest conclusion is narrower than before: **pure Qt is insufficient, while
-GNOME 46 cooperation with Zorin Desktop Icons is not yet determined**. Reviewing
-the bounded diagnostic output is the next decision gate. Desktop Mode on
-Zorin/Wayland remains under investigation for Version 1.0; Version 1.0 is not
-complete or abandoned by this report.
+The revised conclusion is: **pure Qt is insufficient, but event-driven relative
+`Meta.Window` ordering appears technically feasible enough for a manual GNOME 46
+prototype**. Physical Wayland results—not source inspection alone—will decide
+whether the ordering is reliable. Desktop Mode on Zorin/Wayland remains under
+investigation for Version 1.0; Version 1.0 is not complete.

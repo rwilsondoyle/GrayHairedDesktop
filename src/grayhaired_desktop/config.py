@@ -17,6 +17,7 @@ class AppMetadata:
     version: str = __version__
     organization: str = __organization__
     domain: str = __domain__
+    application_id: str = "tech.grayhaired.GrayHairedDesktop"
     desktop_url: str = "https://grayhaired.tech/desktop-c/"
 
 

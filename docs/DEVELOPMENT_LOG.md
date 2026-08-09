@@ -4,22 +4,23 @@ This log records project-level development milestones and verification notes. It
 
 ## GNOME Shell Desktop Integration Feasibility
 
-Status: Architecture investigation in progress; no extension prototype shipped.
+Status: Development-only relative-stacking prototype added; manual testing pending.
 
 - Confirmed the target as Zorin OS 18.1, GNOME Shell 46.0, with the current test
   session on X11 and `zorin:GNOME` as the desktop environment.
 - Confirmed `zorin-desktop-icons@zorinos.com` (**Zorin Desktop Icons**) as the
   active provider. Its metadata names the original Desktop Icons extension, while
   installed headers confirm substantial DING-derived implementation code.
-- The initial broad source report was exhausted by unrelated matches before the
-  important Shell integration files, so it did not establish actors vs. client
-  windows. Added a per-file bounded, read-only Shell-layer collector to inspect
-  the relevant lifecycle and stacking code directly.
+- Targeted inspection established that a separate application renders the icons
+  in client windows. Zorin manages their `Meta.Window` objects event-by-event,
+  including Wayland desktop semantics, lowering, workspace behavior, Activities
+  filtering, and per-monitor positioning.
 - Retained the proven conclusion that pure Qt window hints cannot preserve the
-  required layer. Whether GNOME 46 integration can cooperate with the actual
-  Zorin extension remains open pending inspection.
-- No extension is installed, enabled, disabled, copied, patched, or restarted.
-  Version remains 0.9.0, and Desktop Mode remains a pre-1.0 investigation item.
+  required layer. Added an independent GNOME 46 source-only prototype to test
+  relative Mutter stack positions below the real icon windows.
+- Added a stable Qt Wayland application ID and X11 `WM_CLASS` without changing
+  QSettings identity. Nothing is installed or enabled automatically. Version
+  remains 0.9.0, and Desktop Mode remains a pre-1.0 investigation item.
 
 ## Alpha 0.8 — Stability, Performance and Diagnostics
 

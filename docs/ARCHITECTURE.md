@@ -68,11 +68,14 @@ icon provider is the active `zorin-desktop-icons@zorinos.com` extension, named
 Icons extension, while installed source headers identify substantial code as
 “DING: Desktop Icons New Generation for GNOME Shell.” Provider identity and
 implementation ancestry are therefore distinct: this is Zorin Desktop Icons with
-DING-derived code, and the exact Zorin modifications still require inspection.
+DING-derived code. Targeted inspection confirms that a separate application
+renders icons in client windows and that Zorin's Shell code manages their
+`Meta.Window` lifecycle, stacking, workspaces, monitor geometry, and Wayland
+desktop-window emulation.
 
 The pure-Qt trials still establish an application boundary: a normal PySide6
 window cannot independently guarantee the required background → application →
 real-icons order on GNOME. They do not establish that cooperation with Zorin
 Desktop Icons is impossible. The continuing investigation and read-only source
-inspection procedure are documented in
+prototype procedure are documented in
 [`GNOME_SHELL_FEASIBILITY.md`](GNOME_SHELL_FEASIBILITY.md).

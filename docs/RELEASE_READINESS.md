@@ -172,13 +172,14 @@ The confirmed Zorin OS 18.1 target implements desktop icons with the active
 `zorin-desktop-icons@zorinos.com` extension (**Zorin Desktop Icons**), a fork of
 the original Desktop Icons extension. Installed source headers also confirm
 substantial DING-derived code under Zorin's provider identity. The exact Zorin
-changes and actor/window architecture must be inspected directly. EWMH offers
-a desktop type and a below state, but pure Qt exposes no standard ordering level
+source confirms that it manages separate icon client windows through
+`Meta.Window`, including explicit Wayland desktop-window emulation and lowering.
+EWMH offers a desktop type and a below state, but pure Qt exposes no standard ordering level
 between GNOME's background and the icon provider. Testing demonstrated both sides
 of that Qt limit: the desktop-type attempt was hidden below GNOME's desktop
-surface, while the normal stays-below attempt was above and hid the icons. It has
-not yet determined whether a GNOME Shell 46 integration can cooperate safely with
-the actual Zorin extension.
+surface, while the normal stays-below attempt was above and hid the icons. A
+development-only GNOME 46 prototype now tests whether explicit relative Mutter
+stack positions can cooperate safely with the actual Zorin extension.
 
 The application now treats Zorin/GNOME sessions—including X11/`xcb`—as
 unsupported and uses the safe normal/windowed fallback. This preserves the user's
