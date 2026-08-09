@@ -48,7 +48,7 @@ from grayhaired_desktop.ui.menus import create_menus
 from grayhaired_desktop.ui.preferences import PreferencesDialog
 from grayhaired_desktop.ui.tooltips import HelpBubble, install_explicit_tooltips
 from grayhaired_desktop.x11_window import (
-    apply_x11_desktop_window,
+    apply_x11_below_window,
     restore_windowed_window,
 )
 
@@ -200,19 +200,26 @@ class MainWindow(QMainWindow):
         if path is DesktopModePath.X11_DESKTOP:
             if not self._desktop_mode_active:
                 self._normal_geometry = self.saveGeometry()
-            # The X11 EWMH attribute must precede setWindowFlags: changing the
-            # flags recreates the native top-level window before it is shown.
-            apply_x11_desktop_window(self)
+            # Zorin/GNOME obscures EWMH desktop-type windows with its own desktop
+            # surface. Use a normal frameless window with a stays-below hint.
+            apply_x11_below_window(self)
             screen = self.screen()
             if screen is not None:
                 # One primary/current screen is deliberate: spanning mixed monitor
                 # geometries is not reliable without per-screen desktop windows.
                 self.setGeometry(screen.geometry())
+                geometry = self.geometry()
+                self._logger.info(
+                    "Desktop Mode X11 strategy: below-normal-window; "
+                    "type=normal; below=yes; sticky=no; skip-taskbar=no; "
+                    "geometry=%dx%d%+d%+d",
+                    geometry.width(),
+                    geometry.height(),
+                    geometry.x(),
+                    geometry.y(),
+                )
             self.statusBar().hide()
             self._desktop_mode_active = True
-            self._logger.info(
-                "Applied X11 desktop-window attribute and stays-below path"
-            )
         else:
             # Clear the EWMH classification before setWindowFlags recreates the
             # ordinary native top-level window.

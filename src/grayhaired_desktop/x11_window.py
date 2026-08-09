@@ -1,4 +1,4 @@
-"""Supported Qt/X11 window configuration for Desktop Mode."""
+"""Conservative Qt/X11 below-normal-window strategy for Desktop Mode."""
 
 from __future__ import annotations
 
@@ -7,7 +7,7 @@ from typing import Protocol
 from PySide6.QtCore import Qt
 
 X11_DESKTOP_ATTRIBUTE = Qt.WidgetAttribute.WA_X11NetWmWindowTypeDesktop
-X11_DESKTOP_FLAGS = (
+X11_BELOW_WINDOW_FLAGS = (
     Qt.WindowType.Window
     | Qt.WindowType.FramelessWindowHint
     | Qt.WindowType.WindowStaysOnBottomHint
@@ -24,11 +24,13 @@ class WindowConfigurationTarget(Protocol):
     def setWindowFlags(self, flags: Qt.WindowType) -> None: ...
 
 
-def apply_x11_desktop_window(target: WindowConfigurationTarget) -> None:
-    """Apply the EWMH desktop attribute before recreating the native window."""
+def apply_x11_below_window(target: WindowConfigurationTarget) -> None:
+    """Create a visible normal window with frameless and stays-below hints."""
 
-    target.setAttribute(X11_DESKTOP_ATTRIBUTE, True)
-    target.setWindowFlags(X11_DESKTOP_FLAGS)
+    # GNOME already owns the EWMH desktop layer and obscures other desktop-type
+    # windows. Clear that classification before recreating a normal, below window.
+    target.setAttribute(X11_DESKTOP_ATTRIBUTE, False)
+    target.setWindowFlags(X11_BELOW_WINDOW_FLAGS)
 
 
 def restore_windowed_window(

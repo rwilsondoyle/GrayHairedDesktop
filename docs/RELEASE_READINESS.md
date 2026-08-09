@@ -61,27 +61,31 @@ windowed mode remains the default and safe fallback.
   X11 support is selected only when the session says X11/Xorg **and** Qt uses
   `xcb`; contradictory or unknown results are unsupported and logged. The current
   desktop name is logged only to distinguish GNOME/Zorin behavior.
-- On X11, the main window sets Qt's supported
-  `WA_X11NetWmWindowTypeDesktop` widget attribute before recreating/showing the
-  native window. This requests the EWMH `_NET_WM_WINDOW_TYPE_DESKTOP` type. The
-  ordinary `Window` type is combined with `FramelessWindowHint` and
-  `WindowStaysOnBottomHint`; the deprecated Qt 6 `WindowType.Desktop` is not used.
-  The window targets its current/primary screen's full geometry. Panels are
-  expected to remain above an EWMH desktop window, but that and Zorin's Show
-  Desktop behavior require further manual testing.
+- On X11, the current candidate is a normal top-level window using
+  `FramelessWindowHint` and `WindowStaysOnBottomHint`, sized to the current/primary
+  screen without entering fullscreen mode. It explicitly clears
+  `WA_X11NetWmWindowTypeDesktop`: Zorin/GNOME's existing desktop surface hid the
+  application when that EWMH desktop classification was used. The stays-below
+  hint should place ordinary applications and the GNOME panel above this window,
+  but the complete strategy remains pending manual confirmation.
 - On Wayland, Desktop Mode safely falls back to the ordinary window with a short
   explanation. No compositor bypass, layer-shell extension, static wallpaper,
   or ordinary fullscreen substitute is used.
 - GNOME/Zorin desktop-icon extensions commonly own their own desktop surface.
-  EWMH does not define a reliable ordering layer between wallpaper and those
-  icons, so icon coexistence is explicitly unverified. This application neither
-  hides icons nor implements an icon manager.
+  A normal below window is expected to sit above that surface, so icons may be
+  obscured even if the background behavior succeeds. Qt provides no reliable
+  standard layer between GNOME's wallpaper and icon extension. Icon coexistence
+  is explicitly unverified; this application neither hides icons nor implements
+  an icon manager.
 - Multi-monitor support deliberately targets one current/primary screen. Qt
   screen geometry is read when mode is entered; live monitor add/remove handling
   and one-window-per-screen behavior remain future work.
 - Desktop Mode does not use a no-focus flag: its shortcuts and controls remain
-  interactive. The desktop window type and stays-below hint avoid promoting it
-  over ordinary windows. Actual GNOME focus behavior remains a manual check.
+  interactive. The stays-below hint avoids promoting it over ordinary windows.
+  Skip-taskbar, skip-pager, and sticky/all-workspaces hints are not requested:
+  Qt has no suitable cross-platform flags that preserve the required interactive
+  normal-window stacking. A taskbar entry and current-workspace-only behavior are
+  known limitations pending manual review.
 - Settings always remain available from the lower-left controls button. Saving
   Desktop Mode Off returns to windowed mode. `Ctrl+Shift+D` is an additional
   recovery shortcut that turns the setting off; unlike `Ctrl+Alt+D`, it is not a
@@ -122,12 +126,14 @@ is shown when the user first enables the option in Settings, but subsequent
 startups fall back quietly and record the unsupported path in the log. The saved
 Desktop Mode preference remains enabled for possible future integration.
 
-The first real Zorin X11 run reported session type `x11`, Qt platform `xcb`, and
-desktop environment `zorin:GNOME`; the Desktop Website loaded. It also showed
-that Qt 6 deprecated and ignored the original `WindowType.Desktop` flag. The
-implementation now uses `WA_X11NetWmWindowTypeDesktop` instead. True desktop
-stacking, panels, icons, focus, Show Desktop, and recovery must be retested before
-X11 Desktop Mode can be called successful.
+Real Zorin X11 testing reported session type `x11`, Qt platform `xcb`, and desktop
+environment `zorin:GNOME`; the application and Desktop Website loaded. The first
+attempt used `WindowType.Desktop`, which Qt 6 deprecated and ignored. The second
+attempt correctly used `WA_X11NetWmWindowTypeDesktop`, but the process remained
+running while its window was invisible beneath Zorin/GNOME's existing desktop
+surface. Applying a standards-correct hint is therefore not treated as success.
+The new `below-normal-window` strategy remains pending manual confirmation for
+visibility, stacking, panels, icons, focus, Show Desktop, and recovery.
 
 ### Manual Desktop Mode decision checklist
 
@@ -137,8 +143,8 @@ Before judging desktop-layer behavior on Zorin, record from the application log:
 2. detected Qt platform name; and
 3. selected Desktop Mode implementation/fallback path.
 
-If the result is X11/Xorg plus Qt `xcb`, enable Desktop Mode and test the true
-desktop-type window, ordinary-window ordering, icons, panels, focus, Show Desktop,
+If the result is X11/Xorg plus Qt `xcb`, enable Desktop Mode and test the
+below-normal-window strategy, ordinary-window ordering, icons, panels, focus, Show Desktop,
 screen geometry, external links, controls, and recovery. If the result is
 Wayland, expect and verify the safe usable windowed fallback; lack of compositor
 wallpaper-layer access is not itself a test failure. Contradictory or unknown
