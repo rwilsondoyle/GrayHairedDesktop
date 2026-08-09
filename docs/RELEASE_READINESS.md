@@ -140,20 +140,26 @@ the application and Desktop Website were visible, remained visible with the
 desktop exposed, and shortcuts were clickable, but the surface was a smaller,
 offset application-like page with wallpaper around it. Bottom controls were hard
 to reach, `Ctrl+Shift+D` did not recover windowed mode, and stacking and panel
-behavior were not proven. The implementation had applied geometry only before the
-window manager mapped the recreated normal window and used full screen geometry,
-which did not reserve the shell panel. It now applies the target screen's
-`availableGeometry()` before mapping and reasserts that work area on the next
-event-loop turn after mapping. Saved normal geometry is retained only for later
-recovery and is explicitly overridden while Desktop Mode is active.
+behavior were not proven. That implementation applied full screen geometry only
+before the window manager mapped the recreated normal window and did not reserve
+the shell panel. Saved normal geometry is retained only for later recovery and is
+explicitly overridden while Desktop Mode is active.
 
-Recovery now uses an application-local event filter so `Ctrl+Shift+D` is caught
-before the focused Desktop Website child can consume it. This is not a global
-keyboard hook and works only while this application receives keyboard events.
-The lower-left controls button remains the mouse-based route to Settings and Exit;
-work-area sizing is intended to keep it above the panel. This geometry and
-recovery refinement still requires real X11 retesting. Wayland's safe windowed
-fallback remains the only verified mode path.
+The first post-map geometry refinement crashed on real Zorin X11 immediately
+after its final geometry log. It combined a zero-delay `QTimer` resize of the
+mapped top-level `QMainWindow`/QtWebEngine surface with a new application-wide
+Python event filter. The precise native fault cannot be proven from a segmentation
+fault without a backtrace, so both newly introduced high-risk paths were removed:
+there is no post-show resize and no application-wide recovery event filter.
+
+The stable candidate now applies work-area geometry exactly once before the first
+show. It temporarily removes the normal window's 720 px minimum, which exceeded
+the tested 716 px Zorin work area and explained the logged 720 px applied height.
+Normal mode restores that minimum, the original flags, and saved geometry.
+`Ctrl+Shift+D` returns to the earlier application-local `QShortcut` implementation;
+its real X11 reliability remains unverified. The lower-left controls button is the
+mouse-based route to Settings and Exit. Wayland's safe windowed fallback remains
+the only verified mode path.
 
 ### Manual Desktop Mode decision checklist
 
