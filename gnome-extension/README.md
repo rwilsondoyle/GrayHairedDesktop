@@ -43,12 +43,26 @@ GrayHaired and Zorin `Meta.Window` objects, their compositor identity fields, an
 stack-related methods on the actual `global.display`. Standalone GJS is not used;
 on this Zorin release it cannot import Shell's private `Meta` namespace.
 
+The first native-Wayland run confirmed GrayHaired Desktop as
+`tech.grayhaired.GrayHairedDesktop` in both WM class fields with a null GTK
+application ID. It also confirmed `lower`, `raise`, `get_layer`, `stick`,
+`unstick`, and Display stack sorting, while `set_type`, window-list mutation, and
+absolute stack-position methods were undefined. That run could not see Zorin's
+windows because Zorin filters them from `global.get_window_actors()`; the direct
+window-group and map-event discovery paths below correct that blind spot.
+
 ## Phase 1 — safe diagnostic
 
 `DIAGNOSTIC_ONLY` defaults to `true`. In this mode, enabling the extension only
 connects read-only lifecycle signals, discovers candidate windows, logs their
 identities and method availability, and logs the current relevant Mutter order.
 It does not call window mutation methods or change Zorin Desktop Icons.
+
+Initial discovery reads compositor actors directly from
+`global.window_group.get_children()` because Zorin filters its desktop actors out
+of `global.get_window_actors()`. Later and recreated windows are observed through
+`global.window_manager.connect_after('map', ...)`. Both paths only call getters;
+they do not reorder actors or mutate windows.
 
 After this source change is reviewed, the exact manual Phase 1 procedure is:
 

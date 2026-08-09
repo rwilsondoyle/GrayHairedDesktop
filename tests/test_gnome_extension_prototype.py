@@ -56,6 +56,11 @@ def test_diagnostic_only_reconciliation_cannot_mutate_windows():
     assert diagnostic_guard < experiment_call
     assert "return;" in reconcile[diagnostic_guard:experiment_call]
     assert "if (!DIAGNOSTIC_ONLY)\n            this._restoreOrdinaryWindow();" in disable
+    assert "global.window_group.get_children()" in source
+    assert "connect_after(signal, callback)" in source
+    assert "this._inspectMappedActor(actor);" in source
+    assert "set_child_above_sibling" not in source
+    assert "set_child_below_sibling" not in source
     for method in (
         "lower",
         "raise",

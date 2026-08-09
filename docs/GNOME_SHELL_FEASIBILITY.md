@@ -268,6 +268,50 @@ The evidence status is deliberately separated:
 - **still experimental:** the order produced by a controlled series of
   `lower()` calls and its stability over later Shell events.
 
+### Native Wayland Phase 1 result
+
+The first safe diagnostic ran on Zorin OS 18.1, GNOME Shell 46.0, native Wayland,
+with Qt's `wayland` platform. GrayHaired Desktop appeared as:
+
+```text
+wmClass=tech.grayhaired.GrayHairedDesktop
+wmClassInstance=tech.grayhaired.GrayHairedDesktop
+gtkApplicationId=(null)
+title="GrayHaired Desktop"
+```
+
+The stable identity work therefore succeeds through `WM_CLASS` and
+`WM_CLASS_INSTANCE`; the PySide6 window must not require a GTK application ID.
+The live `Meta.Window` exposed `lower`, `raise`, `get_layer`, `stick`, and
+`unstick`. It did not expose `set_type`, either window-list method, or either
+stack-position method. The live `global.display` exposed
+`sort_windows_by_stacking`. No unavailable method is part of the active design.
+
+The initial stack was only an observation of the ordinary, unmodified GrayHaired
+window. It was not a Desktop Mode result.
+
+### Corrected icon-window discovery
+
+The initial run reported zero Zorin candidates because it enumerated through
+`global.get_window_actors()`. Zorin's `gnomeShellOverride.js` deliberately wraps
+that exact API and removes its desktop windows from the returned list. Their
+absence therefore did not show that the Wayland client windows were absent.
+
+Phase 1 now performs both required read-only discovery paths:
+
+1. **Already mapped:** enumerate direct children of `global.window_group`, retain
+   children that expose `get_meta_window()`, and merge the ordinary global actor
+   result only for compatibility. No child ordering is changed.
+2. **New or recreated:** use `global.window_manager.connect_after('map', ...)`,
+   obtain `windowActor.get_meta_window()`, log every map's safe identity, and
+   retain likely GrayHaired/Zorin references until their destroy event.
+
+Title prefixes are accepted only to discover candidates safely in Phase 1. The
+diagnostic logs title, window type, layer, skip-taskbar state, monitor, sticky
+state, workspace, all three identity fields, and method availability for likely
+desktop candidates. A future production matcher must use the identities observed
+at runtime and must not match title alone.
+
 The event-driven algorithm is:
 
 1. observe `global.window_manager` `map`/`destroy`, each managed window's
