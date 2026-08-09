@@ -19,8 +19,9 @@ Status: Development-only relative-stacking prototype added; manual testing pendi
   required layer. Removed unverified absolute stack-position calls from the
   independent GNOME 46 prototype; it now tests a controlled `lower()` sequence,
   verifies the resulting full stack, and fails back on mismatch.
-- Added a read-only installed-GI probe for the real GNOME 46 `Meta.Window` and
-  `Meta.Display` method surface. Prototype installation is blocked until review.
+- Replaced the invalid standalone-GJS probe with runtime `typeof` diagnostics
+  inside the extension's GNOME Shell context and a read-only bounded journal
+  collector. Prototype installation remains blocked pending a separate review.
 - Added a stable Qt Wayland application ID and X11 `WM_CLASS` without changing
   QSettings identity. Nothing is installed or enabled automatically. Version
   remains 0.9.0, and Desktop Mode remains a pre-1.0 investigation item.

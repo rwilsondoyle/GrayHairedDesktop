@@ -1,4 +1,5 @@
 import GLib from 'gi://GLib';
+import Meta from 'gi://Meta';
 
 import {Extension} from 'resource:///org/gnome/shell/extensions/extension.js';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
@@ -6,6 +7,18 @@ import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 const GRAYHAIRED_APP_ID = 'tech.grayhaired.GrayHairedDesktop';
 const ZORIN_WAYLAND_APP_ID = 'com.rastersoft.ding';
 const ZORIN_TITLE_PREFIX = 'Desktop Icons ';
+const WINDOW_API_NAMES = [
+    'lower',
+    'raise',
+    'get_layer',
+    'set_type',
+    'stick',
+    'unstick',
+    'hide_from_window_list',
+    'show_in_window_list',
+    'get_stack_position',
+    'set_stack_position',
+];
 
 function valueOrNull(window, getter) {
     return typeof window[getter] === 'function' ? window[getter]() : null;
@@ -34,6 +47,7 @@ export default class GrayHairedDesktopLayerExtension extends Extension {
         this._managed = null;
         this._idleId = 0;
         this._stacking = false;
+        this._loggedApiWindows = new WeakSet();
 
         this._connect(global.window_manager, 'map', () => this._queueReconcile());
         this._connect(global.window_manager, 'destroy', () => this._queueReconcile());
@@ -44,6 +58,7 @@ export default class GrayHairedDesktopLayerExtension extends Extension {
         this._connect(Main.overview, 'showing', () => this._queueReconcile());
         this._connect(Main.overview, 'hidden', () => this._queueReconcile());
 
+        this._logDisplayRuntimeApis();
         this._queueReconcile();
         console.log('[GrayHaired Desktop Layer] development prototype enabled');
     }
@@ -86,6 +101,10 @@ export default class GrayHairedDesktopLayerExtension extends Extension {
         const windows = this._windows();
         const grayWindow = windows.find(isGrayHairedWindow) ?? null;
         const iconWindows = windows.filter(isZorinDesktopIconsWindow);
+
+        if (grayWindow)
+            this._logWindowRuntimeApis('GrayHaired', grayWindow);
+        iconWindows.forEach(window => this._logWindowRuntimeApis('ZorinIcons', window));
 
         if (!grayWindow || iconWindows.length === 0) {
             this._disconnectWindowSignals();
@@ -159,8 +178,51 @@ export default class GrayHairedDesktopLayerExtension extends Extension {
 
         const highestIconIndex = Math.max(...iconIndexes);
         const managedWindows = new Set([grayWindow, ...iconWindows]);
-        return allWindows.every((window, index) =>
-            managedWindows.has(window) || index > highestIconIndex);
+        const ordinaryWindowsAreAbove = allWindows.every((window, index) => {
+            if (managedWindows.has(window) || !this._isOrdinaryUserWindow(window))
+                return true;
+            return index > highestIconIndex;
+        });
+        const actor = grayWindow.get_compositor_private();
+        return ordinaryWindowsAreAbove && actor !== null && actor.visible;
+    }
+
+    _isOrdinaryUserWindow(window) {
+        if (typeof window.get_window_type !== 'function' ||
+            window.get_window_type() !== Meta.WindowType.NORMAL)
+            return false;
+        return typeof window.is_skip_taskbar !== 'function' ||
+            !window.is_skip_taskbar();
+    }
+
+    _logDisplayRuntimeApis() {
+        const candidates = ['sort_windows_by_stacking'];
+        const statuses = candidates.map(name =>
+            `${name}=${typeof global.display[name]}`);
+        const related = new Set();
+        for (let object = global.display; object; object = Object.getPrototypeOf(object)) {
+            for (const name of Object.getOwnPropertyNames(object)) {
+                if (/(stack|restack|layer|lower|raise)/i.test(name) &&
+                    typeof global.display[name] === 'function')
+                    related.add(name);
+            }
+        }
+        console.log(`[GrayHaired Desktop Layer][API] Meta.Display ${statuses.join(' ')} ` +
+            `related=${[...related].sort().join(',') || '(none enumerated)'}`);
+    }
+
+    _logWindowRuntimeApis(label, window) {
+        if (this._loggedApiWindows.has(window))
+            return;
+        this._loggedApiWindows.add(window);
+        const methods = WINDOW_API_NAMES.map(name => `${name}=${typeof window[name]}`);
+        const identity = [
+            `wmClass=${valueOrNull(window, 'get_wm_class') ?? '(null)'}`,
+            `wmClassInstance=${valueOrNull(window, 'get_wm_class_instance') ?? '(null)'}`,
+            `gtkApplicationId=${valueOrNull(window, 'get_gtk_application_id') ?? '(null)'}`,
+        ];
+        console.log(`[GrayHaired Desktop Layer][API] Meta.Window ${label} ` +
+            `${identity.join(' ')} ${methods.join(' ')}`);
     }
 
     _watchWindows(grayWindow, iconWindows) {

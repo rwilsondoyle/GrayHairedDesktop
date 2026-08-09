@@ -19,7 +19,13 @@ The corrected experiment lowers every recognized Zorin icon window first and
 GrayHaired Desktop last, then uses Mutter's sorted full window list to verify:
 
 1. GrayHaired Desktop is below every icon window; and
-2. all other client windows are above the highest icon window.
+2. recognized ordinary, taskbar-visible normal application windows are above the
+   highest icon window.
+
+Other desktop, utility, Shell-related, skip-taskbar, or unclassified windows do
+not cause failure merely because they occupy another low stack position. A
+visible compositor actor is checked, but only physical testing can prove that the
+separate Shell background actor is not obscuring GrayHaired Desktop.
 
 This sequence relies on the experimental premise that the most recently lowered
 window becomes bottom-most. The verification—not that premise—is authoritative.
@@ -31,11 +37,18 @@ Reconciliation is event-driven for map/destroy, raised, workspace, Overview, and
 monitor changes. There is no polling loop. This initial prototype does not use
 private Overview filters, so the GrayHaired window may still appear in Overview.
 
+Runtime API diagnostics execute only inside the GNOME Shell extension context.
+They record `typeof` results for documented and disputed methods on the actual
+GrayHaired and Zorin `Meta.Window` objects, their compositor identity fields, and
+stack-related methods on the actual `global.display`. Standalone GJS is not used;
+on this Zorin release it cannot import Shell's private `Meta` namespace.
+
 ## Installation is blocked pending API verification
 
-Do **not** install or enable this extension yet. First run the read-only target
-probe documented in `docs/GNOME_SHELL_FEASIBILITY.md` and review its output. No
-installation command is intentionally provided at this stage.
+Do **not** install or enable this extension yet. The runtime report necessarily
+depends on later, separately approved manual enablement because the relevant
+objects exist only inside GNOME Shell. No installation command is intentionally
+provided at this stage.
 
 After the API report is reviewed, a separate approval can add exact manual
 installation, Wayland-first testing, disable, and removal steps. No reboot,

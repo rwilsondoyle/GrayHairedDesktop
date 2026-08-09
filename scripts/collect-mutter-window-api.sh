@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
-# Read-only GNOME 46 GI API probe; does not access or change live windows.
+# Read-only collector for API diagnostics emitted inside the GNOME Shell process.
 set -u
 
-printf '%s\n' 'GrayHaired Desktop: Mutter window API report'
+prefix='[GrayHaired Desktop Layer][API]'
+printf '%s\n' 'GrayHaired Desktop: GNOME Shell runtime API log collector'
 printf 'GNOME Shell: '
 if command -v gnome-shell >/dev/null 2>&1; then
     gnome-shell --version 2>&1
@@ -10,41 +11,21 @@ else
     printf '%s\n' 'not installed or not on PATH'
 fi
 
-if ! command -v gjs >/dev/null 2>&1; then
-    printf '%s\n' 'ERROR: gjs is not installed or not on PATH' >&2
+if ! command -v journalctl >/dev/null 2>&1; then
+    printf '%s\n' 'ERROR: journalctl is not installed or not on PATH' >&2
     exit 1
 fi
 
-gjs -c '
-const Meta = imports.gi.Meta;
+printf '%s\n' 'Runtime API lines from the current boot (maximum 120):'
+lines="$({
+    journalctl --user -b --no-pager -o cat -n 3000 2>/dev/null || true
+    journalctl -b --no-pager -o cat -n 3000 _COMM=gnome-shell 2>/dev/null || true
+} | awk -v prefix="$prefix" 'index($0, prefix) { print }' | tail -n 120)"
 
-const windowMethods = [
-    "lower", "raise", "get_stack_position", "set_stack_position",
-    "get_layer", "set_type", "stick", "unstick",
-    "hide_from_window_list", "show_in_window_list",
-];
-const displayMethods = [
-    "sort_windows_by_stacking", "restack_window", "set_stack_position",
-    "get_stack_position", "lower", "raise",
-];
+if [[ -n "$lines" ]]; then
+    printf '%s\n' "$lines" | awk '!seen[$0]++'
+else
+    printf '%s\n' '(none found; the uninstalled prototype has not emitted Shell-context diagnostics)'
+fi
 
-function report(typeName, prototype, methods) {
-    print(`\n== ${typeName} candidate methods ==`);
-    for (const name of methods)
-        print(`${name}: ${typeof prototype[name] === "function" ? "AVAILABLE" : "NOT EXPOSED"}`);
-
-    const related = new Set();
-    for (let current = prototype; current; current = Object.getPrototypeOf(current)) {
-        for (const name of Object.getOwnPropertyNames(current)) {
-            if (/(stack|restack|layer|lower|raise)/i.test(name) &&
-                typeof prototype[name] === "function")
-                related.add(name);
-        }
-    }
-    print(`Related callable names: ${[...related].sort().join(", ") || "(none enumerated)"}`);
-}
-
-report("Meta.Window", Meta.Window.prototype, windowMethods);
-report("Meta.Display / global.display", Meta.Display.prototype, displayMethods);
-print("\nThis probes GNOME introspection metadata only; it does not manipulate a window.");
-' 2>&1
+printf '%s\n' 'This script only reads journal entries; it does not run GJS, install, or enable anything.'
