@@ -4,22 +4,20 @@ This log records project-level development milestones and verification notes. It
 
 ## GNOME Shell Desktop Integration Feasibility
 
-Status: Architecture investigation complete; no extension prototype shipped.
+Status: Architecture investigation in progress; no extension prototype shipped.
 
-- Recorded the missing graphical-session boundary in the development container
-  and added a read-only collector for the actual Zorin target session.
-- Identified DING as the expected, but target-system-verifiable, Zorin desktop-
-  icon provider and documented why its surfaces are not wallpaper children.
-- Determined that lowering an identified PySide6 window from privileged Shell
-  code cannot guarantee the required wallpaper → Desktop Website → real-icons
-  ordering across remaps, overview, Show Desktop, and workspaces.
-- Determined that a reliable layer would need Shell-owned content and explicit
-  cooperation with the icon provider. GNOME Shell cannot embed the existing
-  native Wayland Qt surface, so that alternative is not thin integration.
-- Retained normal/windowed behavior on GNOME Wayland and the existing Qt
-  candidate only for non-GNOME X11. No extension is installed, enabled, or
-  modified automatically.
-- Version remains 0.9.0; Version 1.0 is not declared complete.
+- Confirmed the target as Zorin OS 18.1, GNOME Shell 46.0, with the current test
+  session on X11 and `zorin:GNOME` as the desktop environment.
+- Confirmed `zorin-desktop-icons@zorinos.com` (**Zorin Desktop Icons**) as the
+  active provider. It is a fork of the original Desktop Icons extension, not a
+  confirmed DING installation.
+- Added bounded, read-only inspection tooling for the installed extension so its
+  actor/window architecture can be established from the real system files.
+- Retained the proven conclusion that pure Qt window hints cannot preserve the
+  required layer. Whether GNOME 46 integration can cooperate with the actual
+  Zorin extension remains open pending inspection.
+- No extension is installed, enabled, disabled, copied, patched, or restarted.
+  Version remains 0.9.0, and Desktop Mode remains a pre-1.0 investigation item.
 
 ## Alpha 0.8 — Stability, Performance and Diagnostics
 

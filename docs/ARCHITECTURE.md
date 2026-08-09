@@ -62,25 +62,15 @@ The application uses Qt `QSettings` under the current author/About attribution m
 
 ## GNOME desktop-layer boundary
 
-Zorin GNOME normally supplies desktop icons through a GNOME Shell desktop-icons
-extension, commonly Desktop Icons NG (DING), rather than as part of its wallpaper.
-On X11 the icon provider owns desktop-layer windows/surfaces coordinated by the
-shell. EWMH defines desktop and below states, but no portable stacking slot
-between GNOME's background and its icon provider. The tested Qt desktop-type
-window was below the shell surface and invisible; the tested normal stays-below
-window was visible but above and obscured the real icons.
+The confirmed target is Zorin OS 18.1 with GNOME Shell 46.0. Its real desktop-
+icon provider is the active `zorin-desktop-icons@zorinos.com` extension, named
+**Zorin Desktop Icons**. It describes itself as a fork of the original Desktop
+Icons extension with enhancements; it is not confirmed to be Desktop Icons NG
+(DING), and its architecture must not be inferred from DING.
 
-Consequently, a normal PySide6 application cannot reliably produce the required
-background → application → real-icons order on Zorin GNOME. GNOME sessions fall
-back to the normal window so user files are not hidden. A future solution requires
-a separately reviewed GNOME Shell integration coordinated with the installed
-desktop-icons extension on both X11 and Wayland. This application does not build
-a replacement icon manager or shell.
-
-That review is now documented in
-[`GNOME_SHELL_FEASIBILITY.md`](GNOME_SHELL_FEASIBILITY.md). It found that a Shell
-extension can inspect and manipulate compositor windows, but has no supported
-contract for inserting the existing Qt Wayland surface between Shell background
-actors and DING's client surfaces. The structurally correct alternative would be
-Shell-owned rendered content with explicit icon-provider cooperation, which
-cannot host the existing PySide6 window and is not a thin integration.
+The pure-Qt trials still establish an application boundary: a normal PySide6
+window cannot independently guarantee the required background → application →
+real-icons order on GNOME. They do not establish that cooperation with Zorin
+Desktop Icons is impossible. The continuing investigation and read-only source
+inspection procedure are documented in
+[`GNOME_SHELL_FEASIBILITY.md`](GNOME_SHELL_FEASIBILITY.md).
