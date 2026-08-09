@@ -101,6 +101,14 @@ windowed mode remains the default and safe fallback.
   experience, that stable launch/install path remains a pre-1.0 distribution
   blocker. Packaging is not attempted in this Desktop Mode change.
 
+  At startup, a saved enabled preference is reconciled whenever a stable launcher
+  is available: a missing entry is recreated, an old launcher path or damaged
+  entry is replaced, and an already-correct entry is left untouched. If no stable
+  launcher is available, the preference remains saved so it can resume after a
+  proper installation, but Settings shows an unchecked disabled control and says
+  automatic start is unavailable. Write failures are logged without blocking
+  normal startup.
+
 No claim is made yet about real Zorin icon ordering, panel ordering, Show Desktop,
 focus, monitor changes, logout, or compositor behavior. All require the manual
 Desktop Mode checklist requested for this development task.

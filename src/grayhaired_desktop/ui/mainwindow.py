@@ -25,7 +25,7 @@ from PySide6.QtWidgets import (
 )
 
 from grayhaired_desktop.browser import BrowserView
-from grayhaired_desktop.autostart import set_autostart
+from grayhaired_desktop.autostart import reconcile_autostart, set_autostart
 from grayhaired_desktop.config import AppMetadata
 from grayhaired_desktop.desktop_mode import (
     DesktopModePath,
@@ -95,6 +95,7 @@ class MainWindow(QMainWindow):
         self._desktop_mode_active = False
         self._normal_window_flags = self.windowFlags()
         self._normal_geometry = None
+        self._reconcile_autostart_at_startup()
         self._browser = BrowserView(self._preferences.home_page_url, logger, self)
 
         self.setWindowTitle(self._metadata.name)
@@ -163,6 +164,26 @@ class MainWindow(QMainWindow):
         # No toolbar is created, and every launch explicitly begins with menus hidden.
         self._set_controls_visible(False)
         self._browser.load_home("initial application load")
+
+    def _reconcile_autostart_at_startup(self) -> None:
+        """Quietly repair an enabled sign-in entry without blocking startup."""
+
+        if not self._preferences.autostart:
+            return
+        if self._launch_executable is None:
+            self._logger.warning(
+                "Automatic start is requested but no stable launcher is available"
+            )
+            return
+        try:
+            changed = reconcile_autostart(True, self._launch_executable)
+        except OSError as error:
+            self._logger.warning("Automatic start reconciliation failed: %s", error)
+            return
+        self._logger.info(
+            "Automatic start entry %s",
+            "repaired" if changed else "already current",
+        )
 
     def apply_startup_mode(self) -> DesktopModePath:
         """Apply the requested mode before the window is first shown."""

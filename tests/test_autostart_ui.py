@@ -30,4 +30,5 @@ def test_unavailable_control_preserves_previously_enabled_setting(qt_app):
     )
 
     assert not dialog._autostart.isEnabled()
+    assert not dialog._autostart.isChecked()
     assert dialog.preferences.autostart is True

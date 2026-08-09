@@ -42,17 +42,35 @@ def installed_launch_executable(argument_zero: str) -> Path | None:
     return candidate
 
 
-def set_autostart(enabled: bool, executable: Path, path: Path | None = None) -> None:
-    """Idempotently create or remove the one user-level autostart entry."""
+def set_autostart(enabled: bool, executable: Path, path: Path | None = None) -> bool:
+    """Idempotently update the user entry and report whether it changed."""
 
     target = path or autostart_path()
     if not enabled:
+        existed = target.exists()
         target.unlink(missing_ok=True)
-        return
+        return existed
     target.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
     contents = autostart_entry(executable)
-    if target.exists() and target.read_text(encoding="utf-8") == contents:
-        return
+    try:
+        existing_contents = (
+            target.read_text(encoding="utf-8") if target.exists() else None
+        )
+    except UnicodeError:
+        existing_contents = None
+    if existing_contents == contents:
+        return False
     temporary = target.with_suffix(".desktop.tmp")
     temporary.write_text(contents, encoding="utf-8")
     temporary.replace(target)
+    return True
+
+
+def reconcile_autostart(
+    enabled: bool, executable: Path | None, path: Path | None = None
+) -> bool:
+    """Repair an enabled entry when a stable launcher is currently available."""
+
+    if not enabled or executable is None:
+        return False
+    return set_autostart(True, executable, path)

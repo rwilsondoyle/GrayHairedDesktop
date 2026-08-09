@@ -102,7 +102,8 @@ class PreferencesDialog(QDialog):
         self._autostart = QCheckBox(
             "Start GrayHaired Desktop when I sign in", self
         )
-        self._autostart.setChecked(preferences.autostart)
+        self._persisted_autostart = preferences.autostart
+        self._autostart.setChecked(preferences.autostart and autostart_available)
         self._autostart.setEnabled(autostart_available)
         autostart_unavailable_message = (
             "Automatic start will be available after GrayHaired Desktop is "
@@ -134,7 +135,11 @@ class PreferencesDialog(QDialog):
             home_page_url=self._selected_address(),
             shortcut_theme=str(self._shortcut_theme.currentData()),
             desktop_mode=self._desktop_mode.isChecked(),
-            autostart=self._autostart.isChecked(),
+            autostart=(
+                self._autostart.isChecked()
+                if self._autostart.isEnabled()
+                else self._persisted_autostart
+            ),
         )
 
     def accept(self) -> None:

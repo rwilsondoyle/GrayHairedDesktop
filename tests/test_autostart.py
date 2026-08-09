@@ -8,6 +8,7 @@ from grayhaired_desktop.autostart import (
     autostart_entry,
     autostart_path,
     installed_launch_executable,
+    reconcile_autostart,
     set_autostart,
 )
 
@@ -53,4 +54,53 @@ def test_enable_and_disable_are_idempotent(tmp_path):
 
     set_autostart(False, executable, target)
     set_autostart(False, executable, target)
+    assert not target.exists()
+
+
+def test_enabled_correct_entry_is_not_rewritten(tmp_path):
+    target = tmp_path / "autostart" / "grayhaired-desktop.desktop"
+    executable = Path("/opt/app/bin/grayhaired-desktop")
+    assert reconcile_autostart(True, executable, target) is True
+    original_stat = target.stat()
+
+    assert reconcile_autostart(True, executable, target) is False
+    assert target.stat().st_mtime_ns == original_stat.st_mtime_ns
+
+
+def test_enabled_missing_entry_is_recreated(tmp_path):
+    target = tmp_path / "autostart" / "grayhaired-desktop.desktop"
+    executable = Path("/opt/app/bin/grayhaired-desktop")
+
+    assert reconcile_autostart(True, executable, target) is True
+    assert f"Exec={executable}" in target.read_text(encoding="utf-8")
+
+
+def test_enabled_stale_launcher_is_repaired(tmp_path):
+    target = tmp_path / "autostart" / "grayhaired-desktop.desktop"
+    target.parent.mkdir()
+    target.write_text(
+        autostart_entry(Path("/opt/old/bin/grayhaired-desktop")), encoding="utf-8"
+    )
+    current = Path("/opt/current/bin/grayhaired-desktop")
+
+    assert reconcile_autostart(True, current, target) is True
+    contents = target.read_text(encoding="utf-8")
+    assert f"Exec={current}" in contents
+    assert "/opt/old" not in contents
+
+
+def test_enabled_damaged_entry_is_repaired(tmp_path):
+    target = tmp_path / "autostart" / "grayhaired-desktop.desktop"
+    target.parent.mkdir()
+    target.write_bytes(b"\xffnot valid utf-8")
+    current = Path("/opt/current/bin/grayhaired-desktop")
+
+    assert reconcile_autostart(True, current, target) is True
+    assert target.read_text(encoding="utf-8") == autostart_entry(current)
+
+
+def test_enabled_preference_without_stable_launcher_remains_safe(tmp_path):
+    target = tmp_path / "autostart" / "grayhaired-desktop.desktop"
+
+    assert reconcile_autostart(True, None, target) is False
     assert not target.exists()
