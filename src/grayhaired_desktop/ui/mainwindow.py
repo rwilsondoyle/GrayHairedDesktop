@@ -293,7 +293,11 @@ class MainWindow(QMainWindow):
             )
 
     def _show_preferences_dialog(self) -> None:
-        dialog = PreferencesDialog(self._preferences, self)
+        dialog = PreferencesDialog(
+            self._preferences,
+            self,
+            autostart_available=self._launch_executable is not None,
+        )
         if dialog.exec() != PreferencesDialog.DialogCode.Accepted:
             return
 

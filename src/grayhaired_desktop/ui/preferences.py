@@ -48,7 +48,13 @@ RADIO_MINIMUM_HEIGHT = 38
 class PreferencesDialog(QDialog):
     """Dialog for editing persistent user preferences."""
 
-    def __init__(self, preferences: UserPreferences, parent=None) -> None:
+    def __init__(
+        self,
+        preferences: UserPreferences,
+        parent=None,
+        *,
+        autostart_available: bool = True,
+    ) -> None:
         super().__init__(parent)
         self.setWindowTitle("Settings")
         selected_website = find_built_in_website(preferences.home_page_url)
@@ -97,6 +103,25 @@ class PreferencesDialog(QDialog):
             "Start GrayHaired Desktop when I sign in", self
         )
         self._autostart.setChecked(preferences.autostart)
+        self._autostart.setEnabled(autostart_available)
+        autostart_unavailable_message = (
+            "Automatic start will be available after GrayHaired Desktop is "
+            "installed as a desktop application."
+        )
+        self._autostart.setToolTip(
+            "" if autostart_available else autostart_unavailable_message
+        )
+        self._autostart.setAccessibleDescription(
+            "Start this desktop application automatically after sign-in."
+            if autostart_available
+            else autostart_unavailable_message
+        )
+        self._autostart_help = QLabel(
+            "" if autostart_available else autostart_unavailable_message,
+            self,
+        )
+        self._autostart_help.setWordWrap(True)
+        self._autostart_help.setVisible(not autostart_available)
 
         self._create_layout()
         self._update_address_field()
@@ -219,6 +244,7 @@ class PreferencesDialog(QDialog):
         content_layout.addWidget(self._desktop_mode)
         content_layout.addWidget(mode_help)
         content_layout.addWidget(self._autostart)
+        content_layout.addWidget(self._autostart_help)
 
         scroll_area = QScrollArea(self)
         # The container is not an interactive control. Keeping it out of the Tab
@@ -241,7 +267,6 @@ class PreferencesDialog(QDialog):
         self.setTabOrder(self._another_website, self._home_page_url)
         self.setTabOrder(self._home_page_url, next(iter(self._built_in_buttons)))
         self.setTabOrder(list(self._built_in_buttons)[-1], self._shortcut_theme)
-        self.setTabOrder(self._shortcut_theme, self._open_button)
         self.setTabOrder(self._shortcut_theme, self._desktop_mode)
         self.setTabOrder(self._desktop_mode, self._autostart)
         self.setTabOrder(self._autostart, self._open_button)

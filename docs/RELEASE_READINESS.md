@@ -11,13 +11,18 @@ Zorin installation and the release-readiness pull request is approved.
 
 ### Blockers
 
-- Complete Desktop Mode verification on the user's actual Zorin X11/Xorg
-  session. The implementation uses Qt's standards-based X11 desktop window type;
-  this behavior cannot be established by headless automated tests.
+- Complete Desktop Mode verification on the user's actual Zorin session. True
+  desktop-layer behavior is available only when the session is X11/Xorg and Qt
+  is using the `xcb` platform; this behavior cannot be established by headless
+  automated tests. Begin by recording the detected XDG session type, Qt platform,
+  and selected Desktop Mode implementation/fallback path.
 - On Wayland, a normal Qt application cannot reliably insert an interactive
   window beneath the compositor-managed shell wallpaper. The implementation
   therefore remains in normal/windowed mode and reports the fallback rather than
   presenting a borderless fullscreen window as Desktop Mode.
+- Provide a stable installed application launcher before Version 1.0 so the
+  intended sign-in startup experience can be enabled. The current source/`.venv`
+  distribution deliberately cannot produce a safe autostart entry.
 - Complete all 50 manual Zorin checks below, including clean installation,
   upgrade persistence, both Zorin appearances, accessibility, and real external
   browser handoff. These behaviors cannot be fully established in a headless
@@ -88,9 +93,37 @@ windowed mode remains the default and safe fallback.
   path. The implementation becomes available when a future package supplies a
   stable installed console-script path.
 
+  In the current source distribution, Settings disables this option and explains
+  in plain language that it will become available after installation as a desktop
+  application. The implementation exists, but end-to-end login autostart testing
+  is unavailable—not a failed user test—until a stable installed launcher exists.
+  Because automatic startup is part of the intended desktop-replacement
+  experience, that stable launch/install path remains a pre-1.0 distribution
+  blocker. Packaging is not attempted in this Desktop Mode change.
+
 No claim is made yet about real Zorin icon ordering, panel ordering, Show Desktop,
 focus, monitor changes, logout, or compositor behavior. All require the manual
 Desktop Mode checklist requested for this development task.
+
+### Manual Desktop Mode decision checklist
+
+Before judging desktop-layer behavior on Zorin, record from the application log:
+
+1. detected `XDG_SESSION_TYPE`;
+2. detected Qt platform name; and
+3. selected Desktop Mode implementation/fallback path.
+
+If the result is X11/Xorg plus Qt `xcb`, enable Desktop Mode and test the true
+desktop-type window, ordinary-window ordering, icons, panels, focus, Show Desktop,
+screen geometry, external links, controls, and recovery. If the result is
+Wayland, expect and verify the safe usable windowed fallback; lack of compositor
+wallpaper-layer access is not itself a test failure. Contradictory or unknown
+results must also fall back safely and be logged truthfully.
+
+For autostart, first check whether Settings enables the sign-in option. With the
+current source/`.venv` installation it should be disabled and the login test is
+pending. Test creation, single-entry idempotence, login launch, and removal only
+after a stable installed application launcher is available.
 
 ## Audit results
 
