@@ -306,11 +306,31 @@ Phase 1 now performs both required read-only discovery paths:
    obtain `windowActor.get_meta_window()`, log every map's safe identity, and
    retain likely GrayHaired/Zorin references until their destroy event.
 
+The second run still found no candidate through either actor source. Phase 1 now
+therefore probes the documented `Meta.Display.list_all_windows()` method and the
+`Meta.Display::window-created` signal on the live Shell object. Their actual
+GNOME 46 JavaScript exposure is not claimed until the next physical report:
+
+3. **Primary existing-window source when available:** call
+   `global.display.list_all_windows()`, merge its `Meta.Window` objects by object
+   identity with actor/map sources, and log a sanitized category count. If it is
+   undefined, log that fact and keep the existing fallbacks.
+4. **Newly created window source when available:** use the read-only
+   `global.display::window-created` callback to inspect the supplied
+   `Meta.Window`; retain only likely desktop candidates.
+
+Current Mutter documentation describes `list_all_windows()`,
+`sort_windows_by_stacking()`, and `window-created`, but this investigation keeps
+documentation evidence separate from live GNOME Shell 46 exposure.
+
 Title prefixes are accepted only to discover candidates safely in Phase 1. The
 diagnostic logs title, window type, layer, skip-taskbar state, monitor, sticky
-state, workspace, all three identity fields, and method availability for likely
-desktop candidates. A future production matcher must use the identities observed
-at runtime and must not match title alone.
+state, workspace, PID, client type, all three identity fields, and method
+availability for likely desktop candidates. The list-all summary uses only
+sanitized categories and numeric type values for unknown special windows; normal
+application and private content titles are not printed. A future production
+matcher must use the identities observed at runtime and must not match title
+alone.
 
 The event-driven algorithm is:
 

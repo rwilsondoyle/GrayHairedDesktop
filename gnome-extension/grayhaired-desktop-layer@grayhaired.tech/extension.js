@@ -1,4 +1,5 @@
 import GLib from 'gi://GLib';
+import GObject from 'gi://GObject';
 import Meta from 'gi://Meta';
 
 import {Extension} from 'resource:///org/gnome/shell/extensions/extension.js';
@@ -47,7 +48,14 @@ function isGrayHairedDiagnosticCandidate(window) {
 }
 
 function isZorinDiagnosticCandidate(window) {
-    return (valueOrNull(window, 'get_title') ?? '').startsWith(ZORIN_TITLE_PREFIX);
+    const identities = [
+        valueOrNull(window, 'get_wm_class'),
+        valueOrNull(window, 'get_wm_class_instance'),
+        valueOrNull(window, 'get_gtk_application_id'),
+    ];
+    return identities.some(identity =>
+        (identity ?? '').toLocaleLowerCase().includes('ding')) ||
+        (valueOrNull(window, 'get_title') ?? '').startsWith(ZORIN_TITLE_PREFIX);
 }
 
 export default class GrayHairedDesktopLayerExtension extends Extension {
@@ -59,13 +67,24 @@ export default class GrayHairedDesktopLayerExtension extends Extension {
         this._stacking = false;
         this._loggedApiWindows = new WeakSet();
         this._loggedDetailedWindows = new WeakSet();
+        this._loggedSpecialWindows = new WeakSet();
         this._lastOrderSummary = null;
+        this._lastAllWindowsSummary = null;
         this._mappedDiagnosticWindows = new Set();
 
         this._connectAfter(global.window_manager, 'map', (_manager, actor) => {
             this._inspectMappedActor(actor);
             this._queueReconcile();
         });
+        const windowCreatedSignal = GObject.signal_lookup(
+            'window-created', Meta.Display.$gtype);
+        if (windowCreatedSignal) {
+            this._connect(global.display, 'window-created', (_display, window) => {
+                this._inspectCreatedWindow(window);
+                this._queueReconcile();
+            });
+        }
+        this._windowCreatedSignalAvailable = Boolean(windowCreatedSignal);
         this._connect(global.window_manager, 'destroy', (_manager, actor) => {
             this._forgetMappedActor(actor);
             this._queueReconcile();
@@ -133,10 +152,20 @@ export default class GrayHairedDesktopLayerExtension extends Extension {
         return [...actors];
     }
 
-    _windows() {
-        const windows = new Set(this._windowActors()
+    _listAllWindows() {
+        return typeof global.display.list_all_windows === 'function'
+            ? global.display.list_all_windows()
+            : [];
+    }
+
+    _windows(listedWindows = this._listAllWindows()) {
+        const windows = new Set();
+        for (const window of listedWindows)
+            windows.add(window);
+        for (const window of this._windowActors()
             .map(actor => actor.get_meta_window())
-            .filter(window => window !== null));
+            .filter(window => window !== null))
+            windows.add(window);
         for (const window of this._mappedDiagnosticWindows)
             windows.add(window);
         return [...windows];
@@ -169,12 +198,30 @@ export default class GrayHairedDesktopLayerExtension extends Extension {
             this._mappedDiagnosticWindows.delete(window);
     }
 
+    _inspectCreatedWindow(window) {
+        if (!DIAGNOSTIC_ONLY || !window)
+            return;
+        const likelyGray = isGrayHairedDiagnosticCandidate(window);
+        const likelyZorin = isZorinDiagnosticCandidate(window);
+        if (likelyGray || likelyZorin)
+            this._mappedDiagnosticWindows.add(window);
+        const label = likelyGray
+            ? 'CreatedGrayHairedCandidate'
+            : likelyZorin
+                ? 'CreatedZorinCandidate'
+                : 'CreatedOther';
+        this._logWindowRuntimeApis(label, window, likelyGray || likelyZorin);
+    }
+
     _reconcile() {
-        const windows = this._windows();
+        const listedWindows = this._listAllWindows();
+        const windows = this._windows(listedWindows);
         const grayWindow = windows.find(isGrayHairedWindow) ?? null;
         const iconWindows = windows.filter(isZorinDesktopIconsWindow);
         const grayCandidates = windows.filter(isGrayHairedDiagnosticCandidate);
         const iconCandidates = windows.filter(isZorinDiagnosticCandidate);
+
+        this._logAllWindowsSummary(listedWindows);
 
         grayCandidates.forEach(window =>
             this._logWindowRuntimeApis('GrayHairedCandidate', window, true));
@@ -281,19 +328,20 @@ export default class GrayHairedDesktopLayerExtension extends Extension {
     }
 
     _logDisplayRuntimeApis() {
-        const candidates = ['sort_windows_by_stacking'];
+        const candidates = ['list_all_windows', 'sort_windows_by_stacking'];
         const statuses = candidates.map(name =>
             `${name}=${typeof global.display[name]}`);
         const related = new Set();
         for (let object = global.display; object; object = Object.getPrototypeOf(object)) {
             for (const name of Object.getOwnPropertyNames(object)) {
-                if (/(stack|restack|layer|lower|raise)/i.test(name) &&
+                if (/(window|list|stack|restack)/i.test(name) &&
                     typeof global.display[name] === 'function')
                     related.add(name);
             }
         }
         console.log(`[GrayHaired Desktop Layer][API] Meta.Display ${statuses.join(' ')} ` +
-            `related=${[...related].sort().join(',') || '(none enumerated)'}`);
+            `windowCreatedSignal=${this._windowCreatedSignalAvailable} ` +
+            `related=${[...related].sort().slice(0, 30).join(',') || '(none enumerated)'}`);
     }
 
     _logWindowRuntimeApis(label, window, includeDesktopDetails = false) {
@@ -319,6 +367,8 @@ export default class GrayHairedDesktopLayerExtension extends Extension {
                 `skipTaskbar=${valueOrNull(window, 'is_skip_taskbar') ?? '(null)'}`,
                 `monitor=${valueOrNull(window, 'get_monitor') ?? '(null)'}`,
                 `sticky=${valueOrNull(window, 'is_on_all_workspaces') ?? '(null)'}`,
+                `pid=${valueOrNull(window, 'get_pid') ?? '(null)'}`,
+                `clientType=${valueOrNull(window, 'get_client_type') ?? '(null)'}`,
                 `workspace=${workspace && typeof workspace.index === 'function'
                     ? workspace.index()
                     : '(null)'}`,
@@ -326,6 +376,57 @@ export default class GrayHairedDesktopLayerExtension extends Extension {
         }
         console.log(`[GrayHaired Desktop Layer][API] Meta.Window ${label} ` +
             `${identity.join(' ')} ${methods.join(' ')}`);
+    }
+
+    _windowCategory(window) {
+        if (isGrayHairedDiagnosticCandidate(window))
+            return 'GrayHairedCandidate';
+        if (isZorinDiagnosticCandidate(window))
+            return 'ZorinCandidate';
+        const windowType = valueOrNull(window, 'get_window_type');
+        if (windowType === Meta.WindowType.NORMAL)
+            return 'NormalApplication';
+        if (windowType === Meta.WindowType.DESKTOP)
+            return 'DesktopType';
+        if (windowType === Meta.WindowType.DOCK)
+            return 'DockType';
+        return `Other(type=${windowType ?? 'unknown'})`;
+    }
+
+    _logAllWindowsSummary(windows) {
+        if (typeof global.display.list_all_windows !== 'function')
+            return;
+        const categories = new Map();
+        for (const window of windows) {
+            const category = this._windowCategory(window);
+            categories.set(category, (categories.get(category) ?? 0) + 1);
+            if (category === 'GrayHairedCandidate' || category === 'ZorinCandidate')
+                this._logWindowRuntimeApis(`ListAll${category}`, window, true);
+            else if (category !== 'NormalApplication')
+                this._logSpecialWindow(category, window);
+        }
+        const summary = [...categories]
+            .sort(([left], [right]) => left.localeCompare(right))
+            .map(([category, count]) => `${category}:${count}`)
+            .join(',');
+        const line = `count=${windows.length} categories=${summary || '(none)'}`;
+        if (line === this._lastAllWindowsSummary)
+            return;
+        this._lastAllWindowsSummary = line;
+        console.log(`[GrayHaired Desktop Layer][API] Meta.Display list_all_windows ${line}`);
+    }
+
+    _logSpecialWindow(category, window) {
+        if (this._loggedSpecialWindows.has(window))
+            return;
+        this._loggedSpecialWindows.add(window);
+        console.log('[GrayHaired Desktop Layer][API] Meta.Window Special ' +
+            `category=${category} ` +
+            `windowType=${valueOrNull(window, 'get_window_type') ?? '(null)'} ` +
+            `layer=${valueOrNull(window, 'get_layer') ?? '(null)'} ` +
+            `skipTaskbar=${valueOrNull(window, 'is_skip_taskbar') ?? '(null)'} ` +
+            `monitor=${valueOrNull(window, 'get_monitor') ?? '(null)'} ` +
+            `clientType=${valueOrNull(window, 'get_client_type') ?? '(null)'}`);
     }
 
     _logCurrentOrder(windows, grayCandidates, iconCandidates) {

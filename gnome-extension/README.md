@@ -64,6 +64,14 @@ of `global.get_window_actors()`. Later and recreated windows are observed throug
 `global.window_manager.connect_after('map', ...)`. Both paths only call getters;
 they do not reorder actors or mutate windows.
 
+Because the second physical run still found no Zorin candidate through either
+actor path, the diagnostic now probes `global.display.list_all_windows()` as its
+primary initial `Meta.Window` source when that function is exposed. It also
+connects read-only to `global.display::window-created` when GObject reports the
+signal. The log reports both API availability results, a sanitized category/count
+summary, and detailed desktop-candidate fields without printing normal
+application titles.
+
 After this source change is reviewed, the exact manual Phase 1 procedure is:
 
 ```bash
