@@ -61,11 +61,14 @@ windowed mode remains the default and safe fallback.
   X11 support is selected only when the session says X11/Xorg **and** Qt uses
   `xcb`; contradictory or unknown results are unsupported and logged. The current
   desktop name is logged only to distinguish GNOME/Zorin behavior.
-- On X11, the main window uses Qt's `Desktop`, `FramelessWindowHint`, and
-  `WindowStaysOnBottomHint` window flags. Qt maps the desktop window type to the
-  EWMH `_NET_WM_WINDOW_TYPE_DESKTOP` hint. The window targets its current/primary
-  screen's full geometry. Panels are expected to remain above an EWMH desktop
-  window, but that and Zorin's Show Desktop behavior require manual testing.
+- On X11, the main window sets Qt's supported
+  `WA_X11NetWmWindowTypeDesktop` widget attribute before recreating/showing the
+  native window. This requests the EWMH `_NET_WM_WINDOW_TYPE_DESKTOP` type. The
+  ordinary `Window` type is combined with `FramelessWindowHint` and
+  `WindowStaysOnBottomHint`; the deprecated Qt 6 `WindowType.Desktop` is not used.
+  The window targets its current/primary screen's full geometry. Panels are
+  expected to remain above an EWMH desktop window, but that and Zorin's Show
+  Desktop behavior require further manual testing.
 - On Wayland, Desktop Mode safely falls back to the ordinary window with a short
   explanation. No compositor bypass, layer-shell extension, static wallpaper,
   or ordinary fullscreen substitute is used.
@@ -118,6 +121,13 @@ Desktop Mode selects the safe normal/windowed fallback. The informational messag
 is shown when the user first enables the option in Settings, but subsequent
 startups fall back quietly and record the unsupported path in the log. The saved
 Desktop Mode preference remains enabled for possible future integration.
+
+The first real Zorin X11 run reported session type `x11`, Qt platform `xcb`, and
+desktop environment `zorin:GNOME`; the Desktop Website loaded. It also showed
+that Qt 6 deprecated and ignored the original `WindowType.Desktop` flag. The
+implementation now uses `WA_X11NetWmWindowTypeDesktop` instead. True desktop
+stacking, panels, icons, focus, Show Desktop, and recovery must be retested before
+X11 Desktop Mode can be called successful.
 
 ### Manual Desktop Mode decision checklist
 

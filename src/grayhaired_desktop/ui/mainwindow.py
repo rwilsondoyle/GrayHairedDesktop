@@ -47,6 +47,10 @@ from grayhaired_desktop.ui.favorites import FavoritesWidget
 from grayhaired_desktop.ui.menus import create_menus
 from grayhaired_desktop.ui.preferences import PreferencesDialog
 from grayhaired_desktop.ui.tooltips import HelpBubble, install_explicit_tooltips
+from grayhaired_desktop.x11_window import (
+    apply_x11_desktop_window,
+    restore_windowed_window,
+)
 
 
 def _settings_icon(widget: QWidget) -> QIcon:
@@ -196,11 +200,9 @@ class MainWindow(QMainWindow):
         if path is DesktopModePath.X11_DESKTOP:
             if not self._desktop_mode_active:
                 self._normal_geometry = self.saveGeometry()
-            self.setWindowFlags(
-                Qt.WindowType.Desktop
-                | Qt.WindowType.FramelessWindowHint
-                | Qt.WindowType.WindowStaysOnBottomHint
-            )
+            # The X11 EWMH attribute must precede setWindowFlags: changing the
+            # flags recreates the native top-level window before it is shown.
+            apply_x11_desktop_window(self)
             screen = self.screen()
             if screen is not None:
                 # One primary/current screen is deliberate: spanning mixed monitor
@@ -208,8 +210,13 @@ class MainWindow(QMainWindow):
                 self.setGeometry(screen.geometry())
             self.statusBar().hide()
             self._desktop_mode_active = True
+            self._logger.info(
+                "Applied X11 desktop-window attribute and stays-below path"
+            )
         else:
-            self.setWindowFlags(self._normal_window_flags)
+            # Clear the EWMH classification before setWindowFlags recreates the
+            # ordinary native top-level window.
+            restore_windowed_window(self, self._normal_window_flags)
             if self._desktop_mode_active and self._normal_geometry is not None:
                 self.restoreGeometry(self._normal_geometry)
             self.statusBar().show()

@@ -31,6 +31,7 @@ GrayHairedDesktop is the repository and package identity. **GrayHaired Desktop**
 | `logger.py` | Central logging configuration. |
 | `settings.py` | Default values, built-in website configuration and matching, address validation, and persistence helpers. |
 | `desktop_mode.py` | Detects session facts and makes a conservative, testable X11/Wayland mode decision. |
+| `x11_window.py` | Applies and clears Qt's supported X11 EWMH desktop-window attribute while keeping platform details isolated. |
 | `autostart.py` | Creates or removes the single user-level XDG autostart entry. |
 | `ui/actions.py` | Creates and connects the shared Home, Reload, Settings, About, and Exit actions. |
 | `ui/menus.py` | Populates the application menu bar from the shared actions. |
