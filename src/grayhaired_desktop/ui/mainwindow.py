@@ -31,6 +31,7 @@ from grayhaired_desktop.desktop_mode import (
     DesktopModePath,
     SessionInfo,
     select_desktop_mode,
+    should_notify_unsupported_mode,
 )
 from grayhaired_desktop.logger import log_file_path
 from grayhaired_desktop.settings import load_preferences, save_preferences
@@ -190,12 +191,6 @@ class MainWindow(QMainWindow):
 
         return self._apply_desktop_mode(self._preferences.desktop_mode)
 
-    @property
-    def desktop_mode_requested(self) -> bool:
-        """Return the persisted opt-in state for startup coordination."""
-
-        return self._preferences.desktop_mode
-
     def _apply_desktop_mode(self, requested: bool) -> DesktopModePath:
         path = select_desktop_mode(self._session_info, requested)
         if path is DesktopModePath.X11_DESKTOP:
@@ -221,16 +216,6 @@ class MainWindow(QMainWindow):
             self._desktop_mode_active = False
         self._logger.info("Desktop Mode path selected: %s", path.value)
         return path
-
-    def show_desktop_mode_fallback(self) -> None:
-        """Explain a startup fallback after the ordinary window is visible."""
-
-        QMessageBox.information(
-            self,
-            "Desktop Mode Unavailable",
-            "Desktop Mode is not available in this computer session. "
-            "GrayHaired Desktop will open normally instead.",
-        )
 
     def _leave_desktop_mode(self) -> None:
         """Keyboard recovery: persist and return to an ordinary window."""
@@ -323,6 +308,9 @@ class MainWindow(QMainWindow):
             return
 
         updated_preferences = dialog.preferences
+        desktop_mode_newly_enabled = (
+            updated_preferences.desktop_mode and not self._preferences.desktop_mode
+        )
         if updated_preferences.autostart != self._preferences.autostart:
             if self._launch_executable is None and updated_preferences.autostart:
                 QMessageBox.warning(
@@ -358,9 +346,8 @@ class MainWindow(QMainWindow):
         self._logger.info("Settings saved")
         mode_path = self._apply_desktop_mode(self._preferences.desktop_mode)
         self.show()
-        if (
-            self._preferences.desktop_mode
-            and mode_path is DesktopModePath.UNSUPPORTED
+        if should_notify_unsupported_mode(
+            mode_path, newly_enabled=desktop_mode_newly_enabled
         ):
             QMessageBox.information(
                 self,

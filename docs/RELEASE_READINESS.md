@@ -113,6 +113,12 @@ No claim is made yet about real Zorin icon ordering, panel ordering, Show Deskto
 focus, monitor changes, logout, or compositor behavior. All require the manual
 Desktop Mode checklist requested for this development task.
 
+Manual testing on the user's Zorin Wayland session confirmed that requesting
+Desktop Mode selects the safe normal/windowed fallback. The informational message
+is shown when the user first enables the option in Settings, but subsequent
+startups fall back quietly and record the unsupported path in the log. The saved
+Desktop Mode preference remains enabled for possible future integration.
+
 ### Manual Desktop Mode decision checklist
 
 Before judging desktop-layer behavior on Zorin, record from the application log:

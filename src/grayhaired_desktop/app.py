@@ -6,7 +6,7 @@ import logging
 import sys
 import time
 
-from PySide6.QtCore import QTimer, Qt
+from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QApplication
 
 from grayhaired_desktop.appearance import (
@@ -80,11 +80,6 @@ def run(argv: list[str] | None = None) -> int:
     )
     logger.info("Main window created after %.3f seconds", time.perf_counter() - started_at)
     window.show()
-    if (
-        window.desktop_mode_requested
-        and mode_path is DesktopModePath.UNSUPPORTED
-    ):
-        QTimer.singleShot(0, window.show_desktop_mode_fallback)
     logger.info("Main window shown after %.3f seconds", time.perf_counter() - started_at)
     exit_code = app.exec()
     logger.info("Application closed")

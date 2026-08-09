@@ -52,3 +52,11 @@ def select_desktop_mode(info: SessionInfo, requested: bool) -> DesktopModePath:
     if info.session_type in {"x11", "xorg"} and info.qt_platform == "xcb":
         return DesktopModePath.X11_DESKTOP
     return DesktopModePath.UNSUPPORTED
+
+
+def should_notify_unsupported_mode(
+    path: DesktopModePath, *, newly_enabled: bool
+) -> bool:
+    """Notify only when a user has just enabled an unsupported Desktop Mode."""
+
+    return newly_enabled and path is DesktopModePath.UNSUPPORTED
