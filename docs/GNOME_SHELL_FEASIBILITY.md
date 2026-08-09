@@ -209,6 +209,14 @@ Prototype source and deferred manual installation/removal steps are in
 [`gnome-extension/README.md`](../gnome-extension/README.md). Nothing in normal
 application startup installs or enables it.
 
+The prototype has two explicitly separated phases. **Phase 1** is the current
+safe diagnostic: `DIAGNOSTIC_ONLY` is a source constant set to `true`, and the
+active reconciliation path only discovers windows, reads identities/method
+availability, and sorts a copy of the current window list for logging. **Phase
+2** is unreachable stacking/geometry experiment code. It may be activated only
+by changing the constant to `false` in a later reviewed commit after Phase 1
+results are understood.
+
 ### GNOME 46 API verification gate
 
 The initial prototype incorrectly treated `get_stack_position()` and
@@ -225,7 +233,7 @@ Shell, where extensions receive `Meta.Window` instances. The standalone import
 has been removed.
 
 The development extension now performs `typeof` checks inside GNOME Shell. Once
-separately reviewed and manually enabled in a later phase, it logs the listed
+this diagnostic-only source is reviewed and manually enabled, it logs the listed
 methods on real GrayHaired and Zorin `Meta.Window` instances, their compositor
 identities, `sort_windows_by_stacking` on the real `global.display`, and any
 enumerable stack/restack-related Display callables. The log prefix is
@@ -239,8 +247,8 @@ lines:
 ```
 
 It does not import `Meta`, inject code into Shell, connect to a window, install,
-or enable anything. Until later manual enablement is approved, `(none found)` is
-the expected result.
+or enable anything. Before approved Phase 1 enablement, `(none found)` is the
+expected result.
 
 The evidence status is deliberately separated:
 

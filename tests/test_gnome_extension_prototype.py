@@ -1,6 +1,7 @@
 """Static safety checks for the uninstalled GNOME Shell prototype source."""
 
 import json
+import re
 from pathlib import Path
 
 
@@ -40,3 +41,30 @@ def test_runtime_api_diagnostic_runs_only_in_shell_context():
     assert "typeof global.display[name]" in source
     assert "gjs" not in collector
     assert "journalctl" in collector
+
+
+def test_diagnostic_only_reconciliation_cannot_mutate_windows():
+    source = (EXTENSION / "extension.js").read_text()
+    reconcile = source.split("    _reconcile() {", 1)[1].split(
+        "    _runStackingExperiment", 1
+    )[0]
+    diagnostic_guard = reconcile.index("if (DIAGNOSTIC_ONLY)")
+    experiment_call = reconcile.index("this._runStackingExperiment")
+    disable = source.split("    disable() {", 1)[1].split("    _connect(", 1)[0]
+
+    assert "const DIAGNOSTIC_ONLY = true;" in source
+    assert diagnostic_guard < experiment_call
+    assert "return;" in reconcile[diagnostic_guard:experiment_call]
+    assert "if (!DIAGNOSTIC_ONLY)\n            this._restoreOrdinaryWindow();" in disable
+    for method in (
+        "lower",
+        "raise",
+        "stick",
+        "unstick",
+        "move_resize_frame",
+        "move_to_monitor",
+        "set_type",
+        "hide_from_window_list",
+        "show_in_window_list",
+    ):
+        assert re.search(rf"\.{method}\s*\(", reconcile) is None

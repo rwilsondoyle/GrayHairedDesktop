@@ -43,14 +43,35 @@ GrayHaired and Zorin `Meta.Window` objects, their compositor identity fields, an
 stack-related methods on the actual `global.display`. Standalone GJS is not used;
 on this Zorin release it cannot import Shell's private `Meta` namespace.
 
-## Installation is blocked pending API verification
+## Phase 1 — safe diagnostic
 
-Do **not** install or enable this extension yet. The runtime report necessarily
-depends on later, separately approved manual enablement because the relevant
-objects exist only inside GNOME Shell. No installation command is intentionally
-provided at this stage.
+`DIAGNOSTIC_ONLY` defaults to `true`. In this mode, enabling the extension only
+connects read-only lifecycle signals, discovers candidate windows, logs their
+identities and method availability, and logs the current relevant Mutter order.
+It does not call window mutation methods or change Zorin Desktop Icons.
 
-After the API report is reviewed, a separate approval can add exact manual
-installation, Wayland-first testing, disable, and removal steps. No reboot,
-root access, automatic startup, or system-extension modification will be part of
-that procedure.
+After this source change is reviewed, the exact manual Phase 1 procedure is:
+
+```bash
+mkdir -p ~/.local/share/gnome-shell/extensions
+cp -a gnome-extension/grayhaired-desktop-layer@grayhaired.tech \
+  ~/.local/share/gnome-shell/extensions/
+gnome-extensions enable grayhaired-desktop-layer@grayhaired.tech
+./scripts/run.sh
+./scripts/collect-mutter-window-api.sh | tee mutter-window-api.txt
+gnome-extensions disable grayhaired-desktop-layer@grayhaired.tech
+rm -rf ~/.local/share/gnome-shell/extensions/grayhaired-desktop-layer@grayhaired.tech
+```
+
+If GNOME does not discover newly copied source, log out and back into the normal
+Zorin Wayland session before enabling it. Run GrayHaired Desktop long enough for
+both its window and the icon windows to be present, then close it before disabling
+and removing the diagnostic extension. No root access or reboot is required.
+These steps are documented for the next reviewed phase; do not run them yet.
+
+## Phase 2 — stacking experiment
+
+Phase 2 is blocked until `mutter-window-api.txt` and the initial stack report have
+been reviewed. A later reviewed commit would change `DIAGNOSTIC_ONLY` to `false`
+and only then exercise geometry, workspace, lowering, verification, and fallback
+code. No Phase 2 activation instructions are provided here.

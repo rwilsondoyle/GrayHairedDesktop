@@ -7,6 +7,7 @@ import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 const GRAYHAIRED_APP_ID = 'tech.grayhaired.GrayHairedDesktop';
 const ZORIN_WAYLAND_APP_ID = 'com.rastersoft.ding';
 const ZORIN_TITLE_PREFIX = 'Desktop Icons ';
+const DIAGNOSTIC_ONLY = true;
 const WINDOW_API_NAMES = [
     'lower',
     'raise',
@@ -40,6 +41,15 @@ function isZorinDesktopIconsWindow(window) {
         (valueOrNull(window, 'get_title') ?? '').startsWith(ZORIN_TITLE_PREFIX);
 }
 
+function isGrayHairedDiagnosticCandidate(window) {
+    return isGrayHairedWindow(window) ||
+        valueOrNull(window, 'get_title') === 'GrayHaired Desktop';
+}
+
+function isZorinDiagnosticCandidate(window) {
+    return (valueOrNull(window, 'get_title') ?? '').startsWith(ZORIN_TITLE_PREFIX);
+}
+
 export default class GrayHairedDesktopLayerExtension extends Extension {
     enable() {
         this._signals = [];
@@ -48,6 +58,7 @@ export default class GrayHairedDesktopLayerExtension extends Extension {
         this._idleId = 0;
         this._stacking = false;
         this._loggedApiWindows = new WeakSet();
+        this._lastOrderSummary = null;
 
         this._connect(global.window_manager, 'map', () => this._queueReconcile());
         this._connect(global.window_manager, 'destroy', () => this._queueReconcile());
@@ -72,9 +83,10 @@ export default class GrayHairedDesktopLayerExtension extends Extension {
             object.disconnect(id);
         this._signals = [];
         this._disconnectWindowSignals();
-        this._restoreOrdinaryWindow();
+        if (!DIAGNOSTIC_ONLY)
+            this._restoreOrdinaryWindow();
         this._managed = null;
-        console.log('[GrayHaired Desktop Layer] disabled; ordinary window restored');
+        console.log('[GrayHaired Desktop Layer] disabled');
     }
 
     _connect(object, signal, callback) {
@@ -101,10 +113,23 @@ export default class GrayHairedDesktopLayerExtension extends Extension {
         const windows = this._windows();
         const grayWindow = windows.find(isGrayHairedWindow) ?? null;
         const iconWindows = windows.filter(isZorinDesktopIconsWindow);
+        const grayCandidates = windows.filter(isGrayHairedDiagnosticCandidate);
+        const iconCandidates = windows.filter(isZorinDiagnosticCandidate);
 
-        if (grayWindow)
-            this._logWindowRuntimeApis('GrayHaired', grayWindow);
-        iconWindows.forEach(window => this._logWindowRuntimeApis('ZorinIcons', window));
+        grayCandidates.forEach(window =>
+            this._logWindowRuntimeApis('GrayHairedCandidate', window));
+        iconCandidates.forEach(window =>
+            this._logWindowRuntimeApis('ZorinIconsCandidate', window));
+
+        if (DIAGNOSTIC_ONLY) {
+            this._logCurrentOrder(windows, grayCandidates, iconCandidates);
+            return;
+        }
+
+        this._runStackingExperiment(grayWindow, iconWindows);
+    }
+
+    _runStackingExperiment(grayWindow, iconWindows) {
 
         if (!grayWindow || iconWindows.length === 0) {
             this._disconnectWindowSignals();
@@ -220,9 +245,33 @@ export default class GrayHairedDesktopLayerExtension extends Extension {
             `wmClass=${valueOrNull(window, 'get_wm_class') ?? '(null)'}`,
             `wmClassInstance=${valueOrNull(window, 'get_wm_class_instance') ?? '(null)'}`,
             `gtkApplicationId=${valueOrNull(window, 'get_gtk_application_id') ?? '(null)'}`,
+            `title=${JSON.stringify(valueOrNull(window, 'get_title') ?? '(null)')}`,
         ];
         console.log(`[GrayHaired Desktop Layer][API] Meta.Window ${label} ` +
             `${identity.join(' ')} ${methods.join(' ')}`);
+    }
+
+    _logCurrentOrder(windows, grayCandidates, iconCandidates) {
+        if (typeof global.display.sort_windows_by_stacking !== 'function')
+            return;
+        const graySet = new Set(grayCandidates);
+        const iconSet = new Set(iconCandidates);
+        const entries = global.display.sort_windows_by_stacking(windows)
+            .map((window, index) => {
+                if (graySet.has(window))
+                    return `${index}:GrayHairedCandidate`;
+                if (iconSet.has(window))
+                    return `${index}:ZorinIconsCandidate`;
+                if (this._isOrdinaryUserWindow(window))
+                    return `${index}:NormalApplication`;
+                return null;
+            })
+            .filter(entry => entry !== null);
+        const summary = entries.join(' < ') || '(no relevant windows)';
+        if (summary === this._lastOrderSummary)
+            return;
+        this._lastOrderSummary = summary;
+        console.log(`[GrayHaired Desktop Layer][API] CurrentStack bottom-to-top=${summary}`);
     }
 
     _watchWindows(grayWindow, iconWindows) {
