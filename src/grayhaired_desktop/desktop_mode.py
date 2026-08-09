@@ -49,9 +49,23 @@ def select_desktop_mode(info: SessionInfo, requested: bool) -> DesktopModePath:
 
     if not requested:
         return DesktopModePath.WINDOWED
-    if info.session_type in {"x11", "xorg"} and info.qt_platform == "xcb":
+    if (
+        info.session_type in {"x11", "xorg"}
+        and info.qt_platform == "xcb"
+        and "gnome" not in info.desktop_environment.casefold()
+    ):
         return DesktopModePath.X11_DESKTOP
     return DesktopModePath.UNSUPPORTED
+
+
+def desktop_mode_unavailable_reason(info: SessionInfo) -> str:
+    """Return a concise technical reason suitable for diagnostics only."""
+
+    if "gnome" in info.desktop_environment.casefold():
+        return "GNOME desktop-icon layer cannot be preserved by a Qt window"
+    if info.session_type == "wayland" or "wayland" in info.qt_platform:
+        return "Wayland does not expose a supported desktop background layer"
+    return "session and Qt platform do not provide the supported X11 path"
 
 
 def should_notify_unsupported_mode(

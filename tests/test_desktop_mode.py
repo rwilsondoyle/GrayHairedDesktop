@@ -2,6 +2,7 @@
 
 from grayhaired_desktop.desktop_mode import (
     DesktopModePath,
+    desktop_mode_unavailable_reason,
     detect_session,
     select_desktop_mode,
     should_notify_unsupported_mode,
@@ -12,6 +13,19 @@ def test_explicit_x11_with_xcb_supports_desktop_mode():
     info = detect_session("xcb", {"XDG_SESSION_TYPE": "x11"})
 
     assert select_desktop_mode(info, True) is DesktopModePath.X11_DESKTOP
+
+
+def test_zorin_gnome_x11_falls_back_to_preserve_real_desktop_icons():
+    info = detect_session(
+        "xcb",
+        {
+            "XDG_SESSION_TYPE": "x11",
+            "XDG_CURRENT_DESKTOP": "zorin:GNOME",
+        },
+    )
+
+    assert select_desktop_mode(info, True) is DesktopModePath.UNSUPPORTED
+    assert "desktop-icon layer" in desktop_mode_unavailable_reason(info)
 
 
 def test_wayland_uses_safe_unsupported_path():

@@ -30,6 +30,7 @@ from grayhaired_desktop.config import AppMetadata
 from grayhaired_desktop.desktop_mode import (
     DesktopModePath,
     SessionInfo,
+    desktop_mode_unavailable_reason,
     select_desktop_mode,
     should_notify_unsupported_mode,
 )
@@ -248,6 +249,11 @@ class MainWindow(QMainWindow):
                 self.restoreGeometry(self._normal_geometry)
             self.statusBar().show()
             self._desktop_mode_active = False
+            if requested:
+                self._logger.info(
+                    "Desktop Mode fallback reason: %s",
+                    desktop_mode_unavailable_reason(self._session_info),
+                )
         self._logger.info("Desktop Mode path selected: %s", path.value)
         return path
 

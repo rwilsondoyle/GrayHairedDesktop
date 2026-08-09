@@ -18,6 +18,7 @@ from grayhaired_desktop.autostart import installed_launch_executable
 from grayhaired_desktop.config import AppMetadata, create_settings
 from grayhaired_desktop.desktop_mode import (
     DesktopModePath,
+    desktop_mode_unavailable_reason,
     detect_session,
     select_desktop_mode,
 )
@@ -78,6 +79,11 @@ def run(argv: list[str] | None = None) -> int:
         "yes" if desktop_available else "no",
         mode_path.value,
     )
+    if not desktop_available:
+        logger.info(
+            "Desktop Mode unavailable: %s",
+            desktop_mode_unavailable_reason(session_info),
+        )
     logger.info("Main window created after %.3f seconds", time.perf_counter() - started_at)
     window.show()
     logger.info("Main window shown after %.3f seconds", time.perf_counter() - started_at)

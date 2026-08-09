@@ -11,11 +11,11 @@ Zorin installation and the release-readiness pull request is approved.
 
 ### Blockers
 
-- Complete Desktop Mode verification on the user's actual Zorin session. True
-  desktop-layer behavior is available only when the session is X11/Xorg and Qt
-  is using the `xcb` platform; this behavior cannot be established by headless
-  automated tests. Begin by recording the detected XDG session type, Qt platform,
-  and selected Desktop Mode implementation/fallback path.
+- Design and verify a GNOME Shell integration that can preserve the user's real
+  desktop icons. The actual Zorin session is GNOME, where neither tested Qt X11
+  strategy can occupy the required layer. Begin every manual run by recording the
+  detected XDG session type, Qt platform, desktop environment, and selected
+  Desktop Mode implementation/fallback path.
 - On Wayland, a normal Qt application cannot reliably insert an interactive
   window beneath the compositor-managed shell wallpaper. The implementation
   therefore remains in normal/windowed mode and reports the fallback rather than
@@ -57,11 +57,12 @@ Desktop Mode restores the original goal of showing the live Desktop Website and
 interactive shortcuts as a desktop/background layer. It is opt-in and normal
 windowed mode remains the default and safe fallback.
 
-- Session detection combines `XDG_SESSION_TYPE` with Qt's runtime platform name.
-  X11 support is selected only when the session says X11/Xorg **and** Qt uses
-  `xcb`; contradictory or unknown results are unsupported and logged. The current
-  desktop name is logged only to distinguish GNOME/Zorin behavior.
-- On X11, the current candidate is a normal top-level window using
+- Session detection combines `XDG_SESSION_TYPE`, Qt's runtime platform name, and
+  the desktop environment. GNOME sessions are unsupported because the real icon
+  layer cannot be preserved by a Qt window. A non-GNOME X11 candidate is selected
+  only when the session says X11/Xorg and Qt uses `xcb`; contradictory or unknown
+  results are unsupported and logged.
+- On non-GNOME X11, the unverified candidate is a normal top-level window using
   `FramelessWindowHint` and `WindowStaysOnBottomHint`, sized to the current/primary
   screen without entering fullscreen mode. It explicitly clears
   `WA_X11NetWmWindowTypeDesktop`: Zorin/GNOME's existing desktop surface hid the
@@ -71,12 +72,11 @@ windowed mode remains the default and safe fallback.
 - On Wayland, Desktop Mode safely falls back to the ordinary window with a short
   explanation. No compositor bypass, layer-shell extension, static wallpaper,
   or ordinary fullscreen substitute is used.
-- GNOME/Zorin desktop-icon extensions commonly own their own desktop surface.
-  A normal below window is expected to sit above that surface, so icons may be
-  obscured even if the background behavior succeeds. Qt provides no reliable
-  standard layer between GNOME's wallpaper and icon extension. Icon coexistence
-  is explicitly unverified; this application neither hides icons nor implements
-  an icon manager.
+- GNOME/Zorin desktop-icon extensions own their own desktop surface. The normal
+  below window was proven to sit above that surface and hide the real icons. Qt
+  provides no reliable standard layer between GNOME's wallpaper and icon
+  extension, so GNOME now falls back safely. This application neither hides icons
+  nor implements an icon manager.
 - Multi-monitor support deliberately targets one current/primary screen. Qt
   screen geometry is read when mode is entered; live monitor add/remove handling
   and one-window-per-screen behavior remain future work.
@@ -161,6 +161,33 @@ its real X11 reliability remains unverified. The lower-left controls button is t
 mouse-based route to Settings and Exit. Wayland's safe windowed fallback remains
 the only verified mode path.
 
+Commit `e35294e0` was then tested on real Zorin GNOME X11. It passed stability,
+usable work-area sizing, Desktop Website interaction, shortcuts, and gear access.
+It failed desktop-icon preservation: the full-size normal stays-below window sat
+above the user's real Zorin desktop icons, hiding them. Show Desktop therefore
+exposed GrayHaired Desktop but not the user's files/program icons. X11 Desktop
+Mode is not accepted.
+
+Zorin GNOME normally implements desktop icons with a GNOME Shell desktop-icons
+extension, commonly Desktop Icons NG (DING). Those are shell-coordinated desktop
+surfaces, not part of the wallpaper and not a Qt child layer. EWMH offers a
+desktop type and a below state, but no standard ordering level between GNOME's
+background and its icon provider. Testing demonstrated both sides of that limit:
+the Qt desktop-type attempt was hidden below GNOME's desktop surface, while the
+normal stays-below attempt was above and hid the icons. Relative restacking
+against extension-owned windows would depend on private window discovery and
+extension lifecycle, so it would be a fragile shell-specific hack.
+
+The application now treats Zorin/GNOME sessions—including X11/`xcb`—as
+unsupported and uses the safe normal/windowed fallback. This preserves the user's
+real icons and existing application behavior while keeping the saved Desktop Mode
+preference enabled. Non-GNOME X11 retains the unverified below-normal-window
+candidate, but no X11 environment is declared accepted. Achieving the required
+wallpaper → live application → real icons order on GNOME ultimately requires a
+small GNOME Shell integration component coordinated with the actual icons
+extension for both X11 and Wayland. Designing that component is a remaining
+pre-1.0 item and is intentionally not attempted as another Qt flag change.
+
 ### Manual Desktop Mode decision checklist
 
 Before judging desktop-layer behavior on Zorin, record from the application log:
@@ -169,12 +196,13 @@ Before judging desktop-layer behavior on Zorin, record from the application log:
 2. detected Qt platform name; and
 3. selected Desktop Mode implementation/fallback path.
 
-If the result is X11/Xorg plus Qt `xcb`, enable Desktop Mode and test the
-below-normal-window strategy, ordinary-window ordering, icons, panels, focus, Show Desktop,
-screen geometry, external links, controls, and recovery. If the result is
-Wayland, expect and verify the safe usable windowed fallback; lack of compositor
-wallpaper-layer access is not itself a test failure. Contradictory or unknown
-results must also fall back safely and be logged truthfully.
+If the desktop environment includes GNOME, expect and verify the safe usable
+windowed fallback on both X11 and Wayland; this preserves the real desktop icons
+and is not a test failure. Only a non-GNOME X11/Xorg session with Qt `xcb` selects
+the below-normal-window candidate; test its ordinary-window ordering, native
+desktop facilities, panels, focus, Show Desktop, geometry, external links,
+controls, and recovery. Contradictory or unknown results must also fall back
+safely and be logged truthfully.
 
 For autostart, first check whether Settings enables the sign-in option. With the
 current source/`.venv` installation it should be disabled and the login test is

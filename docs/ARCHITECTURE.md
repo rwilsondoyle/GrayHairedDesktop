@@ -59,3 +59,20 @@ The application uses Qt `QSettings` under the current author/About attribution m
 - There is no local database, background service, or custom network protocol layer in the desktop app.
 - The app ships focused offscreen Qt tests, but manual Zorin verification remains important for release decisions.
 - The application does not add a widget system, dashboards, accounts, or synchronization.
+
+## GNOME desktop-layer boundary
+
+Zorin GNOME normally supplies desktop icons through a GNOME Shell desktop-icons
+extension, commonly Desktop Icons NG (DING), rather than as part of its wallpaper.
+On X11 the icon provider owns desktop-layer windows/surfaces coordinated by the
+shell. EWMH defines desktop and below states, but no portable stacking slot
+between GNOME's background and its icon provider. The tested Qt desktop-type
+window was below the shell surface and invisible; the tested normal stays-below
+window was visible but above and obscured the real icons.
+
+Consequently, a normal PySide6 application cannot reliably produce the required
+background → application → real-icons order on Zorin GNOME. GNOME sessions fall
+back to the normal window so user files are not hidden. A future solution requires
+a separately reviewed GNOME Shell integration coordinated with the installed
+desktop-icons extension on both X11 and Wayland. This application does not build
+a replacement icon manager or shell.
