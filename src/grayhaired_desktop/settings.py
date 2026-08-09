@@ -10,6 +10,8 @@ from PySide6.QtCore import QSettings
 DEFAULT_HOME_PAGE_URL = "https://grayhaired.tech/desktop-c/"
 HOME_PAGE_URL_KEY = "preferences/homePageUrl"
 SHORTCUT_THEME_KEY = "preferences/shortcutTheme"
+DESKTOP_MODE_KEY = "preferences/desktopMode"
+AUTOSTART_KEY = "preferences/autostart"
 DEFAULT_SHORTCUT_THEME = "system"
 VALID_SHORTCUT_THEMES = {"system", "light", "dark"}
 
@@ -65,6 +67,15 @@ class UserPreferences:
 
     home_page_url: str = DEFAULT_HOME_PAGE_URL
     shortcut_theme: str = DEFAULT_SHORTCUT_THEME
+    desktop_mode: bool = False
+    autostart: bool = False
+
+
+def _setting_bool(settings: QSettings, key: str) -> bool:
+    """Read a bool consistently from native and INI QSettings backends."""
+
+    value = settings.value(key, False)
+    return value if isinstance(value, bool) else str(value).lower() in {"1", "true", "yes"}
 
 
 def load_preferences(settings: QSettings) -> UserPreferences:
@@ -79,6 +90,8 @@ def load_preferences(settings: QSettings) -> UserPreferences:
     return UserPreferences(
         home_page_url=home_page_url or DEFAULT_HOME_PAGE_URL,
         shortcut_theme=shortcut_theme,
+        desktop_mode=_setting_bool(settings, DESKTOP_MODE_KEY),
+        autostart=_setting_bool(settings, AUTOSTART_KEY),
     )
 
 
@@ -87,4 +100,6 @@ def save_preferences(settings: QSettings, preferences: UserPreferences) -> None:
 
     settings.setValue(HOME_PAGE_URL_KEY, preferences.home_page_url)
     settings.setValue(SHORTCUT_THEME_KEY, preferences.shortcut_theme)
+    settings.setValue(DESKTOP_MODE_KEY, preferences.desktop_mode)
+    settings.setValue(AUTOSTART_KEY, preferences.autostart)
     settings.sync()

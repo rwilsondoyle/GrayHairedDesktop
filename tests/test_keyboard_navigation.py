@@ -24,7 +24,9 @@ def test_settings_actions_complete_the_tab_sequence(qapp) -> None:
 
     dialog = PreferencesDialog(UserPreferences())
 
-    assert dialog._shortcut_theme.nextInFocusChain() is dialog._open_button
+    assert dialog._shortcut_theme.nextInFocusChain() is dialog._desktop_mode
+    assert dialog._desktop_mode.nextInFocusChain() is dialog._autostart
+    assert dialog._autostart.nextInFocusChain() is dialog._open_button
     assert dialog._open_button.nextInFocusChain() is dialog._save_button
     assert dialog._save_button.nextInFocusChain() is dialog._cancel_button
     assert dialog._cancel_button.nextInFocusChain() is dialog._another_website

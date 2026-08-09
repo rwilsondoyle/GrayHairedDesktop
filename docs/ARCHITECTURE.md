@@ -30,6 +30,9 @@ GrayHairedDesktop is the repository and package identity. **GrayHaired Desktop**
 | `config.py` | Application metadata and `QSettings` factory. |
 | `logger.py` | Central logging configuration. |
 | `settings.py` | Default values, built-in website configuration and matching, address validation, and persistence helpers. |
+| `desktop_mode.py` | Detects session facts and makes a conservative, testable X11/Wayland mode decision. |
+| `x11_window.py` | Configures and reverses the X11 normal-window/stays-below strategy while explicitly avoiding GNOME's obscured desktop-type layer. |
+| `autostart.py` | Creates or removes the single user-level XDG autostart entry. |
 | `ui/actions.py` | Creates and connects the shared Home, Reload, Settings, About, and Exit actions. |
 | `ui/menus.py` | Populates the application menu bar from the shared actions. |
 | `ui/toolbar.py` | Builds the non-movable main toolbar from the shared actions. |
@@ -46,6 +49,8 @@ The application uses Qt `QSettings` under the current author/About attribution m
 - `preferences/homePageUrl` for the configurable home page URL.
 - `mainwindow/geometry` for window size and placement.
 - `mainwindow/windowState` for Qt window state.
+- `preferences/desktopMode` for the explicit Desktop Mode choice (default off).
+- `preferences/autostart` for the explicit sign-in startup choice (default off).
 
 ## Current boundaries
 
@@ -54,3 +59,20 @@ The application uses Qt `QSettings` under the current author/About attribution m
 - There is no local database, background service, or custom network protocol layer in the desktop app.
 - The app ships focused offscreen Qt tests, but manual Zorin verification remains important for release decisions.
 - The application does not add a widget system, dashboards, accounts, or synchronization.
+
+## GNOME desktop-layer boundary
+
+Zorin GNOME normally supplies desktop icons through a GNOME Shell desktop-icons
+extension, commonly Desktop Icons NG (DING), rather than as part of its wallpaper.
+On X11 the icon provider owns desktop-layer windows/surfaces coordinated by the
+shell. EWMH defines desktop and below states, but no portable stacking slot
+between GNOME's background and its icon provider. The tested Qt desktop-type
+window was below the shell surface and invisible; the tested normal stays-below
+window was visible but above and obscured the real icons.
+
+Consequently, a normal PySide6 application cannot reliably produce the required
+background → application → real-icons order on Zorin GNOME. GNOME sessions fall
+back to the normal window so user files are not hidden. A future solution requires
+a separately reviewed GNOME Shell integration coordinated with the installed
+desktop-icons extension on both X11 and Wayland. This application does not build
+a replacement icon manager or shell.
