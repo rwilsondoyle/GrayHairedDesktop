@@ -311,44 +311,87 @@ GrayHaired below Zorin even though `sort_windows_by_stacking()` reported Zorin
 below GrayHaired. This confirms that visual Clutter actor order and Meta.Window
 stack order are not necessarily identical on this setup.
 
-### Controlled actor-order experiment
+### Confirmed actor-order failure
 
-`ACTOR_EXPERIMENT_MODE = true` enables the smallest actor-level test. It obtains
-both actors from the production-matched Meta.Windows and requires one shared
-parent. Before mutation it logs sanitized actor order and Meta.Window order
-separately.
+The physical actor experiment changed the reported order from
+`ZorinIcons<GrayHaired` to `GrayHaired<ZorinIcons`. The Meta.Window order did not
+change, and visually GrayHaired remained above and obscured the actual desktop
+icons. The Zorin dock/panel remained above GrayHaired. Verification failed and
+the saved sibling relationship was restored successfully.
 
-If GrayHaired's child index is already lower than every Zorin actor index, it logs
-**Actor order already correct** and does nothing. Otherwise the only initial
-mutation is:
+Consequently, neither `Meta.Window.lower()` nor direct `MetaWindowActorWayland`
+sibling ordering controls the required visible relationship on this tested
+Mutter/Wayland compositor. More permutations, delays, repeated restacking, and
+polling would fight the compositor rather than prove a maintainable design. The
+prototype is back in `SAFE_INVESTIGATION_ONLY = true` mode and contains no live
+window or actor mutation.
 
-```javascript
-parent.set_child_below_sibling(grayActor, zorinActor);
-```
+### Zorin's managed Wayland client mechanism
 
-It never invokes `Meta.Window.lower()`/`raise()`, never directly reorders the
-Zorin actor, never uses `set_child_at_index()`, and makes no geometry, workspace,
-focus, type, or window-list change.
+Installed-source evidence shows a materially different design from an ordinary
+third-party window:
 
-Immediate verification requires a common parent, visible GrayHaired and Zorin
-actors, GrayHaired below every icon actor in the parent's child array, and
-unchanged relative ordering among ordinary application actors. Meta.Window order
-is logged before and after but is deliberately not a pass condition.
+1. the Shell extension creates a dedicated Wayland-client helper and launches
+   the separate DING-derived desktop application through that managed client;
+2. its map-time handler receives a compositor actor, obtains the associated
+   `Meta.Window`, and accepts it only when
+   `query_window_belongs_to(window)` confirms ownership by that client;
+3. `emulateX11WindowType.js` attaches desktop-window state to accepted windows,
+   applies the `Desktop Icons ` role, monitor placement, bottom behavior, and
+   all-workspace semantics; and
+4. `gnomeShellOverride.js` removes those owned desktop windows from ordinary
+   Activities, window-list, and workspace-animation treatment. Lifecycle code
+   coordinates the helper and desktop process rather than matching an arbitrary
+   client by title alone.
 
-Only one mutation is permitted per enablement. If a later meaningful event shows
-that Mutter changed the order again, the extension logs the change but does not
-repeat the mutation or fight the compositor.
+The exact helper namespace, constructor, launch arguments, and restart calls are
+version-coupled source details. The bounded, read-only
+`scripts/collect-zorin-wayland-client-info.sh` records those call sites from the
+installed Zorin build before an independent implementation is considered.
 
-Before a mutation, the extension remembers GrayHaired's previous and next
-siblings. On failure or disable it restores GrayHaired above the surviving prior
-previous sibling or below the surviving prior next sibling. If neither anchor is
-safe, it makes no speculative change and logs logout/login as the development
-fallback.
+API classification:
 
-This remains a physical visual experiment, not a completed architecture. Mutter
-may later reassert its authoritative window stack even if one actor-order test
-works, so overview, focus, remap, monitor, and sustained behavior still require
-observation.
+- **Documented Mutter API:** `Meta.Display.list_all_windows()`,
+  `sort_windows_by_stacking()`, `window-created`, and the runtime-exposed
+  `Meta.Window` read methods. These provide discovery and observation, not the
+  missing relative desktop layer.
+- **GNOME Shell/Mutter internal API:** the managed Wayland-client ownership
+  helper, its `query_window_belongs_to()` relationship, map-time compositor
+  actors, and Shell presentation overrides. These are GNOME-version-sensitive.
+- **Zorin-specific mechanism:** the `com.rastersoft.ding` process identity,
+  `Desktop Icons ` role, per-monitor state, override policy, and restart
+  coordination.
+- **Unsupported approach:** impersonating Zorin's client, patching its extension,
+  compositor patches, repeated restacking, or actor-order loops.
+
+A third-party GNOME 46 extension may be able to create its own managed Wayland
+client and thereby obtain strong ownership and lifecycle identification. That is
+technically plausible, but ownership alone has not proved the required relative
+layer: the two completed physical experiments show that ordinary Meta.Window and
+actor ordering are not authoritative here.
+
+### Architecture options after the failed experiments
+
+1. **Companion extension plus existing Qt/WebEngine client:** preserves the
+   preferred content process and is small, but needs a real desktop-layer API;
+   managed-client ownership alone is insufficient evidence.
+2. **Shell-owned visual actor fed by external content:** provides Shell layer
+   control, but GNOME Shell has no demonstrated safe embedding path for an
+   interactive Qt Wayland surface. Streaming pixels/input would add fragility
+   and must not execute arbitrary network content inside Shell.
+3. **Explicit cooperation with Zorin Desktop Icons:** the most credible next
+   investigation. A reviewed provider hook could order an independently owned
+   GrayHaired surface relative to the actual icon surfaces while leaving icon
+   management with Zorin. Availability and maintenance support are unproven.
+4. **Replacement desktop-icons provider:** could own the entire order but would
+   violate the small-integration goal and create an unacceptable icon-manager
+   maintenance burden.
+5. **Normal-window Desktop Launch Page fallback:** safe and maintainable, but it
+   is not the requested Desktop Mode layering.
+
+No option yet proves Version 1.0 Desktop Mode. The next useful physical evidence
+is read-only inspection of the exact installed Wayland-client helper and
+lifecycle call sites, not another stacking mutation.
 
 ## Required behavior matrix
 

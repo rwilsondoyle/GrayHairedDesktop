@@ -143,6 +143,18 @@ Status: Implementation complete; manual Zorin verification pending.
 
 ## Zorin verification notes
 
+### GNOME Shell 46 desktop-layer feasibility
+
+- Native-Wayland testing confirmed that `Meta.Window.lower()` did not change the
+  relevant visible order and safely fell back.
+- A second physical test changed the reported `MetaWindowGroup` sibling order,
+  but GrayHaired Desktop still obscured Zorin's real desktop icons; restoration
+  succeeded.
+- The development extension is observation-only again. The next investigation
+  inspects Zorin's managed Wayland-client ownership, launch, map, and lifecycle
+  mechanism without modifying the installed extension.
+- Desktop Mode remains unresolved and Version 1.0 is not declared ready.
+
 The project targets Zorin OS, so manual verification on real Zorin computers is part of the alpha process.
 
 | Physical Zorin system | Status | Verified workflow and behavior |

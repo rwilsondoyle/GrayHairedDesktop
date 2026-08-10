@@ -19,38 +19,34 @@ On Zorin OS 18.1, GNOME Shell 46.0, native Wayland:
 The Meta.Window-level lower-only mechanism is therefore insufficient on this
 physical compositor state. No loop, delay, retry, or Zorin mutation is added.
 
-## Current mode — controlled actor-order experiment
+## Confirmed actor experiment result
 
-The read-only actor diagnostic confirmed that both windows use
-`MetaWindowActorWayland`, share one `MetaWindowGroup`, and expose the required
-sibling APIs. `ACTOR_EXPERIMENT_MODE` now defaults to `true`.
+Both windows are `MetaWindowActorWayland` children of one `MetaWindowGroup`.
+The physical experiment changed their reported sibling order from
+`ZorinIcons<GrayHaired` to `GrayHaired<ZorinIcons`, but GrayHaired remained
+visually above the icons. Mutter's Meta.Window order also remained unchanged.
+Restoration succeeded. Actor sibling ordering is therefore not a viable control
+for the visible Wayland relationship on this target.
 
-On each meaningful event, the extension obtains the actors through the proven
-`Meta.Window.get_compositor_private()` relationship and reads their shared
-parent's child list. If GrayHaired's index is already below every Zorin actor, it
-logs **Actor order already correct** and performs no mutation. Otherwise its only
-initial ordering mutation is:
+## Current mode — safe investigation only
 
-```javascript
-parent.set_child_below_sibling(grayActor, zorinActor);
+`SAFE_INVESTIGATION_ONLY` is `true`. The extension now only discovers windows,
+reads identities and API availability, reads current Meta.Window ordering, and
+reads actor hierarchy. It contains no call that lowers, raises, moves, resizes,
+sticks, changes type, focuses, or reorders a window or actor.
+
+## Read-only source investigation
+
+The next step does not require enabling this extension. On the Zorin target run:
+
+```bash
+./scripts/collect-zorin-wayland-client-info.sh | tee zorin-wayland-client-info.txt
 ```
 
-The Zorin actor is never the actor being moved, no `Meta.Window` is mutated, and
-no geometry, workspace, focus, or other sibling is directly changed. The result
-is verified from the parent child array, same-parent identity, actor visibility,
-and unchanged relative ordering among ordinary application actors. Mutter's
-separate Meta.Window order is logged before and after for comparison but is not a
-pass criterion.
+This reads only the installed Zorin Desktop Icons source and reports the precise
+Wayland-client helper, launch, ownership-query, map, and lifecycle call sites.
 
-At most one actor mutation is attempted per enablement. If Mutter later changes
-the order, the extension reports it without repeatedly reordering the actor.
-
-Before mutation the extension remembers GrayHaired's previous and next siblings.
-Disablement or failed verification restores GrayHaired relative to a surviving
-remembered sibling. If neither recovery anchor remains, it logs that logout/login
-is the development fallback rather than guessing another position.
-
-## Safe Wayland rerun
+## Optional safe diagnostic rerun
 
 After review, replace the per-user development copy and enable it:
 
@@ -85,4 +81,3 @@ rm -rf ~/.local/share/gnome-shell/extensions/grayhaired-desktop-layer@grayhaired
 
 No root access, reboot, automatic installation, window mutation, or system Zorin
 extension change is required.
-
