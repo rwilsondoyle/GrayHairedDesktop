@@ -6,9 +6,11 @@ This investigation remains open. Real testing has proved that pure Qt window
 hints do not provide the required GNOME desktop layer, but it has **not** proved
 that cooperation with the installed Zorin desktop-icon extension is impossible.
 A GNOME Shell prototype is included as manually installed development source.
-The lower-only Phase 2 experiment failed safely. Actor diagnostics then confirmed
-a shared compositor group, so the current mode is a single controlled actor-order
-experiment. Normal application startup still installs or enables nothing. The
+The lower-only Phase 2 experiment and the subsequent direct actor sibling-order
+experiment both failed safely on the physical Wayland target. The prototype is
+back in `SAFE_INVESTIGATION_ONLY = true` mode: no stacking experiment is active,
+and the next step is read-only investigation of Zorin's managed Wayland-client
+mechanism. Normal application startup still installs or enables nothing. The
 project remains version `0.9.0`, and a safe Zorin/Wayland Desktop Mode remains a
 pre-Version 1.0 investigation requirement.
 
@@ -438,8 +440,12 @@ if the installed provider exposes a usable actor group or window lifecycle. The
 X11 session facts do not establish native-Wayland behavior, and Wayland security
 must remain intact.
 
-The revised conclusion is: **pure Qt and a single `Meta.Window.lower()` call are
-both insufficient, while the confirmed shared actor parent makes one controlled
-Clutter sibling-order test structurally valid**. Its visual and sustained result
-is not yet known. Desktop Mode on Zorin/Wayland remains under investigation for
-Version 1.0; Version 1.0 is not complete.
+The revised conclusion is: **pure Qt, `Meta.Window.lower()`, and direct
+`MetaWindowActorWayland` sibling reordering are all insufficient on the tested
+Zorin/GNOME Shell 46 Wayland target**. The sibling mutation changed the reported
+actor order, but the real desktop icons remained behind GrayHaired Desktop,
+Meta.Window order did not change, verification failed, and restoration
+succeeded. The current mode is `SAFE_INVESTIGATION_ONLY = true`; no live stacking
+experiment is active. The next step is read-only investigation of Zorin's
+managed Wayland-client mechanism. Desktop Mode remains unresolved at version
+`0.9.0`, and Version 1.0 is not complete.
