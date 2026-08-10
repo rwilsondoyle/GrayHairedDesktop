@@ -396,11 +396,27 @@ the repository virtual environment's Python interpreter directly with
 It does not invoke a shell or `scripts/run.sh`, so there is no wrapper process
 whose fork/exec behavior could make the ownership result ambiguous.
 
-On native Wayland, the extension checks for
-`Meta.WaylandClient.new_subprocess`, creates a fresh `Gio.SubprocessLauncher`,
-and calls the GNOME 46 API with `global.context`, that launcher, and the configured
-argument vector. It logs the live availability of `get_subprocess()` and
-`query_window_belongs_to()` and does not implement older compatibility paths.
+The first native-Wayland ownership run failed safely before launch. The physical
+GNOME Shell 46 runtime reported `Meta.WaylandClient.new_subprocess` as undefined;
+no process, stacking change, retry, or Zorin operation occurred. This disproves
+that constructor path on the target, not `Meta.WaylandClient` itself, because the
+installed Zorin source includes older constructors.
+
+The next test creates a fresh `Gio.SubprocessLauncher` and selects only among the
+installed-source-supported paths, in this order:
+
+1. `Meta.WaylandClient.new_subprocess(global.context, launcher, argv)` when it is
+   callable;
+2. otherwise `Meta.WaylandClient.new(global.context, launcher)`, followed by
+   `client.spawnv(global.display, argv)`; or
+3. if that constructor signature throws,
+   `Meta.WaylandClient.new(launcher)`, followed by the same managed `spawnv`.
+
+It logs the selected path and live availability of `spawnv`, `get_subprocess`,
+`query_window_belongs_to`, `hide_from_window_list`, and
+`show_in_window_list`. There is no ordinary `Gio.Subprocess` fallback: if all
+source-demonstrated managed paths fail, nothing is launched and there is no
+retry.
 
 The existing map signal supplies each new actor's `Meta.Window`. The experiment
 requires both `query_window_belongs_to(window) === true` and an exact WM class or
@@ -422,10 +438,10 @@ API classification:
   `sort_windows_by_stacking()`, `window-created`, and the runtime-exposed
   `Meta.Window` read methods. These provide discovery and observation, not the
   missing relative desktop layer.
-- **Mutter API used from GNOME Shell:** `Meta.WaylandClient.new_subprocess()`,
-  `get_subprocess()`, and `query_window_belongs_to()`. Its JavaScript exposure and
-  signatures are GNOME/Mutter-version-coupled and still require runtime
-  confirmation on the physical GNOME 46 session.
+- **Mutter API used from GNOME Shell:** `Meta.WaylandClient`; the physical target
+  lacks `new_subprocess()`, while the installed provider demonstrates the older
+  `new(...)` plus `spawnv(...)` paths. The next physical run must establish which
+  old constructor signature and instance methods GNOME 46 actually exposes.
 - **Zorin-specific wrapper:** `LaunchSubprocess` builds launcher/process lifecycle
   policy around the Mutter primitive; that wrapper is not required for ownership
   and is not copied into this project.

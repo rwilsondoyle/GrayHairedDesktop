@@ -36,6 +36,12 @@ Installed Zorin source uses Mutter's
 its own `LaunchSubprocess` lifecycle helper; this project does not copy that
 implementation.
 
+The first physical ownership test established that `new_subprocess` is undefined
+on this GNOME Shell 46 runtime. The failure was safe and launched nothing. Zorin's
+installed source also demonstrates `Meta.WaylandClient.new(...)` followed by
+`spawnv(global.display, argv)`, so the next test selects narrowly between those
+source-confirmed compatibility paths.
+
 ## Current phase — ownership only
 
 `MANAGED_CLIENT_EXPERIMENT` and `SAFE_INVESTIGATION_ONLY` are both `true`. The
@@ -86,9 +92,11 @@ collect the Shell-context report:
 ./scripts/collect-mutter-window-api.sh | tee mutter-window-api.txt
 ```
 
-Expected evidence includes `Meta.WaylandClient available=true`, process launch,
-an owned mapped window with the exact GrayHaired WM identity, and `OWNERSHIP
-PASS`. The appearance is intentionally that of a normal application window.
+Expected evidence includes the types of `Meta.WaylandClient`, `new_subprocess`,
+and `new`; an `API path=new(global.context, launcher)+spawnv` or
+`API path=new(launcher)+spawnv` line on this target; process launch; an owned
+mapped window with the exact GrayHaired WM identity; and `OWNERSHIP PASS`. The
+appearance is intentionally that of a normal application window.
 Then disable the prototype, which terminates only its own managed subprocess:
 
 ```bash

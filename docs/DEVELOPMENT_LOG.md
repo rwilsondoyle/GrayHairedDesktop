@@ -30,6 +30,11 @@ Status: Development-only managed-client ownership test awaiting physical verific
   that directly launches the configured Python interpreter, validates managed
   ownership plus exact GrayHaired WM identity, performs no stacking operation,
   and never relaunches automatically.
+- The first physical ownership test found `new_subprocess` undefined on GNOME
+  Shell 46 and failed safely without launching. The prototype now tests only the
+  installed-source-demonstrated older forms—`new(global.context, launcher)` or
+  `new(launcher)` followed by managed `spawnv(global.display, argv)`—with no
+  ordinary subprocess fallback.
 - Added a stable Qt Wayland application ID and X11 `WM_CLASS` without changing
   QSettings identity. Nothing is installed or enabled automatically. Version
   remains 0.9.0, and Desktop Mode remains a pre-1.0 investigation item.

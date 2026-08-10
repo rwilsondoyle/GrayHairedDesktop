@@ -244,13 +244,15 @@ export default class GrayHairedDesktopLayerExtension extends Extension {
         if (this._managedLaunchAttempted)
             return;
         this._managedLaunchAttempted = true;
-        const available = typeof Meta.WaylandClient?.new_subprocess === 'function';
+        const waylandClientType = typeof Meta.WaylandClient;
+        const newSubprocessType = typeof Meta.WaylandClient?.new_subprocess;
+        const newType = typeof Meta.WaylandClient?.new;
         console.log(`[GrayHaired Desktop Layer][ManagedClient] ` +
-            `Meta.WaylandClient available=${available} ` +
-            `new_subprocess=${typeof Meta.WaylandClient?.new_subprocess}`);
-        if (!Meta.is_wayland_compositor() || !available) {
+            `Meta.WaylandClient=${waylandClientType} ` +
+            `new_subprocess=${newSubprocessType} new=${newType}`);
+        if (!Meta.is_wayland_compositor() || waylandClientType === 'undefined') {
             console.warn('[GrayHaired Desktop Layer][ManagedClient] OWNERSHIP FAIL; ' +
-                'GNOME 46 Wayland new_subprocess API unavailable');
+                'GNOME 46 Wayland Meta.WaylandClient unavailable');
             return;
         }
 
@@ -266,18 +268,46 @@ export default class GrayHairedDesktopLayerExtension extends Extension {
                     throw new Error(`environment value for ${name} must be a string`);
                 launcher.setenv(name, value, true);
             }
-            this._managedClient = Meta.WaylandClient.new_subprocess(
-                global.context, launcher, config.argv);
+            let apiPath;
+            if (newSubprocessType === 'function') {
+                this._managedClient = Meta.WaylandClient.new_subprocess(
+                    global.context, launcher, config.argv);
+                apiPath = 'new_subprocess';
+            } else if (newType === 'function') {
+                try {
+                    this._managedClient = Meta.WaylandClient.new(
+                        global.context, launcher);
+                    apiPath = 'new(global.context, launcher)+spawnv';
+                } catch (contextError) {
+                    console.log('[GrayHaired Desktop Layer][ManagedClient] ' +
+                        `new(global.context, launcher) failed: ${contextError.message}`);
+                    this._managedClient = Meta.WaylandClient.new(launcher);
+                    apiPath = 'new(launcher)+spawnv';
+                }
+            } else {
+                throw new Error('no supported Meta.WaylandClient constructor');
+            }
             console.log('[GrayHaired Desktop Layer][ManagedClient] ' +
+                `spawnv=${typeof this._managedClient?.spawnv} ` +
                 `get_subprocess=${typeof this._managedClient?.get_subprocess} ` +
-                `query_window_belongs_to=${typeof this._managedClient?.query_window_belongs_to}`);
-            if (typeof this._managedClient?.get_subprocess !== 'function')
-                throw new Error('get_subprocess API unavailable');
-            this._managedSubprocess = this._managedClient.get_subprocess();
+                `query_window_belongs_to=${typeof this._managedClient?.query_window_belongs_to} ` +
+                `hide_from_window_list=${typeof this._managedClient?.hide_from_window_list} ` +
+                `show_in_window_list=${typeof this._managedClient?.show_in_window_list}`);
+            if (apiPath === 'new_subprocess') {
+                if (typeof this._managedClient?.get_subprocess !== 'function')
+                    throw new Error('get_subprocess API unavailable');
+                this._managedSubprocess = this._managedClient.get_subprocess();
+            } else {
+                if (typeof this._managedClient?.spawnv !== 'function')
+                    throw new Error('spawnv API unavailable for old constructor path');
+                this._managedSubprocess = this._managedClient.spawnv(
+                    global.display, config.argv);
+            }
             if (!this._managedSubprocess)
-                throw new Error('get_subprocess returned no process');
+                throw new Error('managed launch returned no subprocess');
             if (typeof this._managedClient?.query_window_belongs_to !== 'function')
                 throw new Error('query_window_belongs_to API unavailable');
+            console.log(`[GrayHaired Desktop Layer][ManagedClient] API path=${apiPath}`);
             console.log('[GrayHaired Desktop Layer][ManagedClient] GrayHaired process launched');
             const process = this._managedSubprocess;
             process.wait_async(null, (subprocess, result) => {
@@ -294,7 +324,8 @@ export default class GrayHairedDesktopLayerExtension extends Extension {
                 }
             });
         } catch (error) {
-            console.warn(`[GrayHaired Desktop Layer][ManagedClient] launch failed: ${error.message}`);
+            console.warn('[GrayHaired Desktop Layer][ManagedClient] OWNERSHIP FAIL; ' +
+                `managed launch failed: ${error.message}`);
             this._stopManagedClient();
         }
     }

@@ -86,11 +86,26 @@ def test_managed_client_experiment_uses_gnome_46_ownership_api():
 
     assert "const MANAGED_CLIENT_EXPERIMENT = true;" in source
     assert "Meta.WaylandClient.new_subprocess(" in source
+    assert "Meta.WaylandClient.new(\n                        global.context, launcher)" in source
+    assert "Meta.WaylandClient.new(launcher)" in source
+    assert "this._managedClient.spawnv(\n                    global.display, config.argv)" in source
+    assert "typeof this._managedClient?.spawnv" in source
     assert "global.context, launcher, config.argv" in source
     assert "this._managedClient.get_subprocess()" in source
     assert "this._managedClient.query_window_belongs_to(window)" in source
     assert config["argv"][1:] == ["-m", "grayhaired_desktop.app"]
     assert config["argv"][0].endswith("/.venv/bin/python")
+
+
+def test_managed_client_has_no_ordinary_subprocess_fallback():
+    source = _source()
+
+    assert "new Gio.SubprocessLauncher" in source
+    assert "Gio.Subprocess.new" not in source
+    assert ".spawn(" not in source
+    assert "GLib.spawn" not in source
+    assert "no supported Meta.WaylandClient constructor" in source
+    assert "API path=${apiPath}" in source
 
 
 def test_managed_client_validates_identity_and_stops_only_its_process():
