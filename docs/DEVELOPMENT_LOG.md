@@ -6,8 +6,8 @@ This log records project-level development milestones and verification notes. It
 
 Status: Development-only relative-stacking prototype added; manual testing pending.
 
-- Confirmed the target as Zorin OS 18.1, GNOME Shell 46.0, with the current test
-  session on X11 and `zorin:GNOME` as the desktop environment.
+- Confirmed the target as Zorin OS 18.1 and GNOME Shell 46.0; Phase 1 completed
+  successfully in the intended native Wayland session.
 - Confirmed `zorin-desktop-icons@zorinos.com` (**Zorin Desktop Icons**) as the
   active provider. Its metadata names the original Desktop Icons extension, while
   installed headers confirm substantial DING-derived implementation code.
@@ -19,9 +19,9 @@ Status: Development-only relative-stacking prototype added; manual testing pendi
   required layer. Removed unverified absolute stack-position calls from the
   independent GNOME 46 prototype; it now tests a controlled `lower()` sequence,
   verifies the resulting full stack, and fails back on mismatch.
-- Replaced the invalid standalone-GJS probe with runtime `typeof` diagnostics
-  inside the extension's GNOME Shell context and a read-only bounded journal
-  collector. Prototype installation remains blocked pending a separate review.
+- Confirmed `list_all_windows()`, stack sorting, and `window-created` at runtime;
+  recorded both client identities and their starting stack. Phase 2 now lowers
+  only GrayHaired Desktop, verifies the result, and never mutates Zorin's window.
 - Added a stable Qt Wayland application ID and X11 `WM_CLASS` without changing
   QSettings identity. Nothing is installed or enabled automatically. Version
   remains 0.9.0, and Desktop Mode remains a pre-1.0 investigation item.

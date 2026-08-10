@@ -5,10 +5,11 @@
 This investigation remains open. Real testing has proved that pure Qt window
 hints do not provide the required GNOME desktop layer, but it has **not** proved
 that cooperation with the installed Zorin desktop-icon extension is impossible.
-A GNOME Shell prototype is included as uninstalled source, but installation and
-enablement are blocked pending the real GNOME 46 API report. The project remains
-version `0.9.0`, and a safe Zorin/Wayland Desktop Mode remains a pre-Version 1.0
-investigation requirement.
+A GNOME Shell prototype is included as manually installed development source.
+Phase 1 diagnostics are complete and the narrowly scoped Phase 2 experiment is
+ready for physical testing; normal application startup still installs or enables
+nothing. The project remains version `0.9.0`, and a safe Zorin/Wayland Desktop
+Mode remains a pre-Version 1.0 investigation requirement.
 
 The required order is:
 
@@ -209,165 +210,98 @@ Prototype source and deferred manual installation/removal steps are in
 [`gnome-extension/README.md`](../gnome-extension/README.md). Nothing in normal
 application startup installs or enables it.
 
-The prototype has two explicitly separated phases. **Phase 1** is the current
-safe diagnostic: `DIAGNOSTIC_ONLY` is a source constant set to `true`, and the
-active reconciliation path only discovers windows, reads identities/method
-availability, and sorts a copy of the current window list for logging. **Phase
-2** is unreachable stacking/geometry experiment code. It may be activated only
-by changing the constant to `false` in a later reviewed commit after Phase 1
-results are understood.
+Phase 1 is complete. The source now uses the clearly named
+`EXPERIMENT_MODE = true` switch for the narrowly scoped Phase 2 test. Changing
+this switch is the only source-level activation; normal application startup still
+does not install or enable the extension.
 
-### GNOME 46 API verification gate
+### Confirmed native-Wayland Phase 1 evidence
 
-The initial prototype incorrectly treated `get_stack_position()` and
-`set_stack_position()` as GNOME 46 `Meta.Window` methods. They are absent from the
-current official `Meta.Window` method list and from the inspected Zorin source,
-which uses `lower()` plus `global.display.sort_windows_by_stacking()`. The
-absolute-position design and every call to those methods have been removed.
+The safe diagnostic ran on Zorin OS 18.1, GNOME Shell 46.0, native Wayland, with
+Qt's `wayland` platform. It confirmed that
+`global.display.list_all_windows()` and
+`global.display.sort_windows_by_stacking()` are functions and that the
+`Meta.Display::window-created` signal is available in the live Shell context.
+`list_all_windows()` was the discovery API that exposed the already-running Zorin
+window hidden from Shell actor-list presentation APIs.
 
-The first diagnostic incorrectly launched standalone `gjs -c`. On the target,
-that process failed with `Typelib file for namespace 'Meta' ... not found` because
-Zorin does not expose Mutter's private Shell `Meta` namespace as a normal
-standalone typelib. This says nothing about methods on objects inside the running
-Shell, where extensions receive `Meta.Window` instances. The standalone import
-has been removed.
-
-The development extension now performs `typeof` checks inside GNOME Shell. Once
-this diagnostic-only source is reviewed and manually enabled, it logs the listed
-methods on real GrayHaired and Zorin `Meta.Window` instances, their compositor
-identities, `sort_windows_by_stacking` on the real `global.display`, and any
-enumerable stack/restack-related Display callables. The log prefix is
-`[GrayHaired Desktop Layer][API]`; it logs no Desktop Website content.
-
-The read-only collector now only retrieves those bounded Shell-context journal
-lines:
-
-```bash
-./scripts/collect-mutter-window-api.sh | tee mutter-window-api.txt
-```
-
-It does not import `Meta`, inject code into Shell, connect to a window, install,
-or enable anything. Before approved Phase 1 enablement, `(none found)` is the
-expected result.
-
-The evidence status is deliberately separated:
-
-- **confirmed by the official Mutter API:** `Meta.Window.lower()`, `raise()`,
-  `get_layer()`, `set_type()`, `stick()`/`unstick()`,
-  `hide_from_window_list()`/`show_in_window_list()`, and
-  `Meta.Display.sort_windows_by_stacking()`;
-- **also confirmed in installed Zorin code:** lowering, sticky/window-list
-  desktop treatment, map lifecycle, and stack sorting;
-- **not documented as `Meta.Window` API and unused by installed Zorin code:**
-  `get_stack_position()` and `set_stack_position()`;
-- **possibly present in another Mutter version:** irrelevant until the installed
-  live GNOME 46 object reports it; and
-- **to be verified inside the real Shell:** exact JavaScript method exposure and
-  signatures, both applications' observed identities, and other Display stack
-  callables; and
-- **still experimental:** the order produced by a controlled series of
-  `lower()` calls and its stability over later Shell events.
-
-### Native Wayland Phase 1 result
-
-The first safe diagnostic ran on Zorin OS 18.1, GNOME Shell 46.0, native Wayland,
-with Qt's `wayland` platform. GrayHaired Desktop appeared as:
+GrayHaired Desktop was observed as:
 
 ```text
 wmClass=tech.grayhaired.GrayHairedDesktop
 wmClassInstance=tech.grayhaired.GrayHairedDesktop
 gtkApplicationId=(null)
 title="GrayHaired Desktop"
+windowType=0
+layer=8
+skipTaskbar=false
+monitor=0
+sticky=false
 ```
 
-The stable identity work therefore succeeds through `WM_CLASS` and
-`WM_CLASS_INSTANCE`; the PySide6 window must not require a GTK application ID.
+The production GrayHaired matcher therefore uses the exact WM class or instance;
+it does not require a GTK application ID and never uses the title alone.
+
+Zorin Desktop Icons was observed as:
+
+```text
+wmClass=gjs
+wmClassInstance=gjs
+gtkApplicationId=com.rastersoft.ding
+title="Desktop Icons 1"
+windowType=0
+layer=2
+skipTaskbar=true
+monitor=0
+sticky=false
+```
+
+The production-quality Zorin matcher requires both
+`gtkApplicationId == "com.rastersoft.ding"` and the `Desktop Icons ` title
+prefix. The title is not sufficient by itself.
+
 The live `Meta.Window` exposed `lower`, `raise`, `get_layer`, `stick`, and
-`unstick`. It did not expose `set_type`, either window-list method, or either
-stack-position method. The live `global.display` exposed
-`sort_windows_by_stacking`. No unavailable method is part of the active design.
+`unstick`. It did not expose `set_type`, either window-list mutation method, or
+either stack-position method. No unavailable method is used. The observed
+bottom-to-top order before mutation was:
 
-The initial stack was only an observation of the ordinary, unmodified GrayHaired
-window. It was not a Desktop Mode result.
+```text
+Zorin Desktop Icons
+GrayHaired Desktop
+ordinary application windows
+```
 
-### Corrected icon-window discovery
+This was an ordinary starting state, not a Desktop Mode result.
 
-The initial run reported zero Zorin candidates because it enumerated through
-`global.get_window_actors()`. Zorin's `gnomeShellOverride.js` deliberately wraps
-that exact API and removes its desktop windows from the returned list. Their
-absence therefore did not show that the Wayland client windows were absent.
+### Phase 2 — GrayHaired-only lowering
 
-Phase 1 now performs both required read-only discovery paths:
+The first stacking experiment changes only one property of one window: it calls
+`grayWindow.lower()`. It does not resize or move GrayHaired Desktop and does not
+call any mutating method on a Zorin window. Discovery remains based primarily on
+`list_all_windows()`, merged by object identity with read-only actor,
+`window-created`, and map-event sources.
 
-1. **Already mapped:** enumerate direct children of `global.window_group`, retain
-   children that expose `get_meta_window()`, and merge the ordinary global actor
-   result only for compatibility. No child ordering is changed.
-2. **New or recreated:** use `global.window_manager.connect_after('map', ...)`,
-   obtain `windowActor.get_meta_window()`, log every map's safe identity, and
-   retain likely GrayHaired/Zorin references until their destroy event.
+Reconciliation remains event-driven for create/map/destroy, GrayHaired or icon
+raised events, workspace changes, and monitor changes. `GLib.idle_add()` only
+coalesces event bursts; there is no timer or polling loop. The extension suppresses
+its own raised-signal feedback while mutating.
 
-The second run still found no candidate through either actor source. Phase 1 now
-therefore probes the documented `Meta.Display.list_all_windows()` method and the
-`Meta.Display::window-created` signal on the live Shell object. Their actual
-GNOME 46 JavaScript exposure is not claimed until the next physical report:
+For each attempt it logs discovery, the relevant stack before, the
+`grayWindow.lower()` call, the stack after, and verification PASS or FAIL. Success
+requires GrayHaired's sorted index to be lower than every recognized Zorin icon
+index and every recognized taskbar-visible normal application to remain above the
+highest icon index. Unrelated desktop, utility, Shell, skip-taskbar, or
+unclassified windows do not cause a false failure.
 
-3. **Primary existing-window source when available:** call
-   `global.display.list_all_windows()`, merge its `Meta.Window` objects by object
-   identity with actor/map sources, and log a sanitized category count. If it is
-   undefined, log that fact and keep the existing fallbacks.
-4. **Newly created window source when available:** use the read-only
-   `global.display::window-created` callback to inspect the supplied
-   `Meta.Window`; retain only likely desktop candidates.
+On failure, the experiment disconnects per-window raised handlers, marks the
+attempt failed so later events cannot continuously retry, and restores GrayHaired
+Desktop's saved ordinary geometry, monitor, workspace stickiness, and raised
+state. Disabling performs the same GrayHaired-only restoration. Re-enabling is
+required for another attempt. The Zorin window is always observation-only.
 
-Current Mutter documentation describes `list_all_windows()`,
-`sort_windows_by_stacking()`, and `window-created`, but this investigation keeps
-documentation evidence separate from live GNOME Shell 46 exposure.
-
-Title prefixes are accepted only to discover candidates safely in Phase 1. The
-diagnostic logs title, window type, layer, skip-taskbar state, monitor, sticky
-state, workspace, PID, client type, all three identity fields, and method
-availability for likely desktop candidates. The list-all summary uses only
-sanitized categories and numeric type values for unknown special windows; normal
-application and private content titles are not printed. A future production
-matcher must use the identities observed at runtime and must not match title
-alone.
-
-The event-driven algorithm is:
-
-1. observe `global.window_manager` `map`/`destroy`, each managed window's
-   `raised` signal, active-workspace, Overview, and monitor changes;
-2. find GrayHaired Desktop only by its exact compositor ID;
-3. find Zorin icon windows only when both the observed Wayland GTK application ID
-   `com.rastersoft.ding` and `Desktop Icons ` prefix match—the title is never
-   sufficient by itself;
-4. if either party is absent, restore the saved GrayHaired geometry/workspace
-   state and leave it as an ordinary window;
-5. lower each icon window first, then lower GrayHaired Desktop last, based on the
-   conventional—but target-test-required—semantics that the most recently lowered
-   window becomes bottom-most; and
-6. use `global.display.sort_windows_by_stacking()` over the full client list to
-   verify that GrayHaired is below all icon windows, recognized ordinary normal
-   application windows are above the icons, and GrayHaired's compositor actor is
-   visible, falling back if an applicable invariant is false. Other desktop,
-   utility, Shell-related, skip-taskbar, or unclassified `Meta.Window` objects are
-   deliberately ignored rather than assumed to belong above the icons.
-
-Mutter's client-window stack remains authoritative; the prototype does not
-reparent window actors. `GLib.idle_add()` coalesces event bursts, but there is no
-timer, polling, or continuous restacking loop. It deliberately does not alter
-private Overview filters because a safe reversible API has not yet been proven;
-the window may appear in Overview during this experiment.
-
-The visibility check cannot directly compare a `Meta.Window` with the separate
-Shell background actor hierarchy; it only rejects an absent or hidden compositor
-actor. Physical visibility remains required evidence.
-
-The algorithm is testable because it extends the same GNOME 46 client-window
-model that Zorin demonstrates, not because a direct relative-stack API has been
-confirmed. It is not yet a product conclusion: the API report and target testing
-must show the real lowering semantics, whether Zorin's own lowering races or
-reverses the desired order, and whether focus, Show Desktop, recreation,
-workspace, and monitor events are complete.
+This Phase 2 mechanism is now ready for one controlled physical Wayland test; it
+is not declared successful in advance. Exact manual steps are maintained in
+[`gnome-extension/README.md`](../gnome-extension/README.md).
 
 ## Required behavior matrix
 
@@ -414,10 +348,8 @@ if the installed provider exposes a usable actor group or window lifecycle. The
 X11 session facts do not establish native-Wayland behavior, and Wayland security
 must remain intact.
 
-The revised conclusion is: **pure Qt is insufficient, and event-driven controlled
-lowering is a credible experiment, but no supported direct relative-stack API is
-yet confirmed**. Installation is blocked pending a separate source-review
-decision; after an approved manual enablement, the Shell-context API report and
-physical Wayland behavior—not source inspection alone—will decide whether the
-verified lowering sequence is reliable. Desktop Mode on Zorin/Wayland remains
+The revised conclusion is: **pure Qt is insufficient, while lowering only the
+identified GrayHaired client is now a concrete, minimal event-driven experiment**.
+Physical Wayland behavior—not source inspection alone—will decide whether its
+verified relative ordering is reliable. Desktop Mode on Zorin/Wayland remains
 under investigation for Version 1.0; Version 1.0 is not complete.

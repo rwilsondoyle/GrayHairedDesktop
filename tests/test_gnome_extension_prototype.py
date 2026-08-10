@@ -37,42 +37,41 @@ def test_runtime_api_diagnostic_runs_only_in_shell_context():
     ).read_text()
 
     assert "[GrayHaired Desktop Layer][API]" in source
+    assert "[GrayHaired Desktop Layer][Phase2]" in source
     assert "typeof window[name]" in source
     assert "typeof global.display[name]" in source
     assert "gjs" not in collector
     assert "journalctl" in collector
 
 
-def test_diagnostic_only_reconciliation_cannot_mutate_windows():
+def test_phase_two_mutates_only_grayhaired_stacking():
     source = (EXTENSION / "extension.js").read_text()
-    reconcile = source.split("    _reconcile() {", 1)[1].split(
-        "    _runStackingExperiment", 1
+    experiment = source.split("    _runStackingExperiment", 1)[1].split(
+        "    _supportsRelativeStacking", 1
     )[0]
-    diagnostic_guard = reconcile.index("if (DIAGNOSTIC_ONLY)")
-    experiment_call = reconcile.index("this._runStackingExperiment")
-    disable = source.split("    disable() {", 1)[1].split("    _connect(", 1)[0]
+    gray_identity = source.split("function isGrayHairedWindow", 1)[1].split(
+        "function isZorinDesktopIconsWindow", 1
+    )[0]
 
-    assert "const DIAGNOSTIC_ONLY = true;" in source
-    assert diagnostic_guard < experiment_call
-    assert "return;" in reconcile[diagnostic_guard:experiment_call]
-    assert "if (!DIAGNOSTIC_ONLY)\n            this._restoreOrdinaryWindow();" in disable
+    assert "const EXPERIMENT_MODE = true;" in source
+    assert source.count("grayWindow.lower();") == 1
+    assert ".lower();" not in experiment.replace("grayWindow.lower();", "")
+    assert "_applyDesktopGeometry" not in source
+    assert "get_gtk_application_id" not in gray_identity
+    assert "set_child_above_sibling" not in source
+    assert "set_child_below_sibling" not in source
     assert "global.window_group.get_children()" in source
     assert "connect_after(signal, callback)" in source
     assert "this._inspectMappedActor(actor);" in source
     assert "global.display.list_all_windows()" in source
     assert "'window-created', Meta.Display.$gtype" in source
     assert "this._inspectCreatedWindow(window);" in source
-    assert "set_child_above_sibling" not in source
-    assert "set_child_below_sibling" not in source
-    for method in (
-        "lower",
-        "raise",
-        "stick",
-        "unstick",
-        "move_resize_frame",
-        "move_to_monitor",
-        "set_type",
-        "hide_from_window_list",
-        "show_in_window_list",
-    ):
-        assert re.search(rf"\.{method}\s*\(", reconcile) is None
+
+
+def test_phase_two_has_no_polling_or_unverified_stack_calls():
+    source = (EXTENSION / "extension.js").read_text()
+
+    assert re.search(r"\.get_stack_position\s*\(", source) is None
+    assert re.search(r"\.set_stack_position\s*\(", source) is None
+    assert "setInterval" not in source
+    assert "setTimeout" not in source

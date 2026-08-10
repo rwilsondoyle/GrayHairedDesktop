@@ -15,8 +15,8 @@ GNOME 46's documented `Meta.Window` surface includes `lower()` and `raise()`, an
 incorrectly assumed absolute `get_stack_position()` and `set_stack_position()`
 methods; those calls have been removed.
 
-The corrected experiment lowers every recognized Zorin icon window first and
-GrayHaired Desktop last, then uses Mutter's sorted full window list to verify:
+The Phase 2 experiment calls `lower()` only on GrayHaired Desktop, then uses
+Mutter's sorted full window list to verify:
 
 1. GrayHaired Desktop is below every icon window; and
 2. recognized ordinary, taskbar-visible normal application windows are above the
@@ -27,11 +27,9 @@ not cause failure merely because they occupy another low stack position. A
 visible compositor actor is checked, but only physical testing can prove that the
 separate Shell background actor is not obscuring GrayHaired Desktop.
 
-This sequence relies on the experimental premise that the most recently lowered
-window becomes bottom-most. The verification—not that premise—is authoritative.
-If the API is unavailable, an identity is missing, or verification fails, the
-prototype restores GrayHaired Desktop's saved geometry/workspace behavior and
-raises it as an ordinary window.
+The Zorin icon windows remain observation-only. If the API is unavailable, an
+identity is missing, or verification fails, the prototype restores GrayHaired
+Desktop's saved geometry/workspace behavior and raises it as an ordinary window.
 
 Reconciliation is event-driven for map/destroy, raised, workspace, Overview, and
 monitor changes. There is no polling loop. This initial prototype does not use
@@ -43,57 +41,65 @@ GrayHaired and Zorin `Meta.Window` objects, their compositor identity fields, an
 stack-related methods on the actual `global.display`. Standalone GJS is not used;
 on this Zorin release it cannot import Shell's private `Meta` namespace.
 
-The first native-Wayland run confirmed GrayHaired Desktop as
+The completed native-Wayland diagnostics confirmed GrayHaired Desktop as
 `tech.grayhaired.GrayHairedDesktop` in both WM class fields with a null GTK
 application ID. It also confirmed `lower`, `raise`, `get_layer`, `stick`,
 `unstick`, and Display stack sorting, while `set_type`, window-list mutation, and
 absolute stack-position methods were undefined. That run could not see Zorin's
-windows because Zorin filters them from `global.get_window_actors()`; the direct
-window-group and map-event discovery paths below correct that blind spot.
+windows through filtered actor APIs. `list_all_windows()` solved that blind spot
+and found Zorin's `com.rastersoft.ding` client window.
 
-## Phase 1 — safe diagnostic
+## Phase 1 — safe diagnostic (complete)
 
-`DIAGNOSTIC_ONLY` defaults to `true`. In this mode, enabling the extension only
-connects read-only lifecycle signals, discovers candidate windows, logs their
-identities and method availability, and logs the current relevant Mutter order.
-It does not call window mutation methods or change Zorin Desktop Icons.
+The native-Wayland diagnostic confirmed that `list_all_windows()` and
+`sort_windows_by_stacking()` are functions and that `window-created` is exposed.
+It found the identities recorded above and the initial bottom-to-top order:
+Zorin icons, GrayHaired Desktop, then ordinary applications.
 
-Initial discovery reads compositor actors directly from
-`global.window_group.get_children()` because Zorin filters its desktop actors out
-of `global.get_window_actors()`. Later and recreated windows are observed through
-`global.window_manager.connect_after('map', ...)`. Both paths only call getters;
-they do not reorder actors or mutate windows.
+## Phase 2 — GrayHaired-only lowering experiment
 
-Because the second physical run still found no Zorin candidate through either
-actor path, the diagnostic now probes `global.display.list_all_windows()` as its
-primary initial `Meta.Window` source when that function is exposed. It also
-connects read-only to `global.display::window-created` when GObject reports the
-signal. The log reports both API availability results, a sanitized category/count
-summary, and detailed desktop-candidate fields without printing normal
-application titles.
+`EXPERIMENT_MODE` now defaults to `true`. The experiment retains all read-only
+logging and discovery, but its only initial stacking mutation is
+`grayWindow.lower()`. It never calls a mutating method on a Zorin icon window and
+does not resize GrayHaired Desktop for this first stacking test.
 
-After this source change is reviewed, the exact manual Phase 1 procedure is:
+After the source change is reviewed, use two terminals in the normal Zorin
+Wayland session.
+
+First update the per-user development extension and enable it:
 
 ```bash
+gnome-extensions disable grayhaired-desktop-layer@grayhaired.tech 2>/dev/null || true
+rm -rf ~/.local/share/gnome-shell/extensions/grayhaired-desktop-layer@grayhaired.tech
 mkdir -p ~/.local/share/gnome-shell/extensions
 cp -a gnome-extension/grayhaired-desktop-layer@grayhaired.tech \
   ~/.local/share/gnome-shell/extensions/
 gnome-extensions enable grayhaired-desktop-layer@grayhaired.tech
+```
+
+If GNOME does not discover the new source, log out and back into Wayland, then
+run the enable command. In terminal 1, start GrayHaired Desktop:
+
+```bash
 ./scripts/run.sh
+```
+
+While it remains open, use terminal 2 to collect the Phase 2 evidence and then
+disable the extension so restoration can be observed:
+
+```bash
 ./scripts/collect-mutter-window-api.sh | tee mutter-window-api.txt
 gnome-extensions disable grayhaired-desktop-layer@grayhaired.tech
+```
+
+Confirm that the journal contains the discovered identities, stack before,
+`grayWindow.lower()`, stack after, and PASS or FAIL line. Confirm that disabling
+returns GrayHaired Desktop to ordinary behavior. Then close the application and
+remove only the development extension source:
+
+```bash
 rm -rf ~/.local/share/gnome-shell/extensions/grayhaired-desktop-layer@grayhaired.tech
 ```
 
-If GNOME does not discover newly copied source, log out and back into the normal
-Zorin Wayland session before enabling it. Run GrayHaired Desktop long enough for
-both its window and the icon windows to be present, then close it before disabling
-and removing the diagnostic extension. No root access or reboot is required.
-These steps are documented for the next reviewed phase; do not run them yet.
-
-## Phase 2 — stacking experiment
-
-Phase 2 is blocked until `mutter-window-api.txt` and the initial stack report have
-been reviewed. A later reviewed commit would change `DIAGNOSTIC_ONLY` to `false`
-and only then exercise geometry, workspace, lowering, verification, and fallback
-code. No Phase 2 activation instructions are provided here.
+No root access, reboot, automatic installation, or Zorin extension change is
+required.

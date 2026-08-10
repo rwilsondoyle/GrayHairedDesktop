@@ -2,7 +2,7 @@
 # Read-only collector for API diagnostics emitted inside the GNOME Shell process.
 set -u
 
-prefix='[GrayHaired Desktop Layer][API]'
+prefix='[GrayHaired Desktop Layer]'
 printf '%s\n' 'GrayHaired Desktop: GNOME Shell runtime API log collector'
 printf 'GNOME Shell: '
 if command -v gnome-shell >/dev/null 2>&1; then
@@ -16,7 +16,7 @@ if ! command -v journalctl >/dev/null 2>&1; then
     exit 1
 fi
 
-printf '%s\n' 'Runtime API lines from the current boot (maximum 120):'
+printf '%s\n' 'Runtime API and Phase 2 lines from the current boot (maximum 120):'
 lines="$({
     journalctl --user -b --no-pager -o cat -n 3000 2>/dev/null || true
     journalctl -b --no-pager -o cat -n 3000 _COMM=gnome-shell 2>/dev/null || true

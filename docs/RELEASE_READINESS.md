@@ -178,10 +178,9 @@ EWMH offers a desktop type and a below state, but pure Qt exposes no standard or
 between GNOME's background and the icon provider. Testing demonstrated both sides
 of that Qt limit: the desktop-type attempt was hidden below GNOME's desktop
 surface, while the normal stays-below attempt was above and hid the icons. A
-development-only GNOME 46 prototype now tests whether a controlled sequence of
-real `lower()` calls can cooperate safely with the actual Zorin extension. Its
-result is verified with Mutter's sorted full window list; installation remains
-blocked until the target API probe is reviewed.
+development-only GNOME 46 prototype now tests whether lowering only the verified
+GrayHaired window can place it beneath the verified Zorin icon window. Its result
+is checked with Mutter's sorted full window list, and Zorin remains unmodified.
 
 The application now treats Zorin/GNOME sessions—including X11/`xcb`—as
 unsupported and uses the safe normal/windowed fallback. This preserves the user's
