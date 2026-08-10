@@ -8,7 +8,7 @@ import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 const GRAYHAIRED_APP_ID = 'tech.grayhaired.GrayHairedDesktop';
 const ZORIN_WAYLAND_APP_ID = 'com.rastersoft.ding';
 const ZORIN_TITLE_PREFIX = 'Desktop Icons ';
-const ACTOR_DIAGNOSTIC_ONLY = true;
+const ACTOR_EXPERIMENT_MODE = true;
 const WINDOW_API_NAMES = [
     'lower',
     'raise',
@@ -60,17 +60,16 @@ function isZorinDiagnosticCandidate(window) {
 export default class GrayHairedDesktopLayerExtension extends Extension {
     enable() {
         this._signals = [];
-        this._windowSignals = new Map();
-        this._managed = null;
         this._idleId = 0;
-        this._stacking = false;
         this._loggedApiWindows = new WeakSet();
         this._loggedDetailedWindows = new WeakSet();
         this._loggedSpecialWindows = new WeakSet();
         this._lastOrderSummary = null;
         this._lastAllWindowsSummary = null;
         this._mappedDiagnosticWindows = new Set();
-        this._experimentFailed = false;
+        this._actorExperimentFailed = false;
+        this._actorMutationAttempted = false;
+        this._actorRestore = null;
         this._lastActorHierarchySummary = null;
 
         this._connectAfter(global.window_manager, 'map', (_manager, actor) => {
@@ -108,10 +107,8 @@ export default class GrayHairedDesktopLayerExtension extends Extension {
         for (const [object, id] of this._signals)
             object.disconnect(id);
         this._signals = [];
-        this._disconnectWindowSignals();
-        if (!ACTOR_DIAGNOSTIC_ONLY)
-            this._restoreOrdinaryWindow();
-        this._managed = null;
+        if (ACTOR_EXPERIMENT_MODE)
+            this._restoreActorOrder();
         this._mappedDiagnosticWindows.clear();
         console.log('[GrayHaired Desktop Layer] disabled');
     }
@@ -227,112 +224,13 @@ export default class GrayHairedDesktopLayerExtension extends Extension {
         iconCandidates.forEach(window =>
             this._logWindowRuntimeApis('ZorinIconsCandidate', window, true));
 
-        if (ACTOR_DIAGNOSTIC_ONLY) {
-            this._logCurrentOrder(windows, grayCandidates, iconCandidates);
+        this._logCurrentOrder(windows, grayCandidates, iconCandidates);
+        if (!ACTOR_EXPERIMENT_MODE) {
             this._logActorHierarchy(grayWindow, iconWindows);
             return;
         }
 
-        this._runStackingExperiment(grayWindow, iconWindows);
-    }
-
-    _runStackingExperiment(grayWindow, iconWindows) {
-        if (!grayWindow || iconWindows.length === 0) {
-            this._disconnectWindowSignals();
-            this._restoreOrdinaryWindow();
-            if (grayWindow)
-                console.log('[GrayHaired Desktop Layer] Zorin icon windows unavailable; fallback active');
-            return;
-        }
-
-        if (this._experimentFailed) {
-            console.warn('[GrayHaired Desktop Layer][Phase2] previous verification failed; re-enable to retry');
-            return;
-        }
-
-        console.log('[GrayHaired Desktop Layer][Phase2] discovered ' +
-            `GrayHaired=true ZorinIcons=${iconWindows.length}`);
-
-        if (!this._managed || this._managed.window !== grayWindow) {
-            this._restoreOrdinaryWindow();
-            this._managed = {
-                window: grayWindow,
-                frame: grayWindow.get_frame_rect(),
-                monitor: grayWindow.get_monitor(),
-                wasSticky: grayWindow.is_on_all_workspaces(),
-            };
-        }
-
-        if (!this._supportsRelativeStacking(grayWindow, iconWindows)) {
-            console.warn('[GrayHaired Desktop Layer] required Mutter stack APIs unavailable; fallback active');
-            this._disconnectWindowSignals();
-            this._restoreOrdinaryWindow();
-            return;
-        }
-
-        this._watchWindows(grayWindow, iconWindows);
-        const before = this._relevantStackSummary(grayWindow, iconWindows);
-        console.log(`[GrayHaired Desktop Layer][Phase2] stack before=${before}`);
-
-        // The first experiment mutates only GrayHaired Desktop. Zorin's icon
-        // windows remain observation-only.
-        this._stacking = true;
-        console.log('[GrayHaired Desktop Layer][Phase2] calling grayWindow.lower()');
-        grayWindow.lower();
-        this._stacking = false;
-
-        const after = this._relevantStackSummary(grayWindow, iconWindows);
-        console.log(`[GrayHaired Desktop Layer][Phase2] stack after=${after}`);
-        if (!this._hasRequiredOrder(grayWindow, iconWindows)) {
-            console.warn('[GrayHaired Desktop Layer][Phase2] verification FAIL; restoring ordinary window');
-            this._experimentFailed = true;
-            this._disconnectWindowSignals();
-            this._stacking = true;
-            this._restoreOrdinaryWindow();
-            this._stacking = false;
-            return;
-        }
-        console.log('[GrayHaired Desktop Layer][Phase2] verification PASS');
-    }
-
-    _supportsRelativeStacking(grayWindow, iconWindows) {
-        return typeof global.display.sort_windows_by_stacking === 'function' &&
-            typeof grayWindow.lower === 'function' && iconWindows.length > 0;
-    }
-
-    _hasRequiredOrder(grayWindow, iconWindows) {
-        const allWindows = global.display.sort_windows_by_stacking(this._windows());
-        const grayIndex = allWindows.indexOf(grayWindow);
-        const iconIndexes = iconWindows.map(window => allWindows.indexOf(window));
-        if (grayIndex < 0 || iconIndexes.some(index => index <= grayIndex))
-            return false;
-
-        const highestIconIndex = Math.max(...iconIndexes);
-        const managedWindows = new Set([grayWindow, ...iconWindows]);
-        const ordinaryWindowsAreAbove = allWindows.every((window, index) => {
-            if (managedWindows.has(window) || !this._isOrdinaryUserWindow(window))
-                return true;
-            return index > highestIconIndex;
-        });
-        const actor = grayWindow.get_compositor_private();
-        return ordinaryWindowsAreAbove && actor !== null && actor.visible;
-    }
-
-    _relevantStackSummary(grayWindow, iconWindows) {
-        const graySet = new Set([grayWindow]);
-        const iconSet = new Set(iconWindows);
-        return global.display.sort_windows_by_stacking(this._windows())
-            .map(window => {
-                if (graySet.has(window))
-                    return 'GrayHaired';
-                if (iconSet.has(window))
-                    return 'ZorinIcons';
-                if (this._isOrdinaryUserWindow(window))
-                    return 'NormalApplication';
-                return null;
-            })
-            .filter(label => label !== null)
-            .join('<');
+        this._runActorExperiment(grayWindow, iconWindows);
     }
 
     _actorType(actor) {
@@ -416,6 +314,149 @@ export default class GrayHairedDesktopLayerExtension extends Extension {
             return;
         this._lastActorHierarchySummary = summary;
         console.log(`[GrayHaired Desktop Layer][ActorDiagnostic] ${summary}`);
+    }
+
+    _compositorActors(grayWindow, iconWindows) {
+        const grayActor = grayWindow &&
+            typeof grayWindow.get_compositor_private === 'function'
+            ? grayWindow.get_compositor_private()
+            : null;
+        const iconActors = iconWindows.map(window =>
+            typeof window.get_compositor_private === 'function'
+                ? window.get_compositor_private()
+                : null);
+        return {grayActor, iconActors};
+    }
+
+    _actorOrderSummary(parent, grayActor, iconActors) {
+        if (!parent || typeof parent.get_children !== 'function')
+            return '(unavailable)';
+        const graySet = new Set([grayActor]);
+        const iconSet = new Set(iconActors);
+        return parent.get_children()
+            .map(actor => {
+                if (graySet.has(actor))
+                    return 'GrayHaired';
+                if (iconSet.has(actor))
+                    return 'ZorinIcons';
+                return null;
+            })
+            .filter(label => label !== null)
+            .join('<');
+    }
+
+    _metaWindowOrderSummary(grayWindow, iconWindows) {
+        const graySet = new Set([grayWindow]);
+        const iconSet = new Set(iconWindows);
+        return global.display.sort_windows_by_stacking(this._windows())
+            .map(window => {
+                if (graySet.has(window))
+                    return 'GrayHaired';
+                if (iconSet.has(window))
+                    return 'ZorinIcons';
+                if (this._isOrdinaryUserWindow(window))
+                    return 'NormalApplication';
+                return null;
+            })
+            .filter(label => label !== null)
+            .join('<');
+    }
+
+    _runActorExperiment(grayWindow, iconWindows) {
+        if (!grayWindow || iconWindows.length === 0 || this._actorExperimentFailed)
+            return;
+        const {grayActor, iconActors} = this._compositorActors(grayWindow, iconWindows);
+        if (!grayActor || iconActors.some(actor => !actor))
+            return;
+        const parent = grayActor.get_parent();
+        const sameParent = Boolean(parent &&
+            iconActors.every(actor => actor.get_parent() === parent));
+        console.log(`[GrayHaired Desktop Layer][ActorPhase2] discovered sameParent=${sameParent}`);
+        if (!sameParent || typeof parent.get_children !== 'function' ||
+            typeof parent.set_child_below_sibling !== 'function') {
+            console.warn('[GrayHaired Desktop Layer][ActorPhase2] verification FAIL; hierarchy unsupported');
+            this._actorExperimentFailed = true;
+            return;
+        }
+
+        const beforeChildren = parent.get_children();
+        const before = this._actorOrderSummary(parent, grayActor, iconActors);
+        const metaBefore = this._metaWindowOrderSummary(grayWindow, iconWindows);
+        console.log(`[GrayHaired Desktop Layer][ActorPhase2] ActorOrder before=${before}`);
+        console.log(`[GrayHaired Desktop Layer][ActorPhase2] MetaWindowOrder before=${metaBefore}`);
+        const grayIndex = beforeChildren.indexOf(grayActor);
+        const iconIndexes = iconActors.map(actor => beforeChildren.indexOf(actor));
+        if (grayIndex >= 0 && iconIndexes.every(index => index > grayIndex)) {
+            console.log('[GrayHaired Desktop Layer][ActorPhase2] Actor order already correct');
+            return;
+        }
+        if (this._actorMutationAttempted) {
+            console.warn('[GrayHaired Desktop Layer][ActorPhase2] order changed; not repeating mutation');
+            return;
+        }
+
+        const targetActor = iconActors.reduce((lowest, actor) =>
+            beforeChildren.indexOf(actor) < beforeChildren.indexOf(lowest)
+                ? actor
+                : lowest);
+        this._actorRestore = {
+            actor: grayActor,
+            parent,
+            previous: grayActor.get_previous_sibling(),
+            next: grayActor.get_next_sibling(),
+        };
+        const ordinaryBefore = beforeChildren.filter(actor => {
+            if (typeof actor.get_meta_window !== 'function')
+                return false;
+            const window = actor.get_meta_window();
+            return window && this._isOrdinaryUserWindow(window);
+        });
+        console.log('[GrayHaired Desktop Layer][ActorPhase2] calling ' +
+            'parent.set_child_below_sibling(grayActor, zorinActor)');
+        this._actorMutationAttempted = true;
+        parent.set_child_below_sibling(grayActor, targetActor);
+
+        const afterChildren = parent.get_children();
+        const afterGrayIndex = afterChildren.indexOf(grayActor);
+        const afterIconIndexes = iconActors.map(actor => afterChildren.indexOf(actor));
+        const ordinaryAfter = afterChildren.filter(actor => ordinaryBefore.includes(actor));
+        const sameParentAfter = grayActor.get_parent() === parent &&
+            iconActors.every(actor => actor.get_parent() === parent);
+        const visible = grayActor.visible && iconActors.every(actor => actor.visible);
+        const ordinaryUnchanged = ordinaryBefore.length === ordinaryAfter.length &&
+            ordinaryBefore.every((actor, index) => actor === ordinaryAfter[index]);
+        const passed = sameParentAfter && visible && ordinaryUnchanged &&
+            afterGrayIndex >= 0 && afterIconIndexes.every(index => index > afterGrayIndex);
+        console.log(`[GrayHaired Desktop Layer][ActorPhase2] ActorOrder after=${
+            this._actorOrderSummary(parent, grayActor, iconActors)}`);
+        console.log(`[GrayHaired Desktop Layer][ActorPhase2] MetaWindowOrder after=${
+            this._metaWindowOrderSummary(grayWindow, iconWindows)}`);
+        console.log(`[GrayHaired Desktop Layer][ActorPhase2] verification ${passed ? 'PASS' : 'FAIL'}`);
+        if (!passed) {
+            this._actorExperimentFailed = true;
+            this._restoreActorOrder();
+        }
+    }
+
+    _restoreActorOrder() {
+        if (!this._actorRestore)
+            return;
+        const {actor, parent, previous, next} = this._actorRestore;
+        this._actorRestore = null;
+        if (actor.get_parent() !== parent || typeof parent.get_children !== 'function')
+            return;
+        const children = parent.get_children();
+        if (previous && children.includes(previous) &&
+            typeof parent.set_child_above_sibling === 'function') {
+            parent.set_child_above_sibling(actor, previous);
+            console.log('[GrayHaired Desktop Layer][ActorPhase2] restored GrayHaired above prior sibling');
+        } else if (next && children.includes(next) &&
+            typeof parent.set_child_below_sibling === 'function') {
+            parent.set_child_below_sibling(actor, next);
+            console.log('[GrayHaired Desktop Layer][ActorPhase2] restored GrayHaired below prior sibling');
+        } else {
+            console.warn('[GrayHaired Desktop Layer][ActorPhase2] restore unavailable; log out/in if ordering looks wrong');
+        }
     }
 
     _isOrdinaryUserWindow(window) {
@@ -551,43 +592,5 @@ export default class GrayHairedDesktopLayerExtension extends Extension {
         console.log(`[GrayHaired Desktop Layer][API] CurrentStack bottom-to-top=${summary}`);
     }
 
-    _watchWindows(grayWindow, iconWindows) {
-        const wanted = new Set([grayWindow, ...iconWindows]);
-        for (const [window, id] of this._windowSignals) {
-            if (!wanted.has(window)) {
-                window.disconnect(id);
-                this._windowSignals.delete(window);
-            }
-        }
-        for (const window of wanted) {
-            if (!this._windowSignals.has(window))
-                this._windowSignals.set(window,
-                    window.connect('raised', () => {
-                        if (!this._stacking)
-                            this._queueReconcile();
-                    }));
-        }
-    }
 
-    _disconnectWindowSignals() {
-        if (!this._windowSignals)
-            return;
-        for (const [window, id] of this._windowSignals)
-            window.disconnect(id);
-        this._windowSignals.clear();
-    }
-
-    _restoreOrdinaryWindow() {
-        if (!this._managed)
-            return;
-        const {window, frame, monitor, wasSticky} = this._managed;
-        if (window.get_compositor_private() !== null) {
-            if (!wasSticky && window.is_on_all_workspaces())
-                window.unstick();
-            window.move_to_monitor(monitor);
-            window.move_resize_frame(false, frame.x, frame.y, frame.width, frame.height);
-            window.raise();
-        }
-        this._managed = null;
-    }
 }

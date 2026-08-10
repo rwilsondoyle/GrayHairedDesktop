@@ -22,8 +22,9 @@ Status: Development-only relative-stacking prototype added; manual testing pendi
 - Confirmed `list_all_windows()`, stack sorting, and `window-created` at runtime;
   recorded both client identities and their starting stack. Lowering only
   GrayHaired did not change the order; verification failed and fallback worked.
-- Returned the extension to read-only mode to report both compositor actors,
-  their parents, sibling positions, neighboring categories, and ordering APIs.
+- Confirmed both Wayland window actors share one `MetaWindowGroup` and expose the
+  sibling APIs. Added a single GrayHaired-only actor-order experiment with saved
+  sibling restoration; Meta.Window ordering remains observation-only.
 - Added a stable Qt Wayland application ID and X11 `WM_CLASS` without changing
   QSettings identity. Nothing is installed or enabled automatically. Version
   remains 0.9.0, and Desktop Mode remains a pre-1.0 investigation item.

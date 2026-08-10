@@ -179,8 +179,9 @@ between GNOME's background and the icon provider. Testing demonstrated both side
 of that Qt limit: the desktop-type attempt was hidden below GNOME's desktop
 surface, while the normal stays-below attempt was above and hid the icons. A
 lower-only GNOME 46 experiment did not change the verified order and restored the
-ordinary GrayHaired window successfully. The current development mode only reads
-the two compositor actors and their hierarchy; Zorin remains unmodified.
+ordinary GrayHaired window successfully. The current development mode reads the
+proven shared compositor hierarchy and conditionally moves only the GrayHaired
+actor below Zorin; Zorin remains unmodified.
 
 The application now treats Zorin/GNOME sessions—including X11/`xcb`—as
 unsupported and uses the safe normal/windowed fallback. This preserves the user's

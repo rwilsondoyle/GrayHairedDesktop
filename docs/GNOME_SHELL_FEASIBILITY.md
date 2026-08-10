@@ -6,11 +6,11 @@ This investigation remains open. Real testing has proved that pure Qt window
 hints do not provide the required GNOME desktop layer, but it has **not** proved
 that cooperation with the installed Zorin desktop-icon extension is impossible.
 A GNOME Shell prototype is included as manually installed development source.
-The lower-only Phase 2 experiment failed safely, and the current mode is a
-read-only compositor-actor hierarchy diagnostic. Normal application startup
-still installs or enables nothing. The project remains version `0.9.0`, and a
-safe Zorin/Wayland Desktop Mode remains a pre-Version 1.0 investigation
-requirement.
+The lower-only Phase 2 experiment failed safely. Actor diagnostics then confirmed
+a shared compositor group, so the current mode is a single controlled actor-order
+experiment. Normal application startup still installs or enables nothing. The
+project remains version `0.9.0`, and a safe Zorin/Wayland Desktop Mode remains a
+pre-Version 1.0 investigation requirement.
 
 The required order is:
 
@@ -291,33 +291,64 @@ confirms that `Meta.Window.lower()` by itself is insufficient in the tested
 Zorin/GNOME Wayland compositor state. No repeated calls, delay, polling, or Zorin
 window mutation is justified by this result.
 
-### Current read-only actor diagnostic
+### Confirmed actor hierarchy
 
-The extension has returned to safe observation with
-`ACTOR_DIAGNOSTIC_ONLY = true`. Starting from the proven `Meta.Window` objects
-returned by `global.display.list_all_windows()`, it calls
-`get_compositor_private()` when available to obtain the real compositor actors.
-It does not rely on Zorin's filtered global actor-list API.
+The next native-Wayland diagnostic obtained both actors through the proven
+`Meta.Window.get_compositor_private()` relationship:
 
-For GrayHaired and every recognized Zorin actor it logs the actor type, parent
-type and name, sibling index, sanitized previous/next sibling category, and
-availability of `get_parent`, `get_previous_sibling`, and `get_next_sibling`.
-For each Zorin actor it also reports whether its parent is exactly the same object
-as GrayHaired's parent. Finally it reports whether that parent exposes
-`set_child_below_sibling`, `set_child_above_sibling`, and
-`set_child_at_index`—without calling any of them.
+- GrayHaired Desktop: `MetaWindowActorWayland`;
+- Zorin Desktop Icons: `MetaWindowActorWayland`;
+- common parent type: `MetaWindowGroup`;
+- exact parent identity: `grayAndZorin0.sameParent=true`.
 
-This mode performs no window lower/raise, stickiness, geometry, focus, type, or
-window-list mutation and no actor reordering. It only reads relationships and
-logs sanitized categories.
+Both actors expose `get_parent`, `get_previous_sibling`, and
+`get_next_sibling`. Their shared parent exposes `set_child_below_sibling`,
+`set_child_above_sibling`, and `set_child_at_index`.
 
-If physical evidence shows a common parent and the expected method, a later
-reviewed experiment may call
-`parent.set_child_below_sibling(grayActor, zorinActor)` once and immediately
-verify actor sibling order, Mutter's sorted window order, and visible behavior.
-That call is not active now. Actor-only ordering may also be temporary if Mutter
-later reasserts its authoritative client-window stack, so a single success would
-not yet establish the final architecture.
+One snapshot placed GrayHaired at sibling index 1 with the Zorin actor next, and
+Zorin at index 2 with GrayHaired previous. Thus the actor hierarchy already had
+GrayHaired below Zorin even though `sort_windows_by_stacking()` reported Zorin
+below GrayHaired. This confirms that visual Clutter actor order and Meta.Window
+stack order are not necessarily identical on this setup.
+
+### Controlled actor-order experiment
+
+`ACTOR_EXPERIMENT_MODE = true` enables the smallest actor-level test. It obtains
+both actors from the production-matched Meta.Windows and requires one shared
+parent. Before mutation it logs sanitized actor order and Meta.Window order
+separately.
+
+If GrayHaired's child index is already lower than every Zorin actor index, it logs
+**Actor order already correct** and does nothing. Otherwise the only initial
+mutation is:
+
+```javascript
+parent.set_child_below_sibling(grayActor, zorinActor);
+```
+
+It never invokes `Meta.Window.lower()`/`raise()`, never directly reorders the
+Zorin actor, never uses `set_child_at_index()`, and makes no geometry, workspace,
+focus, type, or window-list change.
+
+Immediate verification requires a common parent, visible GrayHaired and Zorin
+actors, GrayHaired below every icon actor in the parent's child array, and
+unchanged relative ordering among ordinary application actors. Meta.Window order
+is logged before and after but is deliberately not a pass condition.
+
+Only one mutation is permitted per enablement. If a later meaningful event shows
+that Mutter changed the order again, the extension logs the change but does not
+repeat the mutation or fight the compositor.
+
+Before a mutation, the extension remembers GrayHaired's previous and next
+siblings. On failure or disable it restores GrayHaired above the surviving prior
+previous sibling or below the surviving prior next sibling. If neither anchor is
+safe, it makes no speculative change and logs logout/login as the development
+fallback.
+
+This remains a physical visual experiment, not a completed architecture. Mutter
+may later reassert its authoritative window stack even if one actor-order test
+works, so overview, focus, remap, monitor, and sustained behavior still require
+observation.
 
 ## Required behavior matrix
 
@@ -365,7 +396,7 @@ X11 session facts do not establish native-Wayland behavior, and Wayland security
 must remain intact.
 
 The revised conclusion is: **pure Qt and a single `Meta.Window.lower()` call are
-both insufficient on the tested target**. Actor hierarchy is now being observed
-without mutation to determine whether a later controlled sibling experiment is
-even structurally valid. Desktop Mode on Zorin/Wayland remains under
-investigation for Version 1.0; Version 1.0 is not complete.
+both insufficient, while the confirmed shared actor parent makes one controlled
+Clutter sibling-order test structurally valid**. Its visual and sustained result
+is not yet known. Desktop Mode on Zorin/Wayland remains under investigation for
+Version 1.0; Version 1.0 is not complete.

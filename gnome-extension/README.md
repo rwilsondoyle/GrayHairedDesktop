@@ -19,22 +19,36 @@ On Zorin OS 18.1, GNOME Shell 46.0, native Wayland:
 The Meta.Window-level lower-only mechanism is therefore insufficient on this
 physical compositor state. No loop, delay, retry, or Zorin mutation is added.
 
-## Current mode — read-only actor hierarchy diagnostic
+## Current mode — controlled actor-order experiment
 
-`ACTOR_DIAGNOSTIC_ONLY` defaults to `true`. The extension obtains the proven
-`Meta.Window` objects through `list_all_windows()` and calls the read-only
-`get_compositor_private()` relationship to discover their compositor actors.
-It logs:
+The read-only actor diagnostic confirmed that both windows use
+`MetaWindowActorWayland`, share one `MetaWindowGroup`, and expose the required
+sibling APIs. `ACTOR_EXPERIMENT_MODE` now defaults to `true`.
 
-- actor and parent types plus the parent name;
-- whether GrayHaired and each Zorin actor have exactly the same parent;
-- each actor's sibling index and sanitized previous/next sibling categories;
-- runtime availability of actor parent/previous/next getters; and
-- runtime availability of the parent's below/above/at-index ordering methods.
+On each meaningful event, the extension obtains the actors through the proven
+`Meta.Window.get_compositor_private()` relationship and reads their shared
+parent's child list. If GrayHaired's index is already below every Zorin actor, it
+logs **Actor order already correct** and performs no mutation. Otherwise its only
+initial ordering mutation is:
 
-It does not call any window mutation or actor sibling-ordering method. Normal
-application and Desktop Website titles are not logged. The old Phase 2 code
-remains unreachable for historical comparison only.
+```javascript
+parent.set_child_below_sibling(grayActor, zorinActor);
+```
+
+The Zorin actor is never the actor being moved, no `Meta.Window` is mutated, and
+no geometry, workspace, focus, or other sibling is directly changed. The result
+is verified from the parent child array, same-parent identity, actor visibility,
+and unchanged relative ordering among ordinary application actors. Mutter's
+separate Meta.Window order is logged before and after for comparison but is not a
+pass criterion.
+
+At most one actor mutation is attempted per enablement. If Mutter later changes
+the order, the extension reports it without repeatedly reordering the actor.
+
+Before mutation the extension remembers GrayHaired's previous and next siblings.
+Disablement or failed verification restores GrayHaired relative to a surviving
+remembered sibling. If neither recovery anchor remains, it logs that logout/login
+is the development fallback rather than guessing another position.
 
 ## Safe Wayland rerun
 
@@ -72,16 +86,3 @@ rm -rf ~/.local/share/gnome-shell/extensions/grayhaired-desktop-layer@grayhaired
 No root access, reboot, automatic installation, window mutation, or system Zorin
 extension change is required.
 
-## Possible later experiment — not active
-
-Only if the physical report proves that both actors share one parent and the
-parent exposes the required method may a later reviewed commit test:
-
-```javascript
-parent.set_child_below_sibling(grayActor, zorinActor);
-```
-
-That future test would immediately verify actor sibling order, Mutter window
-order, and visible behavior. It is not active here. Mutter may reassert its own
-window stack later, so even a one-time visual success would not yet prove a final
-architecture.
