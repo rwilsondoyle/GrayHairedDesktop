@@ -8,7 +8,7 @@ import * as Main from 'resource:///org/gnome/shell/ui/main.js';
 const GRAYHAIRED_APP_ID = 'tech.grayhaired.GrayHairedDesktop';
 const ZORIN_WAYLAND_APP_ID = 'com.rastersoft.ding';
 const ZORIN_TITLE_PREFIX = 'Desktop Icons ';
-const EXPERIMENT_MODE = true;
+const ACTOR_DIAGNOSTIC_ONLY = true;
 const WINDOW_API_NAMES = [
     'lower',
     'raise',
@@ -71,6 +71,7 @@ export default class GrayHairedDesktopLayerExtension extends Extension {
         this._lastAllWindowsSummary = null;
         this._mappedDiagnosticWindows = new Set();
         this._experimentFailed = false;
+        this._lastActorHierarchySummary = null;
 
         this._connectAfter(global.window_manager, 'map', (_manager, actor) => {
             this._inspectMappedActor(actor);
@@ -108,7 +109,7 @@ export default class GrayHairedDesktopLayerExtension extends Extension {
             object.disconnect(id);
         this._signals = [];
         this._disconnectWindowSignals();
-        if (EXPERIMENT_MODE)
+        if (!ACTOR_DIAGNOSTIC_ONLY)
             this._restoreOrdinaryWindow();
         this._managed = null;
         this._mappedDiagnosticWindows.clear();
@@ -226,8 +227,9 @@ export default class GrayHairedDesktopLayerExtension extends Extension {
         iconCandidates.forEach(window =>
             this._logWindowRuntimeApis('ZorinIconsCandidate', window, true));
 
-        if (!EXPERIMENT_MODE) {
+        if (ACTOR_DIAGNOSTIC_ONLY) {
             this._logCurrentOrder(windows, grayCandidates, iconCandidates);
+            this._logActorHierarchy(grayWindow, iconWindows);
             return;
         }
 
@@ -331,6 +333,89 @@ export default class GrayHairedDesktopLayerExtension extends Extension {
             })
             .filter(label => label !== null)
             .join('<');
+    }
+
+    _actorType(actor) {
+        if (!actor)
+            return '(null)';
+        return actor.constructor?.$gtype?.name ??
+            actor.constructor?.name ?? '(unknown)';
+    }
+
+    _actorCategory(actor, grayWindow, iconWindows) {
+        if (!actor || typeof actor.get_meta_window !== 'function')
+            return actor ? 'NonWindowActor' : '(none)';
+        const window = actor.get_meta_window();
+        if (window === grayWindow)
+            return 'GrayHairedActor';
+        if (iconWindows.includes(window))
+            return 'ZorinIconsActor';
+        if (window && this._isOrdinaryUserWindow(window))
+            return 'NormalApplicationActor';
+        return window ? 'OtherWindowActor' : 'NonWindowActor';
+    }
+
+    _actorDetails(label, actor, grayWindow, iconWindows) {
+        if (!actor)
+            return `${label}=unavailable`;
+        const parent = typeof actor.get_parent === 'function'
+            ? actor.get_parent()
+            : null;
+        const siblings = parent && typeof parent.get_children === 'function'
+            ? parent.get_children()
+            : [];
+        const previous = typeof actor.get_previous_sibling === 'function'
+            ? actor.get_previous_sibling()
+            : null;
+        const next = typeof actor.get_next_sibling === 'function'
+            ? actor.get_next_sibling()
+            : null;
+        const parentName = parent && typeof parent.get_name === 'function'
+            ? parent.get_name()
+            : null;
+        return `${label}=available actorType=${this._actorType(actor)} ` +
+            `parentType=${this._actorType(parent)} ` +
+            `parentName=${JSON.stringify(parentName ?? '(null)')} ` +
+            `siblingIndex=${siblings.indexOf(actor)} ` +
+            `previous=${this._actorCategory(previous, grayWindow, iconWindows)} ` +
+            `next=${this._actorCategory(next, grayWindow, iconWindows)} ` +
+            `actor.get_parent=${typeof actor.get_parent} ` +
+            `actor.get_previous_sibling=${typeof actor.get_previous_sibling} ` +
+            `actor.get_next_sibling=${typeof actor.get_next_sibling} ` +
+            `parent.set_child_below_sibling=${typeof parent?.set_child_below_sibling} ` +
+            `parent.set_child_above_sibling=${typeof parent?.set_child_above_sibling} ` +
+            `parent.set_child_at_index=${typeof parent?.set_child_at_index}`;
+    }
+
+    _logActorHierarchy(grayWindow, iconWindows) {
+        const grayActor = grayWindow &&
+            typeof grayWindow.get_compositor_private === 'function'
+            ? grayWindow.get_compositor_private()
+            : null;
+        const iconActors = iconWindows.map(window =>
+            typeof window.get_compositor_private === 'function'
+                ? window.get_compositor_private()
+                : null);
+        const grayParent = grayActor && typeof grayActor.get_parent === 'function'
+            ? grayActor.get_parent()
+            : null;
+        const relationships = iconActors.map((actor, index) => {
+            const parent = actor && typeof actor.get_parent === 'function'
+                ? actor.get_parent()
+                : null;
+            return `grayAndZorin${index}.sameParent=${Boolean(grayParent && parent === grayParent)}`;
+        });
+        const lines = [
+            this._actorDetails('GrayHaired', grayActor, grayWindow, iconWindows),
+            ...iconActors.map((actor, index) =>
+                this._actorDetails(`ZorinIcons${index}`, actor, grayWindow, iconWindows)),
+            relationships.join(' ') || 'sameParent=(no Zorin actor)',
+        ];
+        const summary = lines.join(' | ');
+        if (summary === this._lastActorHierarchySummary)
+            return;
+        this._lastActorHierarchySummary = summary;
+        console.log(`[GrayHaired Desktop Layer][ActorDiagnostic] ${summary}`);
     }
 
     _isOrdinaryUserWindow(window) {

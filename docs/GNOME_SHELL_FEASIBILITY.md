@@ -6,10 +6,11 @@ This investigation remains open. Real testing has proved that pure Qt window
 hints do not provide the required GNOME desktop layer, but it has **not** proved
 that cooperation with the installed Zorin desktop-icon extension is impossible.
 A GNOME Shell prototype is included as manually installed development source.
-Phase 1 diagnostics are complete and the narrowly scoped Phase 2 experiment is
-ready for physical testing; normal application startup still installs or enables
-nothing. The project remains version `0.9.0`, and a safe Zorin/Wayland Desktop
-Mode remains a pre-Version 1.0 investigation requirement.
+The lower-only Phase 2 experiment failed safely, and the current mode is a
+read-only compositor-actor hierarchy diagnostic. Normal application startup
+still installs or enables nothing. The project remains version `0.9.0`, and a
+safe Zorin/Wayland Desktop Mode remains a pre-Version 1.0 investigation
+requirement.
 
 The required order is:
 
@@ -210,10 +211,9 @@ Prototype source and deferred manual installation/removal steps are in
 [`gnome-extension/README.md`](../gnome-extension/README.md). Nothing in normal
 application startup installs or enables it.
 
-Phase 1 is complete. The source now uses the clearly named
-`EXPERIMENT_MODE = true` switch for the narrowly scoped Phase 2 test. Changing
-this switch is the only source-level activation; normal application startup still
-does not install or enable the extension.
+Phase 1 is complete and the lower-only Phase 2 result is recorded below. The
+source now defaults to `ACTOR_DIAGNOSTIC_ONLY = true`; normal application startup
+still does not install or enable the extension.
 
 ### Confirmed native-Wayland Phase 1 evidence
 
@@ -273,35 +273,51 @@ ordinary application windows
 
 This was an ordinary starting state, not a Desktop Mode result.
 
-### Phase 2 — GrayHaired-only lowering
+### Confirmed Phase 2 failure
 
-The first stacking experiment changes only one property of one window: it calls
-`grayWindow.lower()`. It does not resize or move GrayHaired Desktop and does not
-call any mutating method on a Zorin window. Discovery remains based primarily on
-`list_all_windows()`, merged by object identity with read-only actor,
-`window-created`, and map-event sources.
+The first physical Phase 2 test ran on the same native-Wayland target. Discovery
+found one Zorin icon window and GrayHaired Desktop. The observed relevant order
+was:
 
-Reconciliation remains event-driven for create/map/destroy, GrayHaired or icon
-raised events, workspace changes, and monitor changes. `GLib.idle_add()` only
-coalesces event bursts; there is no timer or polling loop. The extension suppresses
-its own raised-signal feedback while mutating.
+```text
+Zorin Desktop Icons
+ordinary application windows
+GrayHaired Desktop
+```
 
-For each attempt it logs discovery, the relevant stack before, the
-`grayWindow.lower()` call, the stack after, and verification PASS or FAIL. Success
-requires GrayHaired's sorted index to be lower than every recognized Zorin icon
-index and every recognized taskbar-visible normal application to remain above the
-highest icon index. Unrelated desktop, utility, Shell, skip-taskbar, or
-unclassified windows do not cause a false failure.
+Calling only `grayWindow.lower()` produced exactly the same order. Verification
+failed, and the fallback restored GrayHaired Desktop to ordinary behavior. This
+confirms that `Meta.Window.lower()` by itself is insufficient in the tested
+Zorin/GNOME Wayland compositor state. No repeated calls, delay, polling, or Zorin
+window mutation is justified by this result.
 
-On failure, the experiment disconnects per-window raised handlers, marks the
-attempt failed so later events cannot continuously retry, and restores GrayHaired
-Desktop's saved ordinary geometry, monitor, workspace stickiness, and raised
-state. Disabling performs the same GrayHaired-only restoration. Re-enabling is
-required for another attempt. The Zorin window is always observation-only.
+### Current read-only actor diagnostic
 
-This Phase 2 mechanism is now ready for one controlled physical Wayland test; it
-is not declared successful in advance. Exact manual steps are maintained in
-[`gnome-extension/README.md`](../gnome-extension/README.md).
+The extension has returned to safe observation with
+`ACTOR_DIAGNOSTIC_ONLY = true`. Starting from the proven `Meta.Window` objects
+returned by `global.display.list_all_windows()`, it calls
+`get_compositor_private()` when available to obtain the real compositor actors.
+It does not rely on Zorin's filtered global actor-list API.
+
+For GrayHaired and every recognized Zorin actor it logs the actor type, parent
+type and name, sibling index, sanitized previous/next sibling category, and
+availability of `get_parent`, `get_previous_sibling`, and `get_next_sibling`.
+For each Zorin actor it also reports whether its parent is exactly the same object
+as GrayHaired's parent. Finally it reports whether that parent exposes
+`set_child_below_sibling`, `set_child_above_sibling`, and
+`set_child_at_index`—without calling any of them.
+
+This mode performs no window lower/raise, stickiness, geometry, focus, type, or
+window-list mutation and no actor reordering. It only reads relationships and
+logs sanitized categories.
+
+If physical evidence shows a common parent and the expected method, a later
+reviewed experiment may call
+`parent.set_child_below_sibling(grayActor, zorinActor)` once and immediately
+verify actor sibling order, Mutter's sorted window order, and visible behavior.
+That call is not active now. Actor-only ordering may also be temporary if Mutter
+later reasserts its authoritative client-window stack, so a single success would
+not yet establish the final architecture.
 
 ## Required behavior matrix
 
@@ -348,8 +364,8 @@ if the installed provider exposes a usable actor group or window lifecycle. The
 X11 session facts do not establish native-Wayland behavior, and Wayland security
 must remain intact.
 
-The revised conclusion is: **pure Qt is insufficient, while lowering only the
-identified GrayHaired client is now a concrete, minimal event-driven experiment**.
-Physical Wayland behavior—not source inspection alone—will decide whether its
-verified relative ordering is reliable. Desktop Mode on Zorin/Wayland remains
-under investigation for Version 1.0; Version 1.0 is not complete.
+The revised conclusion is: **pure Qt and a single `Meta.Window.lower()` call are
+both insufficient on the tested target**. Actor hierarchy is now being observed
+without mutation to determine whether a later controlled sibling experiment is
+even structurally valid. Desktop Mode on Zorin/Wayland remains under
+investigation for Version 1.0; Version 1.0 is not complete.

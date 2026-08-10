@@ -20,8 +20,10 @@ Status: Development-only relative-stacking prototype added; manual testing pendi
   independent GNOME 46 prototype; it now tests a controlled `lower()` sequence,
   verifies the resulting full stack, and fails back on mismatch.
 - Confirmed `list_all_windows()`, stack sorting, and `window-created` at runtime;
-  recorded both client identities and their starting stack. Phase 2 now lowers
-  only GrayHaired Desktop, verifies the result, and never mutates Zorin's window.
+  recorded both client identities and their starting stack. Lowering only
+  GrayHaired did not change the order; verification failed and fallback worked.
+- Returned the extension to read-only mode to report both compositor actors,
+  their parents, sibling positions, neighboring categories, and ordering APIs.
 - Added a stable Qt Wayland application ID and X11 `WM_CLASS` without changing
   QSettings identity. Nothing is installed or enabled automatically. Version
   remains 0.9.0, and Desktop Mode remains a pre-1.0 investigation item.

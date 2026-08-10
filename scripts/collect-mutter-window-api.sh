@@ -16,7 +16,7 @@ if ! command -v journalctl >/dev/null 2>&1; then
     exit 1
 fi
 
-printf '%s\n' 'Runtime API and Phase 2 lines from the current boot (maximum 120):'
+printf '%s\n' 'Runtime API, experiment, and actor-diagnostic lines (maximum 120):'
 lines="$({
     journalctl --user -b --no-pager -o cat -n 3000 2>/dev/null || true
     journalctl -b --no-pager -o cat -n 3000 _COMM=gnome-shell 2>/dev/null || true
