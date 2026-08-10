@@ -80,6 +80,41 @@ def test_safe_investigation_uses_read_only_discovery():
     assert "grayAndZorin${index}.sameParent=" in source
 
 
+def test_managed_client_experiment_uses_gnome_46_ownership_api():
+    source = _source()
+    config = json.loads((EXTENSION / "managed-client-config.json.example").read_text())
+
+    assert "const MANAGED_CLIENT_EXPERIMENT = true;" in source
+    assert "Meta.WaylandClient.new_subprocess(" in source
+    assert "global.context, launcher, config.argv" in source
+    assert "this._managedClient.get_subprocess()" in source
+    assert "this._managedClient.query_window_belongs_to(window)" in source
+    assert config["argv"][1:] == ["-m", "grayhaired_desktop.app"]
+    assert config["argv"][0].endswith("/.venv/bin/python")
+
+
+def test_managed_client_validates_identity_and_stops_only_its_process():
+    source = _source()
+
+    assert "wmClass === GRAYHAIRED_APP_ID" in source
+    assert "wmClassInstance === GRAYHAIRED_APP_ID" in source
+    assert "const process = this._managedSubprocess;" in source
+    assert source.count("process.force_exit();") == 1
+    assert "get_pid(" not in source
+    assert "GLib.spawn" not in source
+    assert "automatic relaunch" not in source
+
+
+def test_normal_python_startup_does_not_manage_shell_extensions():
+    source_root = Path(__file__).parents[1] / "src"
+    python_source = "\n".join(
+        path.read_text() for path in source_root.rglob("*.py")
+    )
+
+    assert "gnome-extensions" not in python_source
+    assert "grayhaired-desktop-layer@grayhaired.tech" not in python_source
+
+
 def test_wayland_client_collector_is_fixed_path_and_read_only():
     collector = (
         Path(__file__).parents[1]

@@ -28,27 +28,45 @@ visually above the icons. Mutter's Meta.Window order also remained unchanged.
 Restoration succeeded. Actor sibling ordering is therefore not a viable control
 for the visible Wayland relationship on this target.
 
-## Current mode — safe investigation only
+## Confirmed managed-client mechanism
 
-`SAFE_INVESTIGATION_ONLY` is `true`. The extension now only discovers windows,
-reads identities and API availability, reads current Meta.Window ordering, and
-reads actor hierarchy. It contains no call that lowers, raises, moves, resizes,
-sticks, changes type, focuses, or reorders a window or actor.
+Installed Zorin source uses Mutter's
+`Meta.WaylandClient.new_subprocess(global.context, launcher, argv)`, followed by
+`get_subprocess()` and `query_window_belongs_to(window)`. Zorin wraps that API in
+its own `LaunchSubprocess` lifecycle helper; this project does not copy that
+implementation.
 
-## Read-only source investigation
+## Current phase — ownership only
 
-The next step does not require enabling this extension. On the Zorin target run:
+`MANAGED_CLIENT_EXPERIMENT` and `SAFE_INVESTIGATION_ONLY` are both `true`. The
+extension launches one configured GrayHaired process through a fresh
+`Meta.WaylandClient`, then requires both Mutter ownership and the exact WM class
+or instance `tech.grayhaired.GrayHairedDesktop` before reporting success.
+
+The process remains a normal application window. There is no lower, raise,
+resize, workspace, focus, type, monitor, actor-order, or Zorin mutation. There is
+no polling or automatic relaunch. Disabling the extension terminates only the
+subprocess returned by this extension's own `Meta.WaylandClient`.
+
+The development config launches the virtual environment's Python interpreter
+directly. It deliberately does not use `scripts/run.sh` or a shell wrapper, so
+the ownership test is not ambiguous about an intermediate process.
+
+## Manual native-Wayland ownership test
+
+Do not run these steps until this source has been reviewed. From the repository,
+first create the development config and replace every `/absolute/path/...`
+placeholder with the repository's actual absolute path:
 
 ```bash
-./scripts/collect-zorin-wayland-client-info.sh | tee zorin-wayland-client-info.txt
+cp gnome-extension/grayhaired-desktop-layer@grayhaired.tech/managed-client-config.json.example \
+  gnome-extension/grayhaired-desktop-layer@grayhaired.tech/managed-client-config.json
+${EDITOR:-nano} \
+  gnome-extension/grayhaired-desktop-layer@grayhaired.tech/managed-client-config.json
 ```
 
-This reads only the installed Zorin Desktop Icons source and reports the precise
-Wayland-client helper, launch, ownership-query, map, and lifecycle call sites.
-
-## Optional safe diagnostic rerun
-
-After review, replace the per-user development copy and enable it:
+Close separately launched GrayHaired instances. Replace the per-user development
+copy, without root access:
 
 ```bash
 gnome-extensions disable grayhaired-desktop-layer@grayhaired.tech 2>/dev/null || true
@@ -60,16 +78,20 @@ gnome-extensions enable grayhaired-desktop-layer@grayhaired.tech
 ```
 
 If GNOME does not discover the new source, log out and back into the normal
-Wayland session and rerun the enable command. In terminal 1:
-
-```bash
-./scripts/run.sh
-```
-
-While GrayHaired Desktop remains open, collect the actor report in terminal 2:
+Wayland session and rerun only the enable command. Do not run `scripts/run.sh`;
+the extension launches the configured process. After its normal window maps,
+collect the Shell-context report:
 
 ```bash
 ./scripts/collect-mutter-window-api.sh | tee mutter-window-api.txt
+```
+
+Expected evidence includes `Meta.WaylandClient available=true`, process launch,
+an owned mapped window with the exact GrayHaired WM identity, and `OWNERSHIP
+PASS`. The appearance is intentionally that of a normal application window.
+Then disable the prototype, which terminates only its own managed subprocess:
+
+```bash
 gnome-extensions disable grayhaired-desktop-layer@grayhaired.tech
 ```
 
@@ -79,5 +101,5 @@ Then close the application and remove only the development extension source:
 rm -rf ~/.local/share/gnome-shell/extensions/grayhaired-desktop-layer@grayhaired.tech
 ```
 
-No root access, reboot, automatic installation, window mutation, or system Zorin
-extension change is required.
+No root access, reboot, automatic installation, stacking mutation, or system
+Zorin extension change is required. Failure is logged once and is not retried.

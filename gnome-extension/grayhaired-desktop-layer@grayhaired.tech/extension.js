@@ -1,3 +1,4 @@
+import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
 import GObject from 'gi://GObject';
 import Meta from 'gi://Meta';
@@ -9,8 +10,10 @@ const GRAYHAIRED_APP_ID = 'tech.grayhaired.GrayHairedDesktop';
 const ZORIN_WAYLAND_APP_ID = 'com.rastersoft.ding';
 const ZORIN_TITLE_PREFIX = 'Desktop Icons ';
 // Physical testing disproved both Meta.Window lowering and actor sibling
-// reordering. This prototype is intentionally observation-only again.
+// reordering. Stacking remains observation-only.
 const SAFE_INVESTIGATION_ONLY = true;
+const MANAGED_CLIENT_EXPERIMENT = true;
+const MANAGED_CLIENT_CONFIG = 'managed-client-config.json';
 const WINDOW_API_NAMES = [
     'lower',
     'raise',
@@ -61,6 +64,7 @@ function isZorinDiagnosticCandidate(window) {
 
 export default class GrayHairedDesktopLayerExtension extends Extension {
     enable() {
+        this._enabled = true;
         this._signals = [];
         this._idleId = 0;
         this._loggedApiWindows = new WeakSet();
@@ -70,6 +74,9 @@ export default class GrayHairedDesktopLayerExtension extends Extension {
         this._lastAllWindowsSummary = null;
         this._mappedDiagnosticWindows = new Set();
         this._lastActorHierarchySummary = null;
+        this._managedClient = null;
+        this._managedSubprocess = null;
+        this._managedLaunchAttempted = false;
 
         this._connectAfter(global.window_manager, 'map', (_manager, actor) => {
             this._inspectMappedActor(actor);
@@ -95,10 +102,13 @@ export default class GrayHairedDesktopLayerExtension extends Extension {
 
         this._logDisplayRuntimeApis();
         this._queueReconcile();
+        if (MANAGED_CLIENT_EXPERIMENT)
+            this._launchManagedClientOnce();
         console.log('[GrayHaired Desktop Layer] development prototype enabled');
     }
 
     disable() {
+        this._enabled = false;
         if (this._idleId) {
             GLib.source_remove(this._idleId);
             this._idleId = 0;
@@ -106,6 +116,7 @@ export default class GrayHairedDesktopLayerExtension extends Extension {
         for (const [object, id] of this._signals)
             object.disconnect(id);
         this._signals = [];
+        this._stopManagedClient();
         this._mappedDiagnosticWindows.clear();
         console.log('[GrayHaired Desktop Layer] disabled');
     }
@@ -171,6 +182,7 @@ export default class GrayHairedDesktopLayerExtension extends Extension {
         const window = actor.get_meta_window();
         if (!window)
             return;
+        this._inspectManagedWindow(window);
         const likelyGray = isGrayHairedDiagnosticCandidate(window);
         const likelyZorin = isZorinDiagnosticCandidate(window);
         const label = likelyGray
@@ -204,6 +216,125 @@ export default class GrayHairedDesktopLayerExtension extends Extension {
                 ? 'CreatedZorinCandidate'
                 : 'CreatedOther';
         this._logWindowRuntimeApis(label, window, likelyGray || likelyZorin);
+    }
+
+    _loadManagedClientConfig() {
+        const configFile = this.dir.get_child(MANAGED_CLIENT_CONFIG);
+        if (!configFile.query_exists(null))
+            throw new Error(`${MANAGED_CLIENT_CONFIG} is absent`);
+        const [ok, contents] = configFile.load_contents(null);
+        if (!ok)
+            throw new Error(`could not read ${MANAGED_CLIENT_CONFIG}`);
+        const config = JSON.parse(new TextDecoder().decode(contents));
+        if (!Array.isArray(config.argv) || config.argv.length === 0 ||
+            config.argv.some(argument => typeof argument !== 'string' || !argument))
+            throw new Error('config argv must be a non-empty string array');
+        if (!GLib.path_is_absolute(config.argv[0]))
+            throw new Error('config argv[0] must be an absolute executable path');
+        if (config.cwd !== undefined &&
+            (typeof config.cwd !== 'string' || !GLib.path_is_absolute(config.cwd)))
+            throw new Error('config cwd must be an absolute path');
+        if (config.environment !== undefined &&
+            (typeof config.environment !== 'object' || Array.isArray(config.environment)))
+            throw new Error('config environment must be an object');
+        return config;
+    }
+
+    _launchManagedClientOnce() {
+        if (this._managedLaunchAttempted)
+            return;
+        this._managedLaunchAttempted = true;
+        const available = typeof Meta.WaylandClient?.new_subprocess === 'function';
+        console.log(`[GrayHaired Desktop Layer][ManagedClient] ` +
+            `Meta.WaylandClient available=${available} ` +
+            `new_subprocess=${typeof Meta.WaylandClient?.new_subprocess}`);
+        if (!Meta.is_wayland_compositor() || !available) {
+            console.warn('[GrayHaired Desktop Layer][ManagedClient] OWNERSHIP FAIL; ' +
+                'GNOME 46 Wayland new_subprocess API unavailable');
+            return;
+        }
+
+        try {
+            const config = this._loadManagedClientConfig();
+            const launcher = new Gio.SubprocessLauncher({
+                flags: Gio.SubprocessFlags.NONE,
+            });
+            if (config.cwd)
+                launcher.set_cwd(config.cwd);
+            for (const [name, value] of Object.entries(config.environment ?? {})) {
+                if (typeof value !== 'string')
+                    throw new Error(`environment value for ${name} must be a string`);
+                launcher.setenv(name, value, true);
+            }
+            this._managedClient = Meta.WaylandClient.new_subprocess(
+                global.context, launcher, config.argv);
+            console.log('[GrayHaired Desktop Layer][ManagedClient] ' +
+                `get_subprocess=${typeof this._managedClient?.get_subprocess} ` +
+                `query_window_belongs_to=${typeof this._managedClient?.query_window_belongs_to}`);
+            if (typeof this._managedClient?.get_subprocess !== 'function')
+                throw new Error('get_subprocess API unavailable');
+            this._managedSubprocess = this._managedClient.get_subprocess();
+            if (!this._managedSubprocess)
+                throw new Error('get_subprocess returned no process');
+            if (typeof this._managedClient?.query_window_belongs_to !== 'function')
+                throw new Error('query_window_belongs_to API unavailable');
+            console.log('[GrayHaired Desktop Layer][ManagedClient] GrayHaired process launched');
+            const process = this._managedSubprocess;
+            process.wait_async(null, (subprocess, result) => {
+                try {
+                    subprocess.wait_finish(result);
+                } catch (error) {
+                    console.warn(`[GrayHaired Desktop Layer][ManagedClient] wait failed: ${error.message}`);
+                }
+                if (this._managedSubprocess === process) {
+                    this._managedSubprocess = null;
+                    this._managedClient = null;
+                    if (this._enabled)
+                        console.log('[GrayHaired Desktop Layer][ManagedClient] process exited; no relaunch');
+                }
+            });
+        } catch (error) {
+            console.warn(`[GrayHaired Desktop Layer][ManagedClient] launch failed: ${error.message}`);
+            this._stopManagedClient();
+        }
+    }
+
+    _inspectManagedWindow(window) {
+        if (!this._managedClient ||
+            typeof this._managedClient.query_window_belongs_to !== 'function')
+            return;
+        let owned = false;
+        try {
+            owned = this._managedClient.query_window_belongs_to(window);
+        } catch (error) {
+            console.warn(`[GrayHaired Desktop Layer][ManagedClient] ownership query failed: ${error.message}`);
+            return;
+        }
+        const wmClass = valueOrNull(window, 'get_wm_class');
+        const wmClassInstance = valueOrNull(window, 'get_wm_class_instance');
+        const identityMatches = wmClass === GRAYHAIRED_APP_ID ||
+            wmClassInstance === GRAYHAIRED_APP_ID;
+        console.log(`[GrayHaired Desktop Layer][ManagedClient] mapped owned=${owned} ` +
+            `wmClass=${wmClass ?? '(null)'} ` +
+            `wmClassInstance=${wmClassInstance ?? '(null)'}`);
+        if (owned)
+            console.log(`[GrayHaired Desktop Layer][ManagedClient] OWNERSHIP ` +
+                `${identityMatches ? 'PASS' : 'FAIL; identity mismatch'}`);
+        else if (identityMatches)
+            console.warn('[GrayHaired Desktop Layer][ManagedClient] OWNERSHIP FAIL; ' +
+                'GrayHaired identity was not owned');
+    }
+
+    _stopManagedClient() {
+        // This reference is obtained only from this extension's new_subprocess
+        // result. Never search by PID/name and never touch Zorin or other app instances.
+        const process = this._managedSubprocess;
+        this._managedSubprocess = null;
+        this._managedClient = null;
+        if (process) {
+            process.force_exit();
+            console.log('[GrayHaired Desktop Layer][ManagedClient] owned process terminated');
+        }
     }
 
     _reconcile() {

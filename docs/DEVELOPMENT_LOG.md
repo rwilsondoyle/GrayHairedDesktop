@@ -4,7 +4,7 @@ This log records project-level development milestones and verification notes. It
 
 ## GNOME Shell Desktop Integration Feasibility
 
-Status: Development-only relative-stacking prototype added; manual testing pending.
+Status: Development-only managed-client ownership test awaiting physical verification.
 
 - Confirmed the target as Zorin OS 18.1 and GNOME Shell 46.0; Phase 1 completed
   successfully in the intended native Wayland session.
@@ -16,15 +16,20 @@ Status: Development-only relative-stacking prototype added; manual testing pendi
   including Wayland desktop semantics, lowering, workspace behavior, Activities
   filtering, and per-monitor positioning.
 - Retained the proven conclusion that pure Qt window hints cannot preserve the
-  required layer. Removed unverified absolute stack-position calls from the
-  independent GNOME 46 prototype; it now tests a controlled `lower()` sequence,
-  verifies the resulting full stack, and fails back on mismatch.
+  required layer. Physical Wayland tests also proved that one `lower()` call and
+  direct compositor-actor sibling ordering are insufficient.
 - Confirmed `list_all_windows()`, stack sorting, and `window-created` at runtime;
   recorded both client identities and their starting stack. Lowering only
   GrayHaired did not change the order; verification failed and fallback worked.
-- Confirmed both Wayland window actors share one `MetaWindowGroup` and expose the
-  sibling APIs. Added a single GrayHaired-only actor-order experiment with saved
-  sibling restoration; Meta.Window ordering remains observation-only.
+- Confirmed both Wayland window actors share one `MetaWindowGroup`; changing
+  their reported sibling order did not change the visible icon relationship, and
+  the experiment restored the previous order.
+- Installed-source inspection identified Mutter's
+  `Meta.WaylandClient.new_subprocess(global.context, launcher, argv)` as Zorin's
+  trusted-client primitive. Added an independently written ownership-only test
+  that directly launches the configured Python interpreter, validates managed
+  ownership plus exact GrayHaired WM identity, performs no stacking operation,
+  and never relaunches automatically.
 - Added a stable Qt Wayland application ID and X11 `WM_CLASS` without changing
   QSettings identity. Nothing is installed or enabled automatically. Version
   remains 0.9.0, and Desktop Mode remains a pre-1.0 investigation item.
@@ -150,9 +155,10 @@ Status: Implementation complete; manual Zorin verification pending.
 - A second physical test changed the reported `MetaWindowGroup` sibling order,
   but GrayHaired Desktop still obscured Zorin's real desktop icons; restoration
   succeeded.
-- The development extension is observation-only again. The next investigation
-  inspects Zorin's managed Wayland-client ownership, launch, map, and lifecycle
-  mechanism without modifying the installed extension.
+- The stacking path remains observation-only. The ownership-only experiment uses
+  `Meta.WaylandClient` to launch one configured GrayHaired process as a normal
+  window, verifies ownership at map time, and terminates only its retained
+  subprocess on disable. It never modifies Zorin Desktop Icons.
 - Desktop Mode remains unresolved and Version 1.0 is not declared ready.
 
 The project targets Zorin OS, so manual verification on real Zorin computers is part of the alpha process.

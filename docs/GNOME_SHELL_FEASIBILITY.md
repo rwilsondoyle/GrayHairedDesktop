@@ -8,9 +8,10 @@ that cooperation with the installed Zorin desktop-icon extension is impossible.
 A GNOME Shell prototype is included as manually installed development source.
 The lower-only Phase 2 experiment and the subsequent direct actor sibling-order
 experiment both failed safely on the physical Wayland target. The prototype is
-back in `SAFE_INVESTIGATION_ONLY = true` mode: no stacking experiment is active,
-and the next step is read-only investigation of Zorin's managed Wayland-client
-mechanism. Normal application startup still installs or enables nothing. The
+back in `SAFE_INVESTIGATION_ONLY = true` mode: no stacking experiment is active.
+Installed-source evidence now identifies `Meta.WaylandClient`, and the next phase
+tests managed-process ownership only, without changing stacking or geometry.
+Normal application startup still installs or enables nothing. The
 project remains version `0.9.0`, and a safe Zorin/Wayland Desktop Mode remains a
 pre-Version 1.0 investigation requirement.
 
@@ -359,14 +360,61 @@ third-party window:
    reference when the desktop process is killed or relaunched rather than
    retaining stale ownership state.
 
-These facts establish trusted ownership identification and coordinated Shell
-behavior for Zorin's own client. They do not establish how the ownership object
-is constructed or whether the DING process is launched through it, and they do
-not prove relative ordering with a second desktop client. The bounded, read-only
-`scripts/collect-zorin-wayland-client-info.sh` now prints the opening imports and
-a dynamically located `launchDesktop()` body (with installed lines 260-360 as a
-fallback) so the exact class, constructor arguments, and process launch path can
-be established before an independent implementation is considered.
+The enhanced collector established the missing implementation detail. Zorin's
+`LaunchSubprocess` wrapper creates a `Gio.SubprocessLauncher`; on Wayland its
+privileged ownership primitive is Mutter's `Meta.WaylandClient`. The GNOME 46
+path is:
+
+```javascript
+Meta.WaylandClient.new_subprocess(global.context, launcher, argv)
+```
+
+Zorin then obtains the launched process with `get_subprocess()`. Its
+`launchDesktop()` constructs the `app/ding.js` argument vector, calls the local
+wrapper's `spawnv(argv)`, and supplies that wrapper to the desktop-window
+emulator. Older source branches use `Meta.WaylandClient.new(...)` followed by
+`spawnv(global.display, argv)`; the ownership prototype deliberately does not
+add those unneeded compatibility branches for the tested GNOME 46 target.
+
+Thus the Zorin wrapper is lifecycle glue, not the ownership primitive. Trusted
+process/window association and `query_window_belongs_to(window)` come from
+Mutter's `Meta.WaylandClient`. This makes an independently owned GrayHaired
+Wayland subprocess technically plausible from a GNOME Shell extension, but it
+does not prove relative ordering with Zorin's separate desktop client. The
+Zorin/DING source is used only as architectural evidence; no GPL implementation
+is copied, and the prototype's small lifecycle is independently written against
+the observed Mutter API.
+
+### Managed-client ownership experiment
+
+`MANAGED_CLIENT_EXPERIMENT = true` enables one development-only ownership test;
+`SAFE_INVESTIGATION_ONLY = true` continues to prohibit stacking changes. The
+extension reads a manually created `managed-client-config.json` beside its source
+and requires an absolute executable path. The documented configuration launches
+the repository virtual environment's Python interpreter directly with
+`-m grayhaired_desktop.app`, an explicit working directory, and `PYTHONPATH`.
+It does not invoke a shell or `scripts/run.sh`, so there is no wrapper process
+whose fork/exec behavior could make the ownership result ambiguous.
+
+On native Wayland, the extension checks for
+`Meta.WaylandClient.new_subprocess`, creates a fresh `Gio.SubprocessLauncher`,
+and calls the GNOME 46 API with `global.context`, that launcher, and the configured
+argument vector. It logs the live availability of `get_subprocess()` and
+`query_window_belongs_to()` and does not implement older compatibility paths.
+
+The existing map signal supplies each new actor's `Meta.Window`. The experiment
+requires both `query_window_belongs_to(window) === true` and an exact WM class or
+instance match for `tech.grayhaired.GrayHairedDesktop` before logging
+`OWNERSHIP PASS`. It logs no Desktop Website title or content. The window remains
+an ordinary application window: no lower, raise, actor reorder, resize, monitor,
+workspace, type, focus, or Zorin operation occurs.
+
+The returned subprocess is retained directly. Disablement calls `force_exit()`
+only on that retained subprocess; it never searches by PID, name, title, or WM
+class and therefore cannot terminate Zorin Desktop Icons or a separately started
+GrayHaired instance. Natural exit is logged without retry or automatic relaunch.
+Missing configuration/API, launch failure, ownership failure, or identity failure
+stops the experiment safely without any stacking action.
 
 API classification:
 
@@ -374,21 +422,25 @@ API classification:
   `sort_windows_by_stacking()`, `window-created`, and the runtime-exposed
   `Meta.Window` read methods. These provide discovery and observation, not the
   missing relative desktop layer.
-- **Namespace still to be established:** the collector confirms the managed
-  ownership object's `query_window_belongs_to()` relationship and map-time
-  compositor actor use, but the previous output did not expose whether its
-  constructor belongs to Meta, Shell, private JavaScript, or Zorin code.
+- **Mutter API used from GNOME Shell:** `Meta.WaylandClient.new_subprocess()`,
+  `get_subprocess()`, and `query_window_belongs_to()`. Its JavaScript exposure and
+  signatures are GNOME/Mutter-version-coupled and still require runtime
+  confirmation on the physical GNOME 46 session.
+- **Zorin-specific wrapper:** `LaunchSubprocess` builds launcher/process lifecycle
+  policy around the Mutter primitive; that wrapper is not required for ownership
+  and is not copied into this project.
 - **Zorin-specific mechanism:** the `com.rastersoft.ding` process identity,
   `Desktop Icons ` role, per-monitor state, override policy, and restart
   coordination.
 - **Unsupported approach:** impersonating Zorin's client, patching its extension,
   compositor patches, repeated restacking, or actor-order loops.
 
-Whether a third-party GNOME 46 extension can construct an equivalent managed
-Wayland client remains unknown until the enhanced collector identifies the class
-and constructor. In any case, ownership alone has not proved the required
-relative layer: the two completed physical experiments show that ordinary
-Meta.Window and actor ordering are not authoritative here.
+An independent GNOME 46 extension can plausibly request its own managed client
+through the observed Mutter API. The development experiment must still verify
+actual runtime exposure, launch, and ownership on the physical target. In any
+case, ownership alone has not proved the required relative layer: the two
+completed physical experiments show that ordinary Meta.Window and actor ordering
+are not authoritative here.
 
 ### Architecture options after the failed experiments
 
@@ -465,6 +517,7 @@ Zorin/GNOME Shell 46 Wayland target**. The sibling mutation changed the reported
 actor order, but the real desktop icons remained behind GrayHaired Desktop,
 Meta.Window order did not change, verification failed, and restoration
 succeeded. The current mode is `SAFE_INVESTIGATION_ONLY = true`; no live stacking
-experiment is active. The next step is read-only investigation of Zorin's
-managed Wayland-client mechanism. Desktop Mode remains unresolved at version
-`0.9.0`, and Version 1.0 is not complete.
+experiment is active. The development-only ownership phase now tests whether
+GNOME 46 can launch and positively identify GrayHaired through
+`Meta.WaylandClient`, while leaving it an ordinary window. Desktop Mode remains
+unresolved at version `0.9.0`, and Version 1.0 is not complete.

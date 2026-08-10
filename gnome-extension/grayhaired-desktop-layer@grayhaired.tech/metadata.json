@@ -1,6 +1,6 @@
 {
   "name": "GrayHaired Desktop Layer (Development)",
-  "description": "Development-only GNOME 46 relative-stacking feasibility prototype.",
+  "description": "Development-only GNOME 46 managed-client ownership prototype.",
   "uuid": "grayhaired-desktop-layer@grayhaired.tech",
   "shell-version": ["46"],
   "version": 1
