@@ -346,23 +346,27 @@ window or actor mutation.
 Installed-source evidence shows a materially different design from an ordinary
 third-party window:
 
-1. the Shell extension creates a dedicated Wayland-client helper and launches
-   the separate DING-derived desktop application through that managed client;
+1. the Shell extension retains a Wayland-client ownership object alongside the
+   separately launched DING-derived desktop application;
 2. its map-time handler receives a compositor actor, obtains the associated
    `Meta.Window`, and accepts it only when
    `query_window_belongs_to(window)` confirms ownership by that client;
 3. `emulateX11WindowType.js` attaches desktop-window state to accepted windows,
    applies the `Desktop Icons ` role, monitor placement, bottom behavior, and
    all-workspace semantics; and
-4. `gnomeShellOverride.js` removes those owned desktop windows from ordinary
-   Activities, window-list, and workspace-animation treatment. Lifecycle code
-   coordinates the helper and desktop process rather than matching an arbitrary
-   client by title alone.
+4. the same managed client participates in `hide_from_window_list()` and
+   `show_in_window_list()` handling. Lifecycle code clears the Wayland-client
+   reference when the desktop process is killed or relaunched rather than
+   retaining stale ownership state.
 
-The exact helper namespace, constructor, launch arguments, and restart calls are
-version-coupled source details. The bounded, read-only
-`scripts/collect-zorin-wayland-client-info.sh` records those call sites from the
-installed Zorin build before an independent implementation is considered.
+These facts establish trusted ownership identification and coordinated Shell
+behavior for Zorin's own client. They do not establish how the ownership object
+is constructed or whether the DING process is launched through it, and they do
+not prove relative ordering with a second desktop client. The bounded, read-only
+`scripts/collect-zorin-wayland-client-info.sh` now prints the opening imports and
+a dynamically located `launchDesktop()` body (with installed lines 260-360 as a
+fallback) so the exact class, constructor arguments, and process launch path can
+be established before an independent implementation is considered.
 
 API classification:
 
@@ -370,20 +374,21 @@ API classification:
   `sort_windows_by_stacking()`, `window-created`, and the runtime-exposed
   `Meta.Window` read methods. These provide discovery and observation, not the
   missing relative desktop layer.
-- **GNOME Shell/Mutter internal API:** the managed Wayland-client ownership
-  helper, its `query_window_belongs_to()` relationship, map-time compositor
-  actors, and Shell presentation overrides. These are GNOME-version-sensitive.
+- **Namespace still to be established:** the collector confirms the managed
+  ownership object's `query_window_belongs_to()` relationship and map-time
+  compositor actor use, but the previous output did not expose whether its
+  constructor belongs to Meta, Shell, private JavaScript, or Zorin code.
 - **Zorin-specific mechanism:** the `com.rastersoft.ding` process identity,
   `Desktop Icons ` role, per-monitor state, override policy, and restart
   coordination.
 - **Unsupported approach:** impersonating Zorin's client, patching its extension,
   compositor patches, repeated restacking, or actor-order loops.
 
-A third-party GNOME 46 extension may be able to create its own managed Wayland
-client and thereby obtain strong ownership and lifecycle identification. That is
-technically plausible, but ownership alone has not proved the required relative
-layer: the two completed physical experiments show that ordinary Meta.Window and
-actor ordering are not authoritative here.
+Whether a third-party GNOME 46 extension can construct an equivalent managed
+Wayland client remains unknown until the enhanced collector identifies the class
+and constructor. In any case, ownership alone has not proved the required
+relative layer: the two completed physical experiments show that ordinary
+Meta.Window and actor ordering are not authoritative here.
 
 ### Architecture options after the failed experiments
 

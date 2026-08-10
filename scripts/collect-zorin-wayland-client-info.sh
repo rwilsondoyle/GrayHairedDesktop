@@ -2,7 +2,8 @@
 set -euo pipefail
 
 readonly EXTENSION_DIR='/usr/share/gnome-shell/extensions/zorin-desktop-icons@zorinos.com'
-readonly PATTERN='WaylandClient|query_window_belongs_to|waylandClient|wayland_client|connect_after.*map|window_manager.*map|spawn|launch|Subprocess|child_watch|wait_async|force_exit|terminate|restart|emulateX11WindowType'
+readonly PATTERN='WaylandClient|wayland_client|waylandClient|new .*Wayland|Meta\.Wayland|Shell\.Wayland|launchDesktop|spawnv|spawn|Gio\.Subprocess|SubprocessLauncher|query_window_belongs_to|hide_from_window_list|show_in_window_list|connect_after.*map|window_manager.*map|child_watch|wait_async|force_exit|terminate|restart|emulateX11WindowType'
+readonly EXTENSION_JS="$EXTENSION_DIR/extension.js"
 
 printf '%s\n' 'Zorin Desktop Icons Wayland-client architecture (read only)'
 printf 'Source: %s\n' "$EXTENSION_DIR"
@@ -12,15 +13,21 @@ if [[ ! -d "$EXTENSION_DIR" ]]; then
     exit 1
 fi
 
+for required_command in sort head sed nl cut; do
+    if ! command -v "$required_command" >/dev/null 2>&1; then
+        printf 'Error: required standard tool is unavailable: %s\n' \
+            "$required_command" >&2
+        exit 1
+    fi
+done
+
 if command -v rg >/dev/null 2>&1; then
     readonly SEARCH_BACKEND='ripgrep'
-elif command -v grep >/dev/null 2>&1 \
-    && command -v sort >/dev/null 2>&1 \
-    && command -v head >/dev/null 2>&1; then
+elif command -v grep >/dev/null 2>&1; then
     readonly SEARCH_BACKEND='grep fallback'
 else
     printf '%s\n' \
-        'Error: neither ripgrep nor the grep/sort/head fallback is available.' >&2
+        'Error: neither ripgrep nor the grep fallback is available.' >&2
     exit 1
 fi
 
@@ -60,5 +67,36 @@ for file in "${files[@]}"; do
         grep -n -E -C 4 -m 18 "$PATTERN" "$file" | head -n 220 || true
     fi
 done
+
+if [[ -f "$EXTENSION_JS" ]]; then
+    printf '\n===== extension.js opening/imports (lines 1-140) =====\n'
+    sed -n '1,140p' "$EXTENSION_JS" | nl -ba -v 1
+
+    if [[ "$SEARCH_BACKEND" == 'ripgrep' ]]; then
+        launch_line=$(rg -n -m 1 \
+            '^[[:space:]]*(async[[:space:]]+)?launchDesktop[[:space:]]*\(' \
+            "$EXTENSION_JS" | cut -d: -f1) || true
+    else
+        launch_line=$(grep -n -m 1 -E \
+            '^[[:space:]]*(async[[:space:]]+)?launchDesktop[[:space:]]*\(' \
+            "$EXTENSION_JS" | cut -d: -f1) || true
+    fi
+    if [[ -n "$launch_line" ]]; then
+        start=$((launch_line > 20 ? launch_line - 20 : 1))
+        end=$((launch_line + 140))
+        printf '\n===== extension.js launchDesktop body (lines %d-%d) =====\n' \
+            "$start" "$end"
+    else
+        start=260
+        end=360
+        printf '\n===== extension.js launchDesktop fallback range (lines %d-%d) =====\n' \
+            "$start" "$end"
+        printf '%s\n' 'Method definition was not located dynamically; showing the known installed range.'
+    fi
+    sed -n "${start},${end}p" "$EXTENSION_JS" | nl -ba -v "$start"
+else
+    printf '\nMissing expected file: %s\n' "$EXTENSION_JS" >&2
+    exit 1
+fi
 
 printf '\nNo files were modified, copied, installed, enabled, or restarted.\n'

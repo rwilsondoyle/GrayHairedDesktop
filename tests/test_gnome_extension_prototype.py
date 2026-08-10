@@ -96,7 +96,7 @@ def test_wayland_client_collector_is_fixed_path_and_read_only():
     assert "SEARCH_BACKEND='grep fallback'" in collector
     assert "grep -r -l -E --include='*.js'" in collector
     assert "grep -n -E -C 4 -m 18" in collector
-    assert "neither ripgrep nor the grep/sort/head fallback" in collector
+    assert "neither ripgrep nor the grep fallback" in collector
     for command in ("sudo ", "rm ", "cp ", "mv ", "gnome-extensions "):
         assert command not in collector
 
@@ -110,7 +110,11 @@ def test_wayland_client_collector_falls_back_when_rg_is_absent(tmp_path):
     extension_dir = tmp_path / "zorin-desktop-icons@zorinos.com"
     extension_dir.mkdir()
     (extension_dir / "extension.js").write_text(
-        "waylandClient.query_window_belongs_to(window);\n"
+        "import Meta from 'gi://Meta';\n"
+        "\n"
+        "launchDesktop() {\n"
+        "    waylandClient.query_window_belongs_to(window);\n"
+        "}\n"
     )
     test_script = tmp_path / "collector.sh"
     test_script.write_text(
@@ -122,7 +126,7 @@ def test_wayland_client_collector_falls_back_when_rg_is_absent(tmp_path):
 
     fallback_bin = tmp_path / "bin"
     fallback_bin.mkdir()
-    for command in ("grep", "sort", "head"):
+    for command in ("grep", "sort", "head", "sed", "nl", "cut"):
         (fallback_bin / command).symlink_to(shutil.which(command))
 
     result = subprocess.run(
@@ -136,3 +140,5 @@ def test_wayland_client_collector_falls_back_when_rg_is_absent(tmp_path):
     assert "Search backend: grep fallback" in result.stdout
     assert "Matching JavaScript files (1; at most 12 shown)" in result.stdout
     assert "===== extension.js =====" in result.stdout
+    assert "extension.js opening/imports (lines 1-140)" in result.stdout
+    assert "extension.js launchDesktop body (lines 1-143)" in result.stdout
