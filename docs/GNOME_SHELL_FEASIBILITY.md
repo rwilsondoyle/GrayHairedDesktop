@@ -35,7 +35,7 @@ Information collected on the real target computer establishes this baseline:
 | --- | --- |
 | Operating system | Zorin OS 18.1 |
 | GNOME Shell | 46.0 |
-| Current inspected session | X11 |
+| Sessions physically tested | X11 feasibility trials and native Wayland diagnostics/experiments |
 | Desktop environment | `zorin:GNOME` |
 | Desktop-icon extension UUID | `zorin-desktop-icons@zorinos.com` |
 | Name | Zorin Desktop Icons |
@@ -57,9 +57,12 @@ the original Desktop Icons extension. Neither fact supersedes the other: the
 provider is Zorin's extension, its implementation has DING ancestry, and the
 exact Zorin modifications must be established from the installed source.
 
-The current physical result is from X11. Wayland is still the primary product
-requirement, so the same version/provider facts and behavior must also be checked
-after logging into a normal Zorin Wayland session. Users must not be required to
+The investigation began with X11 feasibility trials, which established the pure
+Qt failure modes. Later physical tests ran in a native Wayland session with Qt's
+`wayland` platform. Those tests verified application and Zorin window identities,
+`Meta.Display.list_all_windows()`, exposed `Meta.Window` APIs, compositor actor
+hierarchy, and the failures of both `lower()` and direct actor sibling ordering.
+Wayland remains the primary product requirement; users must not be required to
 switch permanently to X11.
 
 ## Read-only inspection of Zorin Desktop Icons
@@ -180,21 +183,30 @@ both required evidence.
 ## Identifying the existing PySide6 surface
 
 The application now configures `tech.grayhaired.GrayHairedDesktop` before the
-first native window. Qt's desktop-file name supplies the native Wayland
-application ID, while `QT_WM_CLASS` supplies the X11 resource class. Existing
-QSettings organization/application keys are unchanged, so this compositor
-identity does not relocate user preferences.
+first native window. On the tested Qt Wayland build, that value appears through
+the Meta.Window WM class and instance fields rather than the GTK application-ID
+field. `QT_WM_CLASS` supplies the X11 resource class. Existing QSettings
+organization/application keys are unchanged, so this compositor identity does
+not relocate user preferences.
 
-The development extension requires an exact match from `get_wm_class()`,
-`get_wm_class_instance()`, or `get_gtk_application_id()`; it never uses the title.
-The precise property populated by PySide6 must be recorded in GNOME Looking Glass
-on native Wayland and X11 before this identity is considered physically verified.
+Native-Wayland diagnostics physically verified this PySide6/Qt build as:
+
+```text
+wmClass=tech.grayhaired.GrayHairedDesktop
+wmClassInstance=tech.grayhaired.GrayHairedDesktop
+gtkApplicationId=(null)
+```
+
+The development extension therefore requires an exact WM class or instance
+match for GrayHaired Desktop. It does not require
+`get_gtk_application_id()` and never identifies GrayHaired Desktop by title
+alone.
 
 | Identifier | Role | Limitation |
 | --- | --- | --- |
-| Wayland application ID | Preferred primary native-Wayland identity | Must be explicitly configured and observed on the target. |
+| Wayland WM class/instance | Physically verified native-Wayland identity | Exact value is `tech.grayhaired.GrayHairedDesktop`. |
 | X11 `WM_CLASS` | Preferred native-X11 identity | Does not define native Wayland identity. |
-| `get_gtk_application_id()` | Useful when populated | PySide6 must not assume this GTK-oriented value exists. |
+| `get_gtk_application_id()` | Optional diagnostic value | Observed as null in the tested PySide6/Qt Wayland build. |
 | title | Diagnostic secondary signal only | Mutable, localizable, and collision-prone. |
 | PID | Correlation during one run | Changes each launch and must not be persisted as identity. |
 
@@ -213,9 +225,10 @@ Prototype source and deferred manual installation/removal steps are in
 [`gnome-extension/README.md`](../gnome-extension/README.md). Nothing in normal
 application startup installs or enables it.
 
-Phase 1 is complete and the lower-only Phase 2 result is recorded below. The
-source now defaults to `ACTOR_DIAGNOSTIC_ONLY = true`; normal application startup
-still does not install or enable the extension.
+Phase 1 and both physical stacking experiments are complete, with both stacking
+approaches recorded as insufficient below. The source now defaults to
+`SAFE_INVESTIGATION_ONLY = true`; no stacking experiment is active, and normal
+application startup still does not install or enable the extension.
 
 ### Confirmed native-Wayland Phase 1 evidence
 
@@ -436,9 +449,10 @@ real icons. The pure-Qt candidate therefore remains only a fallback for
 non-GNOME X11 environments.
 
 For GNOME Shell 46 on Zorin, both X11 and Wayland may benefit from one integration
-if the installed provider exposes a usable actor group or window lifecycle. The
-X11 session facts do not establish native-Wayland behavior, and Wayland security
-must remain intact.
+if the installed provider exposes a usable managed-client cooperation point.
+Native-Wayland physical evidence now establishes the identities, runtime API
+exposure, discovery path, actor hierarchy, and two failed stacking approaches.
+Wayland security must remain intact.
 
 The revised conclusion is: **pure Qt, `Meta.Window.lower()`, and direct
 `MetaWindowActorWayland` sibling reordering are all insufficient on the tested
