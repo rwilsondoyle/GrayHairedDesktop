@@ -350,8 +350,7 @@ third-party window:
 1. the Shell extension retains a Wayland-client ownership object alongside the
    separately launched DING-derived desktop application;
 2. its map-time handler receives a compositor actor, obtains the associated
-   `Meta.Window`, and accepts it only when
-   `query_window_belongs_to(window)` confirms ownership by that client;
+   `Meta.Window`, and asks Zorin's wrapper to confirm client ownership;
 3. `emulateX11WindowType.js` attaches desktop-window state to accepted windows,
    applies the `Desktop Icons ` role, monitor placement, bottom behavior, and
    all-workspace semantics; and
@@ -373,12 +372,13 @@ Zorin then obtains the launched process with `get_subprocess()`. Its
 `launchDesktop()` constructs the `app/ding.js` argument vector, calls the local
 wrapper's `spawnv(argv)`, and supplies that wrapper to the desktop-window
 emulator. Older source branches use `Meta.WaylandClient.new(...)` followed by
-`spawnv(global.display, argv)`; the ownership prototype deliberately does not
-add those unneeded compatibility branches for the tested GNOME 46 target.
+`spawnv(global.display, argv)`; the ownership prototype now uses exactly those
+older paths because physical GNOME 46 testing found `new_subprocess` unavailable.
 
-Thus the Zorin wrapper is lifecycle glue, not the ownership primitive. Trusted
-process/window association and `query_window_belongs_to(window)` come from
-Mutter's `Meta.WaylandClient`. This makes an independently owned GrayHaired
+Thus the Zorin wrapper is lifecycle glue, not the ownership primitive. Its
+`query_window_belongs_to(window)` method delegates to raw
+`Meta.WaylandClient.owns_window(window)`, which supplies the trusted
+process/window association. This makes an independently owned GrayHaired
 Wayland subprocess technically plausible from a GNOME Shell extension, but it
 does not prove relative ordering with Zorin's separate desktop client. The
 Zorin/DING source is used only as architectural evidence; no GPL implementation
@@ -396,30 +396,46 @@ the repository virtual environment's Python interpreter directly with
 It does not invoke a shell or `scripts/run.sh`, so there is no wrapper process
 whose fork/exec behavior could make the ownership result ambiguous.
 
-The first native-Wayland ownership run failed safely before launch. The physical
-GNOME Shell 46 runtime reported `Meta.WaylandClient.new_subprocess` as undefined;
-no process, stacking change, retry, or Zorin operation occurred. This disproves
-that constructor path on the target, not `Meta.WaylandClient` itself, because the
-installed Zorin source includes older constructors.
+The first native-Wayland ownership run failed safely before launch because the
+physical GNOME Shell 46 runtime reported `Meta.WaylandClient.new_subprocess` as
+undefined. A second physical run established the older API surface:
+
+```text
+Meta.WaylandClient=function
+new_subprocess=undefined
+new=function
+spawnv=function
+get_subprocess=undefined
+query_window_belongs_to=undefined
+hide_from_window_list=function
+show_in_window_list=function
+```
+
+That run created the old client and launched the managed process, but failed
+safely because the prototype incorrectly required the Zorin wrapper method
+`query_window_belongs_to()` on the raw client. Its retained subprocess was
+terminated safely. Installed source confirms that the raw GNOME 46 ownership
+method is `owns_window(window)`.
 
 The next test creates a fresh `Gio.SubprocessLauncher` and selects only among the
 installed-source-supported paths, in this order:
 
 1. `Meta.WaylandClient.new_subprocess(global.context, launcher, argv)` when it is
    callable;
-2. otherwise `Meta.WaylandClient.new(global.context, launcher)`, followed by
+2. otherwise `Meta.WaylandClient.new(launcher)`, followed by
    `client.spawnv(global.display, argv)`; or
 3. if that constructor signature throws,
-   `Meta.WaylandClient.new(launcher)`, followed by the same managed `spawnv`.
+   `Meta.WaylandClient.new(global.context, launcher)`, followed by the same
+   managed `spawnv`.
 
-It logs the selected path and live availability of `spawnv`, `get_subprocess`,
-`query_window_belongs_to`, `hide_from_window_list`, and
+It logs the selected path and live availability of `owns_window`, `spawnv`,
+`get_subprocess`, `hide_from_window_list`, and
 `show_in_window_list`. There is no ordinary `Gio.Subprocess` fallback: if all
 source-demonstrated managed paths fail, nothing is launched and there is no
 retry.
 
 The existing map signal supplies each new actor's `Meta.Window`. The experiment
-requires both `query_window_belongs_to(window) === true` and an exact WM class or
+requires both `owns_window(window) === true` and an exact WM class or
 instance match for `tech.grayhaired.GrayHairedDesktop` before logging
 `OWNERSHIP PASS`. It logs no Desktop Website title or content. The window remains
 an ordinary application window: no lower, raise, actor reorder, resize, monitor,
@@ -439,9 +455,9 @@ API classification:
   `Meta.Window` read methods. These provide discovery and observation, not the
   missing relative desktop layer.
 - **Mutter API used from GNOME Shell:** `Meta.WaylandClient`; the physical target
-  lacks `new_subprocess()`, while the installed provider demonstrates the older
-  `new(...)` plus `spawnv(...)` paths. The next physical run must establish which
-  old constructor signature and instance methods GNOME 46 actually exposes.
+  lacks `new_subprocess()` but exposes `new(...)`, `spawnv(...)`, and window-list
+  methods. Installed source establishes `owns_window(...)` as the raw ownership
+  interface, which the next physical run must verify.
 - **Zorin-specific wrapper:** `LaunchSubprocess` builds launcher/process lifecycle
   policy around the Mutter primitive; that wrapper is not required for ownership
   and is not copied into this project.

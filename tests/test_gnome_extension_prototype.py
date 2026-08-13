@@ -65,6 +65,8 @@ def test_safe_investigation_never_mutates_windows_or_actors_or_polls():
         "set_child_below_sibling",
         "set_child_above_sibling",
         "set_child_at_index",
+        "make_above",
+        "unmake_above",
     ):
         assert re.search(rf"\.{method}\s*\(", source) is None
     assert "setInterval" not in source
@@ -86,13 +88,18 @@ def test_managed_client_experiment_uses_gnome_46_ownership_api():
 
     assert "const MANAGED_CLIENT_EXPERIMENT = true;" in source
     assert "Meta.WaylandClient.new_subprocess(" in source
-    assert "Meta.WaylandClient.new(\n                        global.context, launcher)" in source
     assert "Meta.WaylandClient.new(launcher)" in source
+    assert "Meta.WaylandClient.new(\n                        global.context, launcher)" in source
+    assert source.index("Meta.WaylandClient.new(launcher)") < source.index(
+        "Meta.WaylandClient.new(\n                        global.context, launcher)"
+    )
     assert "this._managedClient.spawnv(\n                    global.display, config.argv)" in source
     assert "typeof this._managedClient?.spawnv" in source
+    assert "typeof this._managedClient?.owns_window" in source
     assert "global.context, launcher, config.argv" in source
     assert "this._managedClient.get_subprocess()" in source
-    assert "this._managedClient.query_window_belongs_to(window)" in source
+    assert "this._managedClient.owns_window(window)" in source
+    assert "query_window_belongs_to" not in source
     assert config["argv"][1:] == ["-m", "grayhaired_desktop.app"]
     assert config["argv"][0].endswith("/.venv/bin/python")
 

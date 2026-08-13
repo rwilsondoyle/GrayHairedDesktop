@@ -30,24 +30,27 @@ for the visible Wayland relationship on this target.
 
 ## Confirmed managed-client mechanism
 
-Installed Zorin source uses Mutter's
-`Meta.WaylandClient.new_subprocess(global.context, launcher, argv)`, followed by
-`get_subprocess()` and `query_window_belongs_to(window)`. Zorin wraps that API in
-its own `LaunchSubprocess` lifecycle helper; this project does not copy that
-implementation.
+Installed Zorin source uses Mutter's `Meta.WaylandClient` through its own
+`LaunchSubprocess` lifecycle helper. The wrapper's
+`query_window_belongs_to(window)` delegates to the raw client's
+`owns_window(window)`. This project uses that observed interface independently
+and does not copy Zorin's GPLv3 wrapper implementation.
 
-The first physical ownership test established that `new_subprocess` is undefined
-on this GNOME Shell 46 runtime. The failure was safe and launched nothing. Zorin's
-installed source also demonstrates `Meta.WaylandClient.new(...)` followed by
-`spawnv(global.display, argv)`, so the next test selects narrowly between those
-source-confirmed compatibility paths.
+Physical testing established `new_subprocess=undefined`, `new=function`, and—on
+the old raw client—`spawnv=function`, `get_subprocess=undefined`, and
+`query_window_belongs_to=undefined`. The process launched but was terminated
+safely when the obsolete query requirement failed. Installed source shows that
+the wrapper delegates ownership to raw `owns_window(window)`, which the next test
+uses directly. Constructor order now matches Zorin: `new(launcher)` first, then
+`new(global.context, launcher)` only if the first signature throws.
 
 ## Current phase — ownership only
 
 `MANAGED_CLIENT_EXPERIMENT` and `SAFE_INVESTIGATION_ONLY` are both `true`. The
 extension launches one configured GrayHaired process through a fresh
-`Meta.WaylandClient`, then requires both Mutter ownership and the exact WM class
-or instance `tech.grayhaired.GrayHairedDesktop` before reporting success.
+`Meta.WaylandClient`, then requires both raw `owns_window()` ownership and the
+exact WM class or instance `tech.grayhaired.GrayHairedDesktop` before reporting
+success.
 
 The process remains a normal application window. There is no lower, raise,
 resize, workspace, focus, type, monitor, actor-order, or Zorin mutation. There is
@@ -93,8 +96,8 @@ collect the Shell-context report:
 ```
 
 Expected evidence includes the types of `Meta.WaylandClient`, `new_subprocess`,
-and `new`; an `API path=new(global.context, launcher)+spawnv` or
-`API path=new(launcher)+spawnv` line on this target; process launch; an owned
+and `new`; normally `API path=new(launcher)+spawnv` (or the context signature if
+the first constructor throws); `owns_window=function`; process launch; an owned
 mapped window with the exact GrayHaired WM identity; and `OWNERSHIP PASS`. The
 appearance is intentionally that of a normal application window.
 Then disable the prototype, which terminates only its own managed subprocess:

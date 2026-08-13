@@ -35,6 +35,12 @@ Status: Development-only managed-client ownership test awaiting physical verific
   installed-source-demonstrated older forms—`new(global.context, launcher)` or
   `new(launcher)` followed by managed `spawnv(global.display, argv)`—with no
   ordinary subprocess fallback.
+- A subsequent GNOME 46 run exposed `new`, `spawnv`, and window-list methods but
+  no raw `query_window_belongs_to`; the managed process was terminated safely.
+  Installed source shows Zorin's wrapper implements that method by calling raw
+  `Meta.WaylandClient.owns_window(window)`. The ownership test now uses
+  `owns_window()` directly and matches Zorin's constructor order:
+  `new(launcher)` first, then `new(global.context, launcher)` on failure.
 - Added a stable Qt Wayland application ID and X11 `WM_CLASS` without changing
   QSettings identity. Nothing is installed or enabled automatically. Version
   remains 0.9.0, and Desktop Mode remains a pre-1.0 investigation item.

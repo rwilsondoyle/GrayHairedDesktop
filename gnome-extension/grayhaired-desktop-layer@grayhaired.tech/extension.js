@@ -275,14 +275,14 @@ export default class GrayHairedDesktopLayerExtension extends Extension {
                 apiPath = 'new_subprocess';
             } else if (newType === 'function') {
                 try {
+                    this._managedClient = Meta.WaylandClient.new(launcher);
+                    apiPath = 'new(launcher)+spawnv';
+                } catch (launcherError) {
+                    console.log('[GrayHaired Desktop Layer][ManagedClient] ' +
+                        `new(launcher) failed: ${launcherError.message}`);
                     this._managedClient = Meta.WaylandClient.new(
                         global.context, launcher);
                     apiPath = 'new(global.context, launcher)+spawnv';
-                } catch (contextError) {
-                    console.log('[GrayHaired Desktop Layer][ManagedClient] ' +
-                        `new(global.context, launcher) failed: ${contextError.message}`);
-                    this._managedClient = Meta.WaylandClient.new(launcher);
-                    apiPath = 'new(launcher)+spawnv';
                 }
             } else {
                 throw new Error('no supported Meta.WaylandClient constructor');
@@ -290,7 +290,7 @@ export default class GrayHairedDesktopLayerExtension extends Extension {
             console.log('[GrayHaired Desktop Layer][ManagedClient] ' +
                 `spawnv=${typeof this._managedClient?.spawnv} ` +
                 `get_subprocess=${typeof this._managedClient?.get_subprocess} ` +
-                `query_window_belongs_to=${typeof this._managedClient?.query_window_belongs_to} ` +
+                `owns_window=${typeof this._managedClient?.owns_window} ` +
                 `hide_from_window_list=${typeof this._managedClient?.hide_from_window_list} ` +
                 `show_in_window_list=${typeof this._managedClient?.show_in_window_list}`);
             if (apiPath === 'new_subprocess') {
@@ -305,8 +305,12 @@ export default class GrayHairedDesktopLayerExtension extends Extension {
             }
             if (!this._managedSubprocess)
                 throw new Error('managed launch returned no subprocess');
-            if (typeof this._managedClient?.query_window_belongs_to !== 'function')
-                throw new Error('query_window_belongs_to API unavailable');
+            if (typeof this._managedClient?.owns_window !== 'function') {
+                console.warn('[GrayHaired Desktop Layer][ManagedClient] ' +
+                    'OWNERSHIP FAIL; owns_window API unavailable');
+                this._stopManagedClient();
+                return;
+            }
             console.log(`[GrayHaired Desktop Layer][ManagedClient] API path=${apiPath}`);
             console.log('[GrayHaired Desktop Layer][ManagedClient] GrayHaired process launched');
             const process = this._managedSubprocess;
@@ -331,12 +335,16 @@ export default class GrayHairedDesktopLayerExtension extends Extension {
     }
 
     _inspectManagedWindow(window) {
-        if (!this._managedClient ||
-            typeof this._managedClient.query_window_belongs_to !== 'function')
+        if (!this._managedClient)
             return;
+        if (typeof this._managedClient.owns_window !== 'function') {
+            console.warn('[GrayHaired Desktop Layer][ManagedClient] ' +
+                'OWNERSHIP FAIL; owns_window API unavailable');
+            return;
+        }
         let owned = false;
         try {
-            owned = this._managedClient.query_window_belongs_to(window);
+            owned = this._managedClient.owns_window(window);
         } catch (error) {
             console.warn(`[GrayHaired Desktop Layer][ManagedClient] ownership query failed: ${error.message}`);
             return;
