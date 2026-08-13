@@ -75,7 +75,8 @@ desktop-window emulation.
 
 The pure-Qt trials still establish an application boundary: a normal PySide6
 window cannot independently guarantee the required background → application →
-real-icons order on GNOME. They do not establish that cooperation with Zorin
-Desktop Icons is impossible. The continuing investigation and read-only source
-prototype procedure are documented in
+real-icons order on GNOME. Read-only inspection found no supported third-party
+layer-registration point in the installed Zorin provider. A Shell-owned mirror
+would require private placement plus a substantial external frame/input bridge,
+so it is not currently suitable for Version 1.0. The continuing investigation is documented in
 [`GNOME_SHELL_FEASIBILITY.md`](GNOME_SHELL_FEASIBILITY.md).

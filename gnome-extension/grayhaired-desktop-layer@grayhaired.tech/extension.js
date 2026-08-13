@@ -101,6 +101,7 @@ export default class GrayHairedDesktopLayerExtension extends Extension {
             () => this._queueReconcile());
 
         this._logDisplayRuntimeApis();
+        this._logShellLayerHierarchy();
         this._queueReconcile();
         if (MANAGED_CLIENT_EXPERIMENT)
             this._launchManagedClientOnce();
@@ -506,6 +507,59 @@ export default class GrayHairedDesktopLayerExtension extends Extension {
         console.log(`[GrayHaired Desktop Layer][API] Meta.Display ${statuses.join(' ')} ` +
             `windowCreatedSignal=${this._windowCreatedSignalAvailable} ` +
             `related=${[...related].sort().slice(0, 30).join(',') || '(none enumerated)'}`);
+    }
+
+    _shellActorDescription(label, actor) {
+        if (!actor)
+            return `${label}=unavailable`;
+        const parent = typeof actor.get_parent === 'function' ? actor.get_parent() : null;
+        const siblings = parent && typeof parent.get_children === 'function'
+            ? parent.get_children()
+            : [];
+        const name = typeof actor.get_name === 'function' ? actor.get_name() : null;
+        return `${label}=available type=${this._actorType(actor)} ` +
+            `name=${JSON.stringify(name ?? '(null)')} ` +
+            `parentType=${this._actorType(parent)} siblingIndex=${siblings.indexOf(actor)} ` +
+            `reactive=${actor.reactive ?? '(unavailable)'} ` +
+            `visible=${actor.visible ?? '(unavailable)'} ` +
+            `get_children=${typeof actor.get_children} add_child=${typeof actor.add_child} ` +
+            `insert_child_at_index=${typeof actor.insert_child_at_index} ` +
+            `remove_child=${typeof actor.remove_child} set_reactive=${typeof actor.set_reactive}`;
+    }
+
+    _logShellLayerHierarchy() {
+        // Observation only: never create, insert, remove, or reorder an actor.
+        const backgroundGroup = Main.layoutManager?._backgroundGroup ?? null;
+        const layoutUiGroup = Main.layoutManager?.uiGroup ?? null;
+        const mainUiGroup = Main.uiGroup ?? null;
+        const actors = [
+            ['backgroundGroup', backgroundGroup],
+            ['layoutManager.uiGroup', layoutUiGroup],
+            ['Main.uiGroup', mainUiGroup],
+            ['window_group', global.window_group ?? null],
+            ['top_window_group', global.top_window_group ?? null],
+        ];
+        for (const [label, actor] of actors)
+            console.log(`[GrayHaired Desktop Layer][LayerHierarchy] ${
+                this._shellActorDescription(label, actor)}`);
+
+        const stage = global.stage ?? null;
+        const stageChildren = stage && typeof stage.get_children === 'function'
+            ? stage.get_children()
+            : [];
+        const known = new Map(actors.filter(([, actor]) => actor)
+            .map(([label, actor]) => [actor, label]));
+        const order = stageChildren.map((actor, index) =>
+            `${index}:${known.get(actor) ?? this._actorType(actor)}`).join('<');
+        console.log('[GrayHaired Desktop Layer][LayerHierarchy] ' +
+            `stageType=${this._actorType(stage)} children=${stageChildren.length} ` +
+            `order=${order || '(none)'}`);
+        console.log('[GrayHaired Desktop Layer][LayerHierarchy] APIs ' +
+            `layout.addChrome=${typeof Main.layoutManager?.addChrome} ` +
+            `layout.trackChrome=${typeof Main.layoutManager?.trackChrome} ` +
+            `layout.addTopChrome=${typeof Main.layoutManager?.addTopChrome} ` +
+            `stage.add_child=${typeof stage?.add_child} ` +
+            `stage.insert_child_at_index=${typeof stage?.insert_child_at_index}`);
     }
 
     _logWindowRuntimeApis(label, window, includeDesktopDetails = false) {

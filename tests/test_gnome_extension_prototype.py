@@ -231,3 +231,30 @@ def test_cooperation_collector_is_fixed_path_bounded_and_read_only():
     assert "_backgroundGroup" in collector
     for command in ("sudo ", "rm ", "cp ", "mv ", "gnome-extensions "):
         assert command not in collector
+
+
+def test_shell_hierarchy_diagnostic_is_observation_only():
+    source = _source()
+    collector = (
+        Path(__file__).parents[1]
+        / "scripts"
+        / "collect-gnome-shell-layer-hierarchy.sh"
+    ).read_text()
+
+    assert "[LayerHierarchy]" in source
+    assert "Main.layoutManager?._backgroundGroup" in source
+    assert "global.window_group" in source
+    assert "global.top_window_group" in source
+    for call in (
+        ".add_child(",
+        ".remove_child(",
+        ".insert_child_at_index(",
+        ".set_child_above_sibling(",
+        ".set_child_below_sibling(",
+    ):
+        assert call not in source
+    assert "journalctl" in collector
+    assert "gjs" not in collector
+    assert "tail -n 80" in collector
+    for command in ("sudo ", "rm ", "cp ", "mv ", "gnome-extensions "):
+        assert command not in collector

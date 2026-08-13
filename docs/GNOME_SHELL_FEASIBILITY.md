@@ -12,8 +12,10 @@ back in `SAFE_INVESTIGATION_ONLY = true` mode: no stacking experiment is active.
 Physical testing now proves managed-process ownership through
 `Meta.WaylandClient`, but the subsequent window-list semantics test also failed
 visually. The prototype performs ownership diagnostics without window mutation.
-Next work is read-only architectural investigation of Zorin cooperation or a
-Shell-owned visual layer.
+Read-only source inspection found no supported Zorin cooperation point. The
+remaining Shell-owned visual-layer direction currently depends on private layer
+placement and an unproven external frame/input bridge, so it is not suitable for
+Version 1.0 at present.
 Normal application startup still installs or enables nothing. The
 project remains version `0.9.0`, and a safe Zorin/Wayland Desktop Mode remains a
 pre-Version 1.0 investigation requirement.
@@ -535,12 +537,88 @@ are not authoritative for the required visual relationship.
 5. **Normal-window Desktop Launch Page fallback:** safe and maintainable, but it
    is not the requested Desktop Mode layering.
 
+### Zorin cooperation collector result
+
+The read-only cooperation collector ran on the physical installed extension and
+found no evidence that Zorin presents its visible icons in a Shell-owned actor or
+container. The visible desktop remains external GTK client windows managed as
+`Meta.Window` objects; `DesktopGrid` uses GTK widgets including `Gtk.EventBox`
+and `Gtk.Fixed` inside those windows.
+
+The extension exports session action-group/D-Bus behavior for functions such as
+clipboard copy/cut, `disableTimer`, and `desktopGeometry`. No interface was found
+for third-party surface registration, relative stacking, adoption of a foreign
+Wayland client, extension-to-extension layer coordination, or insertion below
+the icon windows. No stable non-title registration mechanism was found either.
+
+The collector questions therefore have evidence-based answers:
+
+1. **Shell-owned icon actor/container:** none found; visible icons are external
+   GTK client-window content.
+2. **Explicit layer/container coordination:** no usable point found.
+3. **Exported cooperation API:** D-Bus/action-group behavior exists, but no
+   surface-registration or relative-stacking interface was found.
+4. **Stable registration below icon surfaces:** none found.
+
+Accordingly, **no existing supported third-party cooperation point was found in
+the installed Zorin Desktop Icons implementation**. This does not prove that
+future cooperation is impossible, but patching or monkey-patching Zorin,
+impersonating its trusted protocol, replacing it, or modifying its system files
+is outside the project boundary. Option A is therefore unsupported by the
+currently installed implementation and is not pursued further.
+
+### Option B: Shell-owned external-content visual layer
+
+The remaining architectural question is whether Shell can own an interactive
+visual actor above wallpaper but below client windows while QtWebEngine remains
+in the external Python process. Candidate APIs divide as follows:
+
+- **Documented actor primitives:** Clutter/St actors expose child hierarchy,
+  visibility, clipping, and reactive/input properties. Those primitives can draw
+  and receive events, but do not document a stable GNOME desktop-layer contract.
+- **Shell-private placement:** `Main.layoutManager._backgroundGroup` is private
+  by naming and implementation. `Main.uiGroup`, `global.window_group`,
+  `global.top_window_group`, stage ordering, and LayoutManager chrome methods are
+  Shell/Mutter integration internals rather than a supported third-party surface
+  protocol. Their presence does not make cross-version placement safe.
+- **Unverified runtime relationship:** the observation-only hierarchy diagnostic
+  logs group types, parents, sibling indexes, stage order, insertion/removal API
+  availability, reactive state, and chrome helpers on the actual GNOME 46 target.
+  It creates or reorders no actor.
+
+External content delivery has no small supported bridge:
+
+| Mechanism | Feasibility and cost on GNOME 46 |
+| --- | --- |
+| Shared-memory images/local IPC | Technically buildable, but requires repeated full-frame copies, a custom protocol, damage tracking, authentication, and separate input forwarding. |
+| Periodic screenshots/frame export | Simple conceptually but high CPU/memory bandwidth and latency at desktop size; unsuitable as a blind high-frame-rate design on the Inspiron-3147. |
+| DMA-BUF | Potentially efficient, but QtWebEngine export, synchronization, lifetime, and GJS/Cogl import do not form a demonstrated supported extension API. |
+| PipeWire/screencast portal | Designed for consent-mediated capture, not persistent zero-copy embedding into Shell; consumption and input forwarding would still require substantial privileged code. |
+| RemoteDesktop/input portal | Consent and security semantics make it unsuitable as a transparent persistent input-forwarding foundation; accessibility and keyboard focus remain difficult. |
+| D-Bus state plus local Shell rendering | Suitable for limited launcher state, not for preserving a live interactive Desktop Website. |
+
+Architecture B1 (visual mirror plus forwarded input) is therefore large,
+latency-sensitive, security-sensitive, difficult for accessibility/multi-monitor
+support, and likely too costly on low-power hardware without a proven zero-copy
+path. B2 (a Shell-local launcher) does not meet the live Desktop Website
+requirement. No B3 mask/underlay mechanism distinct from the three failed
+stacking operations has been identified.
+
+The current decision is **B: possible only through private/fragile placement plus
+an unproven, high-maintenance frame/input bridge, and not suitable for a Version
+1.0 implementation at present**. The hierarchy diagnostic can confirm actual
+GNOME 46 actor topology, but it cannot resolve the unsupported content/input
+bridge. Unless new supported APIs or provider cooperation emerge, retain the
+normal-window fallback and reconsider the full interactive Desktop Mode
+requirement.
+
 No option yet proves Version 1.0 Desktop Mode. Managed ownership is proven, but
 the three isolated mutation approaches are closed as insufficient. Investigation
-is now narrowed to read-only discovery of either an intentional Zorin cooperation
-point or a realistic Shell-owned visual background layer that keeps all
-WebEngine/network execution in the Python process. No streaming, IPC, or
-cooperation implementation is included in this phase.
+is now narrowed to the Shell-owned visual background question while keeping all
+WebEngine/network execution in the Python process. A future provider-supported
+cooperation API could change the Option A assessment, but none exists in the
+installed implementation. No streaming, IPC, or cooperation implementation is
+included in this phase.
 
 ## Required behavior matrix
 
@@ -595,5 +673,7 @@ The revised conclusion is: **`Meta.Window.lower()`, direct
 Zorin/GNOME Shell 46 Wayland target**. The current mode is
 `SAFE_INVESTIGATION_ONLY = true`; no live stacking or window-list mutation is
 active. Managed ownership is physically proven, but desktop-layer semantics and
-required relative stacking are not. Desktop Mode remains unresolved at version
-`0.9.0`, and Version 1.0 is not complete.
+required relative stacking are not. No supported cooperation point was found in
+the installed Zorin provider, and the Shell-owned mirror alternative currently
+depends on private placement plus a costly, unproven frame/input bridge. Desktop
+Mode remains unresolved at version `0.9.0`, and Version 1.0 is not complete.

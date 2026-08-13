@@ -87,3 +87,20 @@ abstraction, exported D-Bus or extension-cooperation API, and stable registratio
 mechanism. It also informs the alternative investigation of a Shell-owned visual
 background surface with WebEngine remaining outside Shell. It performs no write,
 process operation, installation, enablement, or Zorin modification.
+
+The physical report found external GTK icon windows and no supported
+third-party registration or relative-layer interface. Option A is unsupported by
+the installed provider. The remaining Shell-owned visual-layer idea currently
+requires private placement and an unproven frame/input bridge; no such bridge is
+implemented here.
+
+To collect the live Shell hierarchy without mutation, manually enable only the
+reviewed ownership-diagnostic prototype, then run:
+
+```bash
+./scripts/collect-gnome-shell-layer-hierarchy.sh \
+  | tee gnome-shell-layer-hierarchy.txt
+```
+
+This reads the prototype's journal diagnostics. It creates, inserts, removes, or
+reorders no actor.

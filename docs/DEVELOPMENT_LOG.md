@@ -53,6 +53,13 @@ Status: Managed ownership verified; three desktop-layer mechanisms physically re
   retry loops are justified. Next work is read-only investigation of an explicit
   Zorin cooperation point or a Shell-owned visual layer with WebEngine outside
   Shell.
+- The physical read-only cooperation collector found external GTK icon windows,
+  no Shell-owned icon container, and no D-Bus/API surface-registration or
+  relative-layer hook. Option A is unsupported by the installed implementation.
+- Option B currently requires Shell-private actor placement plus an unproven
+  external frame/input bridge. Full-frame mirroring is especially unsuitable for
+  low-power hardware without a supported zero-copy path. No implementation was
+  added; the normal-window fallback remains and product requirements need review.
 - Added a stable Qt Wayland application ID and X11 `WM_CLASS` without changing
   QSettings identity. Nothing is installed or enabled automatically. Version
   remains 0.9.0, and Desktop Mode remains a pre-1.0 investigation item.
