@@ -9,8 +9,9 @@ A GNOME Shell prototype is included as manually installed development source.
 The lower-only Phase 2 experiment and the subsequent direct actor sibling-order
 experiment both failed safely on the physical Wayland target. The prototype is
 back in `SAFE_INVESTIGATION_ONLY = true` mode: no stacking experiment is active.
-Installed-source evidence now identifies `Meta.WaylandClient`, and the next phase
-tests managed-process ownership only, without changing stacking or geometry.
+Physical testing now proves managed-process ownership through
+`Meta.WaylandClient`. The next phase applies one owned-client window-list semantic
+without changing stacking, geometry, Zorin windows, or ordinary applications.
 Normal application startup still installs or enables nothing. The
 project remains version `0.9.0`, and a safe Zorin/Wayland Desktop Mode remains a
 pre-Version 1.0 investigation requirement.
@@ -417,6 +418,19 @@ safely because the prototype incorrectly required the Zorin wrapper method
 terminated safely. Installed source confirms that the raw GNOME 46 ownership
 method is `owns_window(window)`.
 
+The corrected experiment then passed physically on the Inspiron-3147 native
+Wayland session. `new(launcher)` was rejected because GNOME 46 required at least
+two arguments; `new(global.context, launcher)` succeeded. The resulting client
+exposed `spawnv` and `owns_window`, launched GrayHaired through the configured
+Python 3.12.3 process, and returned true for its mapped window. The window
+preserved both exact WM identity fields as
+`tech.grayhaired.GrayHairedDesktop`. Closing the window manually produced the
+expected `process exited; no relaunch` lifecycle event; this was not a crash.
+
+Managed-client ownership is therefore a **physically validated primitive** on
+this GNOME Shell 46 target. Relative stacking below Zorin Desktop Icons remains
+unproven, and full Desktop Mode remains unresolved.
+
 The next test creates a fresh `Gio.SubprocessLauncher` and selects only among the
 installed-source-supported paths, in this order:
 
@@ -434,7 +448,7 @@ It logs the selected path and live availability of `owns_window`, `spawnv`,
 source-demonstrated managed paths fail, nothing is launched and there is no
 retry.
 
-The existing map signal supplies each new actor's `Meta.Window`. The experiment
+The existing map signal supplies each new actor's `Meta.Window`. Ownership
 requires both `owns_window(window) === true` and an exact WM class or
 instance match for `tech.grayhaired.GrayHairedDesktop` before logging
 `OWNERSHIP PASS`. It logs no Desktop Website title or content. The window remains
@@ -447,6 +461,29 @@ class and therefore cannot terminate Zorin Desktop Icons or a separately started
 GrayHaired instance. Natural exit is logged without retry or automatic relaunch.
 Missing configuration/API, launch failure, ownership failure, or identity failure
 stops the experiment safely without any stacking action.
+
+### Single managed desktop-semantics experiment
+
+The only source-confirmed managed-client operation meaningfully different from
+the failed `Meta.Window.lower()` and actor sibling experiments is
+`Meta.WaylandClient.hide_from_window_list(window)`. Zorin invokes equivalent
+managed-client window-list behavior for its owned desktop surfaces. The next
+experiment therefore calls this operation exactly once, only after both
+`owns_window(window) === true` and exact GrayHaired WM identity validation.
+
+This operation tests whether Mutter's owned-client classification has any
+desktop-semantic visual effect. It does **not** call `lower()`, `raise()`, change
+actor siblings, resize/move a window, change type/workspace/focus, or touch a
+Zorin window. It is not claimed to control relative stacking. Disablement calls
+`show_in_window_list()` on the same retained owned GrayHaired window before
+terminating the extension-owned subprocess, restoring ordinary behavior.
+
+Immediately before and after the one operation, diagnostics record ownership,
+exact WM identity, type, layer, skip-taskbar state, workspace, monitor, Zorin
+candidate identity/type/layer, Meta.Display bottom-to-top order, and sanitized
+actor sibling order. Actor order is comparison data only. Success requires a
+physical visual observation that real Zorin icons are visible and interactive
+above the live Desktop Website; logs alone cannot establish success.
 
 API classification:
 
@@ -467,10 +504,9 @@ API classification:
 - **Unsupported approach:** impersonating Zorin's client, patching its extension,
   compositor patches, repeated restacking, or actor-order loops.
 
-An independent GNOME 46 extension can plausibly request its own managed client
-through the observed Mutter API. The development experiment must still verify
-actual runtime exposure, launch, and ownership on the physical target. In any
-case, ownership alone has not proved the required relative layer: the two
+An independent GNOME 46 extension can request and identify its own managed client
+through the physically verified Mutter API. Ownership alone has not proved the
+required relative layer: the two
 completed physical experiments show that ordinary Meta.Window and actor ordering
 are not authoritative here.
 
@@ -493,9 +529,10 @@ are not authoritative here.
 5. **Normal-window Desktop Launch Page fallback:** safe and maintainable, but it
    is not the requested Desktop Mode layering.
 
-No option yet proves Version 1.0 Desktop Mode. The next useful physical evidence
-is read-only inspection of the exact installed Wayland-client helper and
-lifecycle call sites, not another stacking mutation.
+No option yet proves Version 1.0 Desktop Mode. Managed ownership is now proven;
+the next useful physical evidence is whether the single owned-client window-list
+operation changes visible desktop semantics. This remains a bounded experiment,
+not a stacking manager or a Version 1.0 conclusion.
 
 ## Required behavior matrix
 
@@ -549,7 +586,8 @@ Zorin/GNOME Shell 46 Wayland target**. The sibling mutation changed the reported
 actor order, but the real desktop icons remained behind GrayHaired Desktop,
 Meta.Window order did not change, verification failed, and restoration
 succeeded. The current mode is `SAFE_INVESTIGATION_ONLY = true`; no live stacking
-experiment is active. The development-only ownership phase now tests whether
-GNOME 46 can launch and positively identify GrayHaired through
-`Meta.WaylandClient`, while leaving it an ordinary window. Desktop Mode remains
-unresolved at version `0.9.0`, and Version 1.0 is not complete.
+manager is active. Managed ownership is physically proven. The next controlled
+experiment applies only the owned client's window-list classification and
+requires visual verification; it does not claim working relative stacking.
+Desktop Mode remains unresolved at version `0.9.0`, and Version 1.0 is not
+complete.

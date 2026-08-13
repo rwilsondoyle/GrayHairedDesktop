@@ -44,13 +44,27 @@ the wrapper delegates ownership to raw `owns_window(window)`, which the next tes
 uses directly. Constructor order now matches Zorin: `new(launcher)` first, then
 `new(global.context, launcher)` only if the first signature throws.
 
-## Current phase — ownership only
+The corrected physical run passed on the Inspiron-3147: the one-argument form was
+rejected, `new(global.context, launcher)+spawnv` launched GrayHaired,
+`owns_window()` returned true, and both WM identity fields remained exact. A
+manual window close was reported as `process exited; no relaunch`, not a crash.
+Managed ownership is proven; Desktop Mode and relative icon stacking are not.
+
+## Current phase — one managed desktop-semantic operation
 
 `MANAGED_CLIENT_EXPERIMENT` and `SAFE_INVESTIGATION_ONLY` are both `true`. The
 extension launches one configured GrayHaired process through a fresh
 `Meta.WaylandClient`, then requires both raw `owns_window()` ownership and the
 exact WM class or instance `tech.grayhaired.GrayHairedDesktop` before reporting
 success.
+
+After ownership passes, `MANAGED_DESKTOP_SEMANTICS_EXPERIMENT = true` calls only
+`managedClient.hide_from_window_list(grayWindow)`. This managed-client operation
+is distinct from the already-failed Meta.Window lowering and actor sibling
+reordering. It is attempted once and only on the owned exact-identity GrayHaired
+window. It may or may not affect visible stacking; only physical visual testing
+can answer that question. Disablement restores the same window with
+`show_in_window_list()` before terminating the owned subprocess.
 
 The process remains a normal application window. There is no lower, raise,
 resize, workspace, focus, type, monitor, actor-order, or Zorin mutation. There is
@@ -95,11 +109,17 @@ collect the Shell-context report:
 ./scripts/collect-mutter-window-api.sh | tee mutter-window-api.txt
 ```
 
-Expected evidence includes the types of `Meta.WaylandClient`, `new_subprocess`,
-and `new`; normally `API path=new(launcher)+spawnv` (or the context signature if
-the first constructor throws); `owns_window=function`; process launch; an owned
-mapped window with the exact GrayHaired WM identity; and `OWNERSHIP PASS`. The
-appearance is intentionally that of a normal application window.
+Expected ownership evidence is the already proven
+`API path=new(global.context, launcher)+spawnv`, `owns_window=function`, exact
+GrayHaired WM identity, and `OWNERSHIP PASS`. The new report then includes
+`ManagedDesktop BEFORE`, the single `hide_from_window_list` operation,
+`ManagedDesktop AFTER`, and `RESULT REQUIRES VISUAL CONFIRMATION`.
+
+Visually check whether the live Desktop Website remains interactive, the real
+Zorin icons become visible and interactive above it, ordinary applications stay
+above both, and the panel/dock remains normal. Also enter Overview once. Do not
+infer success merely from actor indexes or log ordering. If icons remain hidden,
+record failure and disable the extension.
 Then disable the prototype, which terminates only its own managed subprocess:
 
 ```bash

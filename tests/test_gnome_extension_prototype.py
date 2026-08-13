@@ -58,8 +58,6 @@ def test_safe_investigation_never_mutates_windows_or_actors_or_polls():
         "move_resize_frame",
         "move_to_monitor",
         "set_type",
-        "hide_from_window_list",
-        "show_in_window_list",
         "get_stack_position",
         "set_stack_position",
         "set_child_below_sibling",
@@ -104,6 +102,24 @@ def test_managed_client_experiment_uses_gnome_46_ownership_api():
     assert config["argv"][0].endswith("/.venv/bin/python")
 
 
+def test_managed_desktop_experiment_mutates_only_owned_grayhaired():
+    source = _source()
+    experiment = source.split("    _runManagedDesktopSemanticsExperiment", 1)[1].split(
+        "    _restoreManagedWindow", 1
+    )[0]
+
+    assert "const MANAGED_DESKTOP_SEMANTICS_EXPERIMENT = true;" in source
+    assert "if (owned && identityMatches)" in source
+    assert experiment.count("this._managedClient.hide_from_window_list(window);") == 1
+    assert source.count(
+        "this._managedClient.show_in_window_list(this._managedWindow);"
+    ) == 1
+    assert "this._managedDesktopSemanticsAttempted = true;" in experiment
+    assert "RESULT REQUIRES VISUAL CONFIRMATION" in experiment
+    assert "iconWindow" not in experiment
+    assert "ZORIN_WAYLAND_APP_ID" not in experiment
+
+
 def test_managed_client_has_no_ordinary_subprocess_fallback():
     source = _source()
 
@@ -135,6 +151,12 @@ def test_normal_python_startup_does_not_manage_shell_extensions():
 
     assert "gnome-extensions" not in python_source
     assert "grayhaired-desktop-layer@grayhaired.tech" not in python_source
+
+
+def test_project_version_remains_0_9_0():
+    pyproject = (Path(__file__).parents[1] / "pyproject.toml").read_text()
+
+    assert 'version = "0.9.0"' in pyproject
 
 
 def test_wayland_client_collector_is_fixed_path_and_read_only():

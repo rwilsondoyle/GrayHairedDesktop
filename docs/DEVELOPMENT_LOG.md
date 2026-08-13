@@ -4,7 +4,7 @@ This log records project-level development milestones and verification notes. It
 
 ## GNOME Shell Desktop Integration Feasibility
 
-Status: Development-only managed-client ownership test awaiting physical verification.
+Status: Managed-client ownership physically verified; one desktop-semantics test pending.
 
 - Confirmed the target as Zorin OS 18.1 and GNOME Shell 46.0; Phase 1 completed
   successfully in the intended native Wayland session.
@@ -41,6 +41,14 @@ Status: Development-only managed-client ownership test awaiting physical verific
   `Meta.WaylandClient.owns_window(window)`. The ownership test now uses
   `owns_window()` directly and matches Zorin's constructor order:
   `new(launcher)` first, then `new(global.context, launcher)` on failure.
+- Physical testing on the Inspiron-3147 proved the context constructor, managed
+  `spawnv`, exact GrayHaired WM identity, and `owns_window(window) === true`.
+  Manual window close was detected normally and caused no automatic relaunch.
+- Selected one next operation: call managed-client
+  `hide_from_window_list(window)` once on the owned, exact-identity GrayHaired
+  window, with before/after diagnostics and `show_in_window_list()` restoration.
+  This is different from the failed Meta.Window and actor-stack operations, does
+  not touch Zorin, and remains subject to physical visual verification.
 - Added a stable Qt Wayland application ID and X11 `WM_CLASS` without changing
   QSettings identity. Nothing is installed or enabled automatically. Version
   remains 0.9.0, and Desktop Mode remains a pre-1.0 investigation item.
@@ -166,10 +174,10 @@ Status: Implementation complete; manual Zorin verification pending.
 - A second physical test changed the reported `MetaWindowGroup` sibling order,
   but GrayHaired Desktop still obscured Zorin's real desktop icons; restoration
   succeeded.
-- The stacking path remains observation-only. The ownership-only experiment uses
-  `Meta.WaylandClient` to launch one configured GrayHaired process as a normal
-  window, verifies ownership at map time, and terminates only its retained
-  subprocess on disable. It never modifies Zorin Desktop Icons.
+- Managed ownership is physically proven. The next experiment changes only the
+  owned GrayHaired window's managed-client window-list classification once and
+  restores it on disable. It never modifies Zorin Desktop Icons or ordinary
+  windows, and it does not retry either failed stacking approach.
 - Desktop Mode remains unresolved and Version 1.0 is not declared ready.
 
 The project targets Zorin OS, so manual verification on real Zorin computers is part of the alpha process.
