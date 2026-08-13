@@ -102,22 +102,13 @@ def test_managed_client_experiment_uses_gnome_46_ownership_api():
     assert config["argv"][0].endswith("/.venv/bin/python")
 
 
-def test_managed_desktop_experiment_mutates_only_owned_grayhaired():
+def test_failed_managed_desktop_mutation_is_removed():
     source = _source()
-    experiment = source.split("    _runManagedDesktopSemanticsExperiment", 1)[1].split(
-        "    _restoreManagedWindow", 1
-    )[0]
 
-    assert "const MANAGED_DESKTOP_SEMANTICS_EXPERIMENT = true;" in source
+    assert "MANAGED_DESKTOP_SEMANTICS_EXPERIMENT" not in source
     assert "if (owned && identityMatches)" in source
-    assert experiment.count("this._managedClient.hide_from_window_list(window);") == 1
-    assert source.count(
-        "this._managedClient.show_in_window_list(this._managedWindow);"
-    ) == 1
-    assert "this._managedDesktopSemanticsAttempted = true;" in experiment
-    assert "RESULT REQUIRES VISUAL CONFIRMATION" in experiment
-    assert "iconWindow" not in experiment
-    assert "ZORIN_WAYLAND_APP_ID" not in experiment
+    assert ".hide_from_window_list(" not in source
+    assert ".show_in_window_list(" not in source
 
 
 def test_managed_client_has_no_ordinary_subprocess_fallback():
@@ -221,3 +212,22 @@ def test_wayland_client_collector_falls_back_when_rg_is_absent(tmp_path):
     assert "===== extension.js =====" in result.stdout
     assert "extension.js opening/imports (lines 1-140)" in result.stdout
     assert "extension.js launchDesktop body (lines 1-143)" in result.stdout
+
+
+def test_cooperation_collector_is_fixed_path_bounded_and_read_only():
+    collector = (
+        Path(__file__).parents[1]
+        / "scripts"
+        / "collect-zorin-desktop-layer-cooperation-info.sh"
+    ).read_text()
+
+    assert (
+        "/usr/share/gnome-shell/extensions/zorin-desktop-icons@zorinos.com"
+        in collector
+    )
+    assert "maximum 180 output lines" in collector
+    assert "grep fallback" in collector
+    assert "Gio\\.DBus" in collector
+    assert "_backgroundGroup" in collector
+    for command in ("sudo ", "rm ", "cp ", "mv ", "gnome-extensions "):
+        assert command not in collector

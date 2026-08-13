@@ -10,8 +10,10 @@ The lower-only Phase 2 experiment and the subsequent direct actor sibling-order
 experiment both failed safely on the physical Wayland target. The prototype is
 back in `SAFE_INVESTIGATION_ONLY = true` mode: no stacking experiment is active.
 Physical testing now proves managed-process ownership through
-`Meta.WaylandClient`. The next phase applies one owned-client window-list semantic
-without changing stacking, geometry, Zorin windows, or ordinary applications.
+`Meta.WaylandClient`, but the subsequent window-list semantics test also failed
+visually. The prototype performs ownership diagnostics without window mutation.
+Next work is read-only architectural investigation of Zorin cooperation or a
+Shell-owned visual layer.
 Normal application startup still installs or enables nothing. The
 project remains version `0.9.0`, and a safe Zorin/Wayland Desktop Mode remains a
 pre-Version 1.0 investigation requirement.
@@ -431,7 +433,8 @@ Managed-client ownership is therefore a **physically validated primitive** on
 this GNOME Shell 46 target. Relative stacking below Zorin Desktop Icons remains
 unproven, and full Desktop Mode remains unresolved.
 
-The next test creates a fresh `Gio.SubprocessLauncher` and selects only among the
+The verified ownership implementation creates a fresh `Gio.SubprocessLauncher`
+and selects only among the
 installed-source-supported paths, in this order:
 
 1. `Meta.WaylandClient.new_subprocess(global.context, launcher, argv)` when it is
@@ -462,28 +465,31 @@ GrayHaired instance. Natural exit is logged without retry or automatic relaunch.
 Missing configuration/API, launch failure, ownership failure, or identity failure
 stops the experiment safely without any stacking action.
 
-### Single managed desktop-semantics experiment
+### Confirmed managed desktop-semantics failure
 
-The only source-confirmed managed-client operation meaningfully different from
-the failed `Meta.Window.lower()` and actor sibling experiments is
-`Meta.WaylandClient.hide_from_window_list(window)`. Zorin invokes equivalent
-managed-client window-list behavior for its owned desktop surfaces. The next
-experiment therefore calls this operation exactly once, only after both
-`owns_window(window) === true` and exact GrayHaired WM identity validation.
+The one-shot `Meta.WaylandClient.hide_from_window_list(grayWindow)` experiment
+was physically tested on the Inspiron-3147 Wayland session after ownership and
+exact identity passed. It changed GrayHaired's `skipTaskbar` value from false to
+true, while window type remained 0, layer remained 2, and the relevant
+Meta.Window order remained
+`ZorinIcons<NormalApplication<NormalApplication<GrayHaired`. Zorin's icon window
+also remained type 0 and layer 2.
 
-This operation tests whether Mutter's owned-client classification has any
-desktop-semantic visual effect. It does **not** call `lower()`, `raise()`, change
-actor siblings, resize/move a window, change type/workspace/focus, or touch a
-Zorin window. It is not claimed to control relative stacking. Disablement calls
-`show_in_window_list()` on the same retained owned GrayHaired window before
-terminating the extension-owned subprocess, restoring ordinary behavior.
+Visual testing confirmed that real Zorin icons remained underneath GrayHaired.
+GrayHaired stayed visible and usable, ordinary application windows stayed above
+it, and the panel/dock stayed above everything. Actor ordering likewise did not
+establish the required visual result. Therefore `hide_from_window_list()` only
+changed window-list/taskbar semantics and is rejected as a Desktop Mode layer.
+The live mutation path has been removed; managed ownership now returns to
+observation-only behavior.
 
-Immediately before and after the one operation, diagnostics record ownership,
-exact WM identity, type, layer, skip-taskbar state, workspace, monitor, Zorin
-candidate identity/type/layer, Meta.Display bottom-to-top order, and sanitized
-actor sibling order. Actor order is comparison data only. Success requires a
-physical visual observation that real Zorin icons are visible and interactive
-above the live Desktop Website; logs alone cannot establish success.
+Three independent mechanisms are physically disproven on this target:
+
+1. `Meta.Window.lower()`;
+2. direct `MetaWindowActorWayland` sibling reordering; and
+3. `Meta.WaylandClient.hide_from_window_list()`.
+
+Combining or repeatedly retrying those failed operations is not justified.
 
 API classification:
 
@@ -494,7 +500,7 @@ API classification:
 - **Mutter API used from GNOME Shell:** `Meta.WaylandClient`; the physical target
   lacks `new_subprocess()` but exposes `new(...)`, `spawnv(...)`, and window-list
   methods. Installed source establishes `owns_window(...)` as the raw ownership
-  interface, which the next physical run must verify.
+  interface, which physical testing has verified.
 - **Zorin-specific wrapper:** `LaunchSubprocess` builds launcher/process lifecycle
   policy around the Mutter primitive; that wrapper is not required for ownership
   and is not copied into this project.
@@ -506,9 +512,9 @@ API classification:
 
 An independent GNOME 46 extension can request and identify its own managed client
 through the physically verified Mutter API. Ownership alone has not proved the
-required relative layer: the two
-completed physical experiments show that ordinary Meta.Window and actor ordering
-are not authoritative here.
+required relative layer: the three completed physical experiments show that
+ordinary Meta.Window ordering, actor ordering, and window-list classification
+are not authoritative for the required visual relationship.
 
 ### Architecture options after the failed experiments
 
@@ -529,10 +535,12 @@ are not authoritative here.
 5. **Normal-window Desktop Launch Page fallback:** safe and maintainable, but it
    is not the requested Desktop Mode layering.
 
-No option yet proves Version 1.0 Desktop Mode. Managed ownership is now proven;
-the next useful physical evidence is whether the single owned-client window-list
-operation changes visible desktop semantics. This remains a bounded experiment,
-not a stacking manager or a Version 1.0 conclusion.
+No option yet proves Version 1.0 Desktop Mode. Managed ownership is proven, but
+the three isolated mutation approaches are closed as insufficient. Investigation
+is now narrowed to read-only discovery of either an intentional Zorin cooperation
+point or a realistic Shell-owned visual background layer that keeps all
+WebEngine/network execution in the Python process. No streaming, IPC, or
+cooperation implementation is included in this phase.
 
 ## Required behavior matrix
 
@@ -577,17 +585,15 @@ non-GNOME X11 environments.
 For GNOME Shell 46 on Zorin, both X11 and Wayland may benefit from one integration
 if the installed provider exposes a usable managed-client cooperation point.
 Native-Wayland physical evidence now establishes the identities, runtime API
-exposure, discovery path, actor hierarchy, and two failed stacking approaches.
+exposure, discovery path, actor hierarchy, managed ownership, and three failed
+desktop-layer approaches.
 Wayland security must remain intact.
 
-The revised conclusion is: **pure Qt, `Meta.Window.lower()`, and direct
-`MetaWindowActorWayland` sibling reordering are all insufficient on the tested
-Zorin/GNOME Shell 46 Wayland target**. The sibling mutation changed the reported
-actor order, but the real desktop icons remained behind GrayHaired Desktop,
-Meta.Window order did not change, verification failed, and restoration
-succeeded. The current mode is `SAFE_INVESTIGATION_ONLY = true`; no live stacking
-manager is active. Managed ownership is physically proven. The next controlled
-experiment applies only the owned client's window-list classification and
-requires visual verification; it does not claim working relative stacking.
-Desktop Mode remains unresolved at version `0.9.0`, and Version 1.0 is not
-complete.
+The revised conclusion is: **`Meta.Window.lower()`, direct
+`MetaWindowActorWayland` sibling reordering, and managed-client
+`hide_from_window_list()` are all physically insufficient on the tested
+Zorin/GNOME Shell 46 Wayland target**. The current mode is
+`SAFE_INVESTIGATION_ONLY = true`; no live stacking or window-list mutation is
+active. Managed ownership is physically proven, but desktop-layer semantics and
+required relative stacking are not. Desktop Mode remains unresolved at version
+`0.9.0`, and Version 1.0 is not complete.

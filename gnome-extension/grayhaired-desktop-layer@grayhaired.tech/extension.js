@@ -13,7 +13,6 @@ const ZORIN_TITLE_PREFIX = 'Desktop Icons ';
 // reordering. Stacking remains observation-only.
 const SAFE_INVESTIGATION_ONLY = true;
 const MANAGED_CLIENT_EXPERIMENT = true;
-const MANAGED_DESKTOP_SEMANTICS_EXPERIMENT = true;
 const MANAGED_CLIENT_CONFIG = 'managed-client-config.json';
 const WINDOW_API_NAMES = [
     'lower',
@@ -78,9 +77,6 @@ export default class GrayHairedDesktopLayerExtension extends Extension {
         this._managedClient = null;
         this._managedSubprocess = null;
         this._managedLaunchAttempted = false;
-        this._managedWindow = null;
-        this._managedWindowHiddenFromList = false;
-        this._managedDesktopSemanticsAttempted = false;
 
         this._connectAfter(global.window_manager, 'map', (_manager, actor) => {
             this._inspectMappedActor(actor);
@@ -120,7 +116,6 @@ export default class GrayHairedDesktopLayerExtension extends Extension {
         for (const [object, id] of this._signals)
             object.disconnect(id);
         this._signals = [];
-        this._restoreManagedWindow();
         this._stopManagedClient();
         this._mappedDiagnosticWindows.clear();
         console.log('[GrayHaired Desktop Layer] disabled');
@@ -364,9 +359,6 @@ export default class GrayHairedDesktopLayerExtension extends Extension {
         if (owned && identityMatches) {
             console.log(`[GrayHaired Desktop Layer][ManagedClient] OWNERSHIP ` +
                 'PASS');
-            this._managedWindow = window;
-            if (MANAGED_DESKTOP_SEMANTICS_EXPERIMENT)
-                this._runManagedDesktopSemanticsExperiment(window);
         } else if (owned) {
             console.warn('[GrayHaired Desktop Layer][ManagedClient] ' +
                 'OWNERSHIP FAIL; identity mismatch');
@@ -374,112 +366,6 @@ export default class GrayHairedDesktopLayerExtension extends Extension {
             console.warn('[GrayHaired Desktop Layer][ManagedClient] OWNERSHIP FAIL; ' +
                 'GrayHaired identity was not owned');
         }
-    }
-
-    _managedSemanticsSnapshot(label, grayWindow) {
-        const windows = this._windows();
-        const iconWindows = windows.filter(isZorinDesktopIconsWindow);
-        const workspace = valueOrNull(grayWindow, 'get_workspace');
-        console.log(`[GrayHaired Desktop Layer][ManagedDesktop] ${label} GrayHaired ` +
-            `owned=${this._managedClient?.owns_window(grayWindow) ?? false} ` +
-            `wmClass=${valueOrNull(grayWindow, 'get_wm_class') ?? '(null)'} ` +
-            `wmClassInstance=${valueOrNull(grayWindow, 'get_wm_class_instance') ?? '(null)'} ` +
-            `windowType=${valueOrNull(grayWindow, 'get_window_type') ?? '(null)'} ` +
-            `layer=${valueOrNull(grayWindow, 'get_layer') ?? '(null)'} ` +
-            `skipTaskbar=${valueOrNull(grayWindow, 'is_skip_taskbar') ?? '(null)'} ` +
-            `monitor=${valueOrNull(grayWindow, 'get_monitor') ?? '(null)'} ` +
-            `workspace=${workspace && typeof workspace.index === 'function'
-                ? workspace.index()
-                : '(null)'}`);
-        for (const [index, iconWindow] of iconWindows.entries()) {
-            console.log(`[GrayHaired Desktop Layer][ManagedDesktop] ${label} Zorin${index} ` +
-                `gtkApplicationId=${valueOrNull(iconWindow, 'get_gtk_application_id') ?? '(null)'} ` +
-                `windowType=${valueOrNull(iconWindow, 'get_window_type') ?? '(null)'} ` +
-                `layer=${valueOrNull(iconWindow, 'get_layer') ?? '(null)'}`);
-        }
-        this._logManagedOrder(label, windows, grayWindow, iconWindows);
-        this._logManagedActorOrder(label, grayWindow, iconWindows);
-    }
-
-    _logManagedOrder(label, windows, grayWindow, iconWindows) {
-        if (typeof global.display.sort_windows_by_stacking !== 'function')
-            return;
-        const icons = new Set(iconWindows);
-        const order = global.display.sort_windows_by_stacking(windows)
-            .map(window => window === grayWindow
-                ? 'GrayHaired'
-                : icons.has(window)
-                    ? 'ZorinIcons'
-                    : this._isOrdinaryUserWindow(window)
-                        ? 'NormalApplication'
-                        : null)
-            .filter(category => category !== null)
-            .join('<');
-        console.log(`[GrayHaired Desktop Layer][ManagedDesktop] ${label} ` +
-            `MetaWindowOrder=${order || '(none)'}`);
-    }
-
-    _logManagedActorOrder(label, grayWindow, iconWindows) {
-        const grayActor = valueOrNull(grayWindow, 'get_compositor_private');
-        const iconActors = iconWindows.map(window =>
-            valueOrNull(window, 'get_compositor_private')).filter(actor => actor);
-        const parent = grayActor && typeof grayActor.get_parent === 'function'
-            ? grayActor.get_parent()
-            : null;
-        const siblings = parent && typeof parent.get_children === 'function'
-            ? parent.get_children()
-            : [];
-        const categories = siblings.map(actor => {
-            if (actor === grayActor)
-                return 'GrayHairedActor';
-            if (iconActors.includes(actor))
-                return 'ZorinIconsActor';
-            return null;
-        }).filter(category => category !== null).join('<');
-        const sameParent = Boolean(parent && iconActors.every(actor =>
-            typeof actor.get_parent === 'function' && actor.get_parent() === parent));
-        console.log(`[GrayHaired Desktop Layer][ManagedDesktop] ${label} ` +
-            `ActorOrder=${categories || '(unavailable)'} sameParent=${sameParent}`);
-    }
-
-    _runManagedDesktopSemanticsExperiment(window) {
-        if (this._managedDesktopSemanticsAttempted)
-            return;
-        this._managedDesktopSemanticsAttempted = true;
-        this._managedSemanticsSnapshot('BEFORE', window);
-        if (typeof this._managedClient?.hide_from_window_list !== 'function' ||
-            typeof this._managedClient?.show_in_window_list !== 'function') {
-            console.warn('[GrayHaired Desktop Layer][ManagedDesktop] FAIL; ' +
-                'managed window-list APIs unavailable');
-            return;
-        }
-        try {
-            this._managedClient.hide_from_window_list(window);
-            this._managedWindowHiddenFromList = true;
-            console.log('[GrayHaired Desktop Layer][ManagedDesktop] ' +
-                'operation=hide_from_window_list(owned GrayHaired)');
-            this._managedSemanticsSnapshot('AFTER', window);
-            console.log('[GrayHaired Desktop Layer][ManagedDesktop] ' +
-                'RESULT REQUIRES VISUAL CONFIRMATION');
-        } catch (error) {
-            console.warn(`[GrayHaired Desktop Layer][ManagedDesktop] FAIL; ${error.message}`);
-            this._restoreManagedWindow();
-        }
-    }
-
-    _restoreManagedWindow() {
-        if (!this._managedWindowHiddenFromList || !this._managedWindow ||
-            typeof this._managedClient?.show_in_window_list !== 'function')
-            return;
-        try {
-            this._managedClient.show_in_window_list(this._managedWindow);
-            console.log('[GrayHaired Desktop Layer][ManagedDesktop] ' +
-                'restored ordinary window-list behavior');
-        } catch (error) {
-            console.warn(`[GrayHaired Desktop Layer][ManagedDesktop] restore failed: ${error.message}`);
-        }
-        this._managedWindowHiddenFromList = false;
-        this._managedWindow = null;
     }
 
     _stopManagedClient() {
