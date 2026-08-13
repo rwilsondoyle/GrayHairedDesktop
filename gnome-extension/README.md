@@ -102,5 +102,54 @@ reviewed ownership-diagnostic prototype, then run:
   | tee gnome-shell-layer-hierarchy.txt
 ```
 
-This reads the prototype's journal diagnostics. It creates, inserts, removes, or
-reorders no actor.
+This command only reads the prototype's journal diagnostics; the collector
+itself creates, inserts, removes, or reorders no actor.
+
+## Shell-owned layer visual test
+
+Physical diagnostics found `Main.layoutManager._backgroundGroup` at index 0 of
+`global.window_group`. The current development source sets
+`SHELL_OWNED_LAYER_EXPERIMENT = true` and `MANAGED_CLIENT_EXPERIMENT = false` so
+no GrayHaired normal window obscures the result. It creates one non-reactive
+`St.BoxLayout`, calculates `backgroundIndex + 1`, and inserts only that new actor.
+Disablement destroys only the retained actor reference.
+
+This is a rectangle-only placement test. It contains no WebEngine, network
+content, IPC, frame streaming, external image, or input forwarding, and does not
+move any existing actor or window. Its result requires physical confirmation.
+
+After review, refresh the PR branch and replace the per-user development source:
+
+```bash
+git pull
+gnome-extensions disable grayhaired-desktop-layer@grayhaired.tech 2>/dev/null || true
+rm -rf ~/.local/share/gnome-shell/extensions/grayhaired-desktop-layer@grayhaired.tech
+mkdir -p ~/.local/share/gnome-shell/extensions
+cp -a gnome-extension/grayhaired-desktop-layer@grayhaired.tech \
+  ~/.local/share/gnome-shell/extensions/
+```
+
+Log out completely, log back into the Wayland session so Shell reloads the
+JavaScript, then enable the extension:
+
+```bash
+gnome-extensions enable grayhaired-desktop-layer@grayhaired.tech
+```
+
+Verify that the rectangle appears above wallpaper; real Zorin icons are visible
+and clickable above it; normal windows and panel/dock remain above it; and no
+flicker or Shell instability occurs. Disable the extension and verify the
+rectangle disappears cleanly:
+
+```bash
+gnome-extensions disable grayhaired-desktop-layer@grayhaired.tech
+```
+
+Collect the journal evidence:
+
+```bash
+journalctl --user -b --no-pager \
+  | grep -E "GrayHaired Desktop Layer|ShellOwnedLayer" \
+  | tail -n 100 \
+  | tee shell-owned-layer-test.txt
+```

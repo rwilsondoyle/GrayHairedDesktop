@@ -586,6 +586,37 @@ in the external Python process. Candidate APIs divide as follows:
   availability, reactive state, and chrome helpers on the actual GNOME 46 target.
   It creates or reorders no actor.
 
+Physical hierarchy collection on the Inspiron-3147 established:
+
+```text
+global.window_group (MetaWindowGroup)
+└── backgroundGroup (MetaBackgroundGroup), sibling index 0
+```
+
+`global.window_group` is itself child index 0 of the Shell UI actor, while
+`global.top_window_group` is child index 24. The window group exposes
+`add_child`, `insert_child_at_index`, and `remove_child`. This makes one
+GNOME-46-specific placement experiment structurally possible: insert a new
+Shell-owned, non-window actor at the runtime-computed
+`backgroundIndex + 1`. Unlike the failed experiments, this does not reorder a
+`MetaWindowActorWayland`; it creates and later destroys only an actor owned by
+the development extension.
+
+`SHELL_OWNED_LAYER_EXPERIMENT = true` enables that single visual test. Managed
+client auto-launch is disabled so its normal window cannot obscure the result.
+After validating the background parent, insertion API, primary-monitor geometry,
+and current background index, the extension creates a non-reactive `St.BoxLayout`
+covering 42% by 24% of the primary monitor and labels it **GrayHaired Shell Layer
+Test**. It inserts the actor immediately after the background group and logs the
+before/after hierarchy. It never moves an existing child. Disablement destroys
+only the retained test-actor reference.
+
+This is a physical placement test, not an external-content prototype. Success
+requires visual confirmation that the rectangle is above wallpaper, below
+visible/clickable Zorin icons and normal windows, below panel/dock, stable, and
+removed cleanly. The result cannot make private placement a supported API, nor
+does it solve the external frame/input bridge described below.
+
 External content delivery has no small supported bridge:
 
 | Mechanism | Feasibility and cost on GNOME 46 |
@@ -604,11 +635,11 @@ path. B2 (a Shell-local launcher) does not meet the live Desktop Website
 requirement. No B3 mask/underlay mechanism distinct from the three failed
 stacking operations has been identified.
 
-The current decision is **B: possible only through private/fragile placement plus
-an unproven, high-maintenance frame/input bridge, and not suitable for a Version
-1.0 implementation at present**. The hierarchy diagnostic can confirm actual
-GNOME 46 actor topology, but it cannot resolve the unsupported content/input
-bridge. Unless new supported APIs or provider cooperation emerge, retain the
+The current decision remains **B: actor placement is plausible enough for one
+small GNOME-46 physical test, but it is Shell-private; external interactive
+content still requires an unproven, high-maintenance frame/input bridge**. Even a
+successful rectangle test would not make the complete architecture suitable for
+Version 1.0. Unless supported APIs or provider cooperation emerge, retain the
 normal-window fallback and reconsider the full interactive Desktop Mode
 requirement.
 

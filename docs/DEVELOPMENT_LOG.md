@@ -60,6 +60,12 @@ Status: Managed ownership verified; three desktop-layer mechanisms physically re
   external frame/input bridge. Full-frame mirroring is especially unsuitable for
   low-power hardware without a supported zero-copy path. No implementation was
   added; the normal-window fallback remains and product requirements need review.
+- Physical hierarchy diagnostics found `backgroundGroup` at child index 0 inside
+  `global.window_group` and confirmed child insertion/removal APIs. Added one
+  development-only visual test: a non-reactive extension-owned `St.BoxLayout` is
+  inserted at the runtime-computed background index plus one and destroyed on
+  disable. Managed-client auto-launch is off for an unobscured test. No existing
+  actor or window is moved.
 - Added a stable Qt Wayland application ID and X11 `WM_CLASS` without changing
   QSettings identity. Nothing is installed or enabled automatically. Version
   remains 0.9.0, and Desktop Mode remains a pre-1.0 investigation item.

@@ -84,7 +84,7 @@ def test_managed_client_experiment_uses_gnome_46_ownership_api():
     source = _source()
     config = json.loads((EXTENSION / "managed-client-config.json.example").read_text())
 
-    assert "const MANAGED_CLIENT_EXPERIMENT = true;" in source
+    assert "const MANAGED_CLIENT_EXPERIMENT = false;" in source
     assert "Meta.WaylandClient.new_subprocess(" in source
     assert "Meta.WaylandClient.new(launcher)" in source
     assert "Meta.WaylandClient.new(\n                        global.context, launcher)" in source
@@ -109,6 +109,29 @@ def test_failed_managed_desktop_mutation_is_removed():
     assert "if (owned && identityMatches)" in source
     assert ".hide_from_window_list(" not in source
     assert ".show_in_window_list(" not in source
+
+
+def test_shell_owned_layer_experiment_only_inserts_its_new_actor():
+    source = _source()
+    experiment = source.split("    _createShellOwnedLayerTest", 1)[1].split(
+        "    _removeShellOwnedLayerTest", 1
+    )[0]
+    cleanup = source.split("    _removeShellOwnedLayerTest", 1)[1].split(
+        "    _logWindowRuntimeApis", 1
+    )[0]
+
+    assert "const SHELL_OWNED_LAYER_EXPERIMENT = true;" in source
+    assert "new St.BoxLayout" in experiment
+    assert "reactive: false" in experiment
+    assert "const parent = global.window_group" in experiment
+    assert "Main.layoutManager?._backgroundGroup" in experiment
+    assert "backgroundGroup.get_parent() !== parent" in experiment
+    assert "backgroundIndex + 1" in experiment
+    assert experiment.count("parent.insert_child_at_index(actor, backgroundIndex + 1);") == 1
+    assert "this._shellOwnedTestActor = actor;" in experiment
+    assert "const actor = this._shellOwnedTestActor;" in cleanup
+    assert cleanup.count("actor.destroy();") == 1
+    assert "RESULT REQUIRES PHYSICAL VISUAL CONFIRMATION" in experiment
 
 
 def test_managed_client_has_no_ordinary_subprocess_fallback():
@@ -235,6 +258,9 @@ def test_cooperation_collector_is_fixed_path_bounded_and_read_only():
 
 def test_shell_hierarchy_diagnostic_is_observation_only():
     source = _source()
+    diagnostic = source.split("    _logShellLayerHierarchy", 1)[1].split(
+        "    _createShellOwnedLayerTest", 1
+    )[0]
     collector = (
         Path(__file__).parents[1]
         / "scripts"
@@ -252,7 +278,7 @@ def test_shell_hierarchy_diagnostic_is_observation_only():
         ".set_child_above_sibling(",
         ".set_child_below_sibling(",
     ):
-        assert call not in source
+        assert call not in diagnostic
     assert "journalctl" in collector
     assert "gjs" not in collector
     assert "tail -n 80" in collector

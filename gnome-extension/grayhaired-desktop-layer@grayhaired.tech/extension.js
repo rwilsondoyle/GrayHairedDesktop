@@ -2,6 +2,7 @@ import Gio from 'gi://Gio';
 import GLib from 'gi://GLib';
 import GObject from 'gi://GObject';
 import Meta from 'gi://Meta';
+import St from 'gi://St';
 
 import {Extension} from 'resource:///org/gnome/shell/extensions/extension.js';
 import * as Main from 'resource:///org/gnome/shell/ui/main.js';
@@ -12,7 +13,10 @@ const ZORIN_TITLE_PREFIX = 'Desktop Icons ';
 // Physical testing disproved both Meta.Window lowering and actor sibling
 // reordering. Stacking remains observation-only.
 const SAFE_INVESTIGATION_ONLY = true;
-const MANAGED_CLIENT_EXPERIMENT = true;
+// Keep the proven ownership implementation, but do not launch its normal window
+// while visually testing the independent Shell-owned actor layer.
+const MANAGED_CLIENT_EXPERIMENT = false;
+const SHELL_OWNED_LAYER_EXPERIMENT = true;
 const MANAGED_CLIENT_CONFIG = 'managed-client-config.json';
 const WINDOW_API_NAMES = [
     'lower',
@@ -77,6 +81,7 @@ export default class GrayHairedDesktopLayerExtension extends Extension {
         this._managedClient = null;
         this._managedSubprocess = null;
         this._managedLaunchAttempted = false;
+        this._shellOwnedTestActor = null;
 
         this._connectAfter(global.window_manager, 'map', (_manager, actor) => {
             this._inspectMappedActor(actor);
@@ -102,6 +107,8 @@ export default class GrayHairedDesktopLayerExtension extends Extension {
 
         this._logDisplayRuntimeApis();
         this._logShellLayerHierarchy();
+        if (SHELL_OWNED_LAYER_EXPERIMENT)
+            this._createShellOwnedLayerTest();
         this._queueReconcile();
         if (MANAGED_CLIENT_EXPERIMENT)
             this._launchManagedClientOnce();
@@ -117,6 +124,7 @@ export default class GrayHairedDesktopLayerExtension extends Extension {
         for (const [object, id] of this._signals)
             object.disconnect(id);
         this._signals = [];
+        this._removeShellOwnedLayerTest();
         this._stopManagedClient();
         this._mappedDiagnosticWindows.clear();
         console.log('[GrayHaired Desktop Layer] disabled');
@@ -560,6 +568,80 @@ export default class GrayHairedDesktopLayerExtension extends Extension {
             `layout.addTopChrome=${typeof Main.layoutManager?.addTopChrome} ` +
             `stage.add_child=${typeof stage?.add_child} ` +
             `stage.insert_child_at_index=${typeof stage?.insert_child_at_index}`);
+    }
+
+    _createShellOwnedLayerTest() {
+        const parent = global.window_group ?? null;
+        const backgroundGroup = Main.layoutManager?._backgroundGroup ?? null;
+        const monitor = Main.layoutManager?.primaryMonitor ?? null;
+        if (!parent || !backgroundGroup || !monitor ||
+            typeof parent.get_children !== 'function' ||
+            typeof parent.insert_child_at_index !== 'function' ||
+            typeof backgroundGroup.get_parent !== 'function' ||
+            backgroundGroup.get_parent() !== parent) {
+            console.warn('[GrayHaired Desktop Layer][ShellOwnedLayer] FAIL; ' +
+                'validated GNOME 46 background hierarchy unavailable');
+            return;
+        }
+
+        const beforeChildren = parent.get_children();
+        const backgroundIndex = beforeChildren.indexOf(backgroundGroup);
+        if (backgroundIndex < 0) {
+            console.warn('[GrayHaired Desktop Layer][ShellOwnedLayer] FAIL; ' +
+                'backgroundGroup is not a child of window_group');
+            return;
+        }
+        console.log('[GrayHaired Desktop Layer][ShellOwnedLayer] BEFORE ' +
+            `backgroundType=${this._actorType(backgroundGroup)} ` +
+            `backgroundIndex=${backgroundIndex} parentType=${this._actorType(parent)} ` +
+            `childCount=${beforeChildren.length} testActor=absent`);
+
+        const width = Math.max(320, Math.floor(monitor.width * 0.42));
+        const height = Math.max(150, Math.floor(monitor.height * 0.24));
+        const x = monitor.x + Math.floor((monitor.width - width) / 2);
+        const y = monitor.y + Math.floor(monitor.height * 0.22);
+        const actor = new St.BoxLayout({
+            name: 'grayhaired-shell-layer-test',
+            reactive: false,
+            can_focus: false,
+            style: 'background-color: rgba(38, 76, 112, 0.92); ' +
+                'border: 5px solid rgba(220, 235, 248, 1); border-radius: 18px; ' +
+                'padding: 28px;',
+        });
+        actor.add_child(new St.Label({
+            text: 'GrayHaired Shell Layer Test',
+            reactive: false,
+            style: 'color: white; font-size: 28px; font-weight: bold;',
+        }));
+        actor.set_position(x, y);
+        actor.set_size(width, height);
+        this._shellOwnedTestActor = actor;
+
+        parent.insert_child_at_index(actor, backgroundIndex + 1);
+        const afterChildren = parent.get_children();
+        const testActorIndex = afterChildren.indexOf(actor);
+        const nextActor = afterChildren[testActorIndex + 1] ?? null;
+        console.log('[GrayHaired Desktop Layer][ShellOwnedLayer] AFTER ' +
+            `testActorType=${this._actorType(actor)} testActorIndex=${testActorIndex} ` +
+            `backgroundIndex=${afterChildren.indexOf(backgroundGroup)} ` +
+            `parentChildCount=${afterChildren.length} reactive=${actor.reactive} ` +
+            `visible=${actor.visible} nextActor=${this._actorType(nextActor)}`);
+        console.log('[GrayHaired Desktop Layer][ShellOwnedLayer] ' +
+            'RESULT REQUIRES PHYSICAL VISUAL CONFIRMATION');
+    }
+
+    _removeShellOwnedLayerTest() {
+        const actor = this._shellOwnedTestActor;
+        this._shellOwnedTestActor = null;
+        if (!actor)
+            return;
+        try {
+            actor.destroy();
+            console.log('[GrayHaired Desktop Layer][ShellOwnedLayer] ' +
+                'extension-owned test actor removed');
+        } catch (error) {
+            console.warn(`[GrayHaired Desktop Layer][ShellOwnedLayer] cleanup failed: ${error.message}`);
+        }
     }
 
     _logWindowRuntimeApis(label, window, includeDesktopDetails = false) {
