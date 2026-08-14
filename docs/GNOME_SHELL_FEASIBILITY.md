@@ -392,13 +392,15 @@ the observed Mutter API.
 
 ### Managed-client ownership experiment
 
-`MANAGED_CLIENT_EXPERIMENT = true` enables one development-only ownership test;
-`SAFE_INVESTIGATION_ONLY = true` continues to prohibit stacking changes. The
-extension reads a manually created `managed-client-config.json` beside its source
-and requires an absolute executable path. The documented configuration launches
-the repository virtual environment's Python interpreter directly with
+The development ownership experiment was temporarily enabled for controlled
+physical tests. It is now disabled by default with
+`MANAGED_CLIENT_EXPERIMENT = false`, while `SAFE_INVESTIGATION_ONLY = true`
+continues to prohibit stacking changes. During those completed tests, the
+extension read a manually created `managed-client-config.json` beside its source
+and required an absolute executable path. The tested configuration launched the
+repository virtual environment's Python interpreter directly with
 `-m grayhaired_desktop.app`, an explicit working directory, and `PYTHONPATH`.
-It does not invoke a shell or `scripts/run.sh`, so there is no wrapper process
+It did not invoke a shell or `scripts/run.sh`, so there was no wrapper process
 whose fork/exec behavior could make the ownership result ambiguous.
 
 The first native-Wayland ownership run failed safely before launch because the

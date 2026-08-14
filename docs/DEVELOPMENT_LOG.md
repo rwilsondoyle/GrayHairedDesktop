@@ -4,7 +4,7 @@ This log records project-level development milestones and verification notes. It
 
 ## GNOME Shell Desktop Integration Feasibility
 
-Status: Managed ownership verified; three desktop-layer mechanisms physically rejected.
+Status: Managed ownership verified; four desktop-layer mechanisms physically rejected.
 
 - Confirmed the target as Zorin OS 18.1 and GNOME Shell 46.0; Phase 1 completed
   successfully in the intended native Wayland session.
@@ -61,11 +61,10 @@ Status: Managed ownership verified; three desktop-layer mechanisms physically re
   low-power hardware without a supported zero-copy path. No implementation was
   added; the normal-window fallback remains and product requirements need review.
 - Physical hierarchy diagnostics found `backgroundGroup` at child index 0 inside
-  `global.window_group` and confirmed child insertion/removal APIs. Added one
-  development-only visual test: a non-reactive extension-owned `St.BoxLayout` is
-  inserted at the runtime-computed background index plus one and destroyed on
-  disable. Managed-client auto-launch is off for an unobscured test. No existing
-  actor or window is moved.
+  `global.window_group` and confirmed child insertion/removal APIs. One controlled
+  test temporarily enabled a non-reactive extension-owned `St.BoxLayout` at the
+  runtime-computed background index plus one. Managed-client auto-launch was off,
+  and no existing actor or window was moved. The test is now disabled by default.
 - The physical Shell-owned actor test failed: the rectangle was above wallpaper
   but also above Zorin icons and normal applications; panel/dock remained above.
   Icons were clickable underneath and no obvious flicker occurred, but recovery

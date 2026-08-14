@@ -64,9 +64,11 @@ Meta.Window order unchanged. Real Zorin icons remained underneath GrayHaired;
 ordinary windows and the panel/dock remained above it. This operation is rejected
 as desktop layering and its mutation code has been removed.
 
-The prototype now proves and logs ownership only. There is no window-list,
-lower, raise, resize, workspace, focus, type, monitor, actor-order, or Zorin
-mutation. There is no polling or automatic relaunch. Disabling the extension
+The prototype retains the proven ownership implementation and observation
+logging, but managed launch is disabled by default. There is no active
+window-list, lower, raise, resize, workspace, focus, type, monitor, actor-order,
+or Zorin mutation. There is no polling or automatic relaunch. If the historical
+ownership experiment is explicitly reviewed and enabled, disabling the extension
 terminates only the subprocess returned by its own `Meta.WaylandClient`.
 
 The development config launches the virtual environment's Python interpreter
