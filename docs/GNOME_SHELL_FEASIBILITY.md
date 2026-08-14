@@ -2,6 +2,14 @@
 
 ## Current status
 
+The focused GNOME Shell 46/Mutter 46 source investigation is documented in
+[`GNOME_BACKGROUND_LAYER_RESEARCH.md`](GNOME_BACKGROUND_LAYER_RESEARCH.md).
+It found internal wallpaper groups, background managers, and per-monitor actors,
+but no documented or reasonably stable extension-facing content hook and no
+supported bridge for the external interactive QtWebEngine surface. No new actor
+experiment or physical run is justified; the historical findings below remain
+unchanged.
+
 This investigation remains open. Real testing has proved that pure Qt window
 hints do not provide the required GNOME desktop layer, but it has **not** proved
 that cooperation with the installed Zorin desktop-icon extension is impossible.
