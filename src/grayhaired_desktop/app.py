@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import os
 import sys
 import time
 
@@ -30,6 +31,12 @@ def build_application(argv: list[str] | None = None) -> QApplication:
     """Create and configure the QApplication instance."""
 
     metadata = AppMetadata()
+    # Qt uses the desktop-file name as the native Wayland application ID.  The
+    # X11 backend reads QT_WM_CLASS when it creates the first native window.
+    # Neither identifier participates in QSettings, whose existing organization
+    # and application names remain unchanged.
+    QApplication.setDesktopFileName(metadata.application_id)
+    os.environ["QT_WM_CLASS"] = metadata.application_id
     QApplication.setAttribute(Qt.ApplicationAttribute.AA_DontCreateNativeWidgetSiblings)
     app = QApplication(sys.argv if argv is None else argv)
     app.setApplicationName(metadata.name)

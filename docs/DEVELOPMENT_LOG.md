@@ -2,6 +2,79 @@
 
 This log records project-level development milestones and verification notes. It is intentionally concise so future contributors can quickly understand what changed and what still needs confirmation.
 
+## GNOME Shell Desktop Integration Feasibility
+
+Status: Managed ownership verified; four desktop-layer mechanisms physically rejected.
+
+- Confirmed the target as Zorin OS 18.1 and GNOME Shell 46.0; Phase 1 completed
+  successfully in the intended native Wayland session.
+- Confirmed `zorin-desktop-icons@zorinos.com` (**Zorin Desktop Icons**) as the
+  active provider. Its metadata names the original Desktop Icons extension, while
+  installed headers confirm substantial DING-derived implementation code.
+- Targeted inspection established that a separate application renders the icons
+  in client windows. Zorin manages their `Meta.Window` objects event-by-event,
+  including Wayland desktop semantics, lowering, workspace behavior, Activities
+  filtering, and per-monitor positioning.
+- Retained the proven conclusion that pure Qt window hints cannot preserve the
+  required layer. Physical Wayland tests also proved that one `lower()` call and
+  direct compositor-actor sibling ordering are insufficient.
+- Confirmed `list_all_windows()`, stack sorting, and `window-created` at runtime;
+  recorded both client identities and their starting stack. Lowering only
+  GrayHaired did not change the order; verification failed and fallback worked.
+- Confirmed both Wayland window actors share one `MetaWindowGroup`; changing
+  their reported sibling order did not change the visible icon relationship, and
+  the experiment restored the previous order.
+- Installed-source inspection identified Mutter's
+  `Meta.WaylandClient.new_subprocess(global.context, launcher, argv)` as Zorin's
+  trusted-client primitive. Added an independently written ownership-only test
+  that directly launches the configured Python interpreter, validates managed
+  ownership plus exact GrayHaired WM identity, performs no stacking operation,
+  and never relaunches automatically.
+- The first physical ownership test found `new_subprocess` undefined on GNOME
+  Shell 46 and failed safely without launching. The prototype now tests only the
+  installed-source-demonstrated older forms—`new(global.context, launcher)` or
+  `new(launcher)` followed by managed `spawnv(global.display, argv)`—with no
+  ordinary subprocess fallback.
+- A subsequent GNOME 46 run exposed `new`, `spawnv`, and window-list methods but
+  no raw `query_window_belongs_to`; the managed process was terminated safely.
+  Installed source shows Zorin's wrapper implements that method by calling raw
+  `Meta.WaylandClient.owns_window(window)`. The ownership test now uses
+  `owns_window()` directly and matches Zorin's constructor order:
+  `new(launcher)` first, then `new(global.context, launcher)` on failure.
+- Physical testing on the Inspiron-3147 proved the context constructor, managed
+  `spawnv`, exact GrayHaired WM identity, and `owns_window(window) === true`.
+  Manual window close was detected normally and caused no automatic relaunch.
+- The one-shot managed `hide_from_window_list(window)` test changed only
+  `skipTaskbar` (false to true). Type and layer remained 0 and 2, stack order
+  remained wrong, and real Zorin icons stayed underneath GrayHaired. Ordinary
+  windows and panel/dock stayed above. The mutation code is removed.
+- `Meta.Window.lower()`, actor sibling reorder, and managed window-list hiding
+  are now physically rejected as Desktop Mode solutions. No combinations or
+  retry loops are justified. Next work is read-only investigation of an explicit
+  Zorin cooperation point or a Shell-owned visual layer with WebEngine outside
+  Shell.
+- The physical read-only cooperation collector found external GTK icon windows,
+  no Shell-owned icon container, and no D-Bus/API surface-registration or
+  relative-layer hook. Option A is unsupported by the installed implementation.
+- Option B currently requires Shell-private actor placement plus an unproven
+  external frame/input bridge. Full-frame mirroring is especially unsuitable for
+  low-power hardware without a supported zero-copy path. No implementation was
+  added; the normal-window fallback remains and product requirements need review.
+- Physical hierarchy diagnostics found `backgroundGroup` at child index 0 inside
+  `global.window_group` and confirmed child insertion/removal APIs. One controlled
+  test temporarily enabled a non-reactive extension-owned `St.BoxLayout` at the
+  runtime-computed background index plus one. Managed-client auto-launch was off,
+  and no existing actor or window was moved. The test is now disabled by default.
+- The physical Shell-owned actor test failed: the rectangle was above wallpaper
+  but also above Zorin icons and normal applications; panel/dock remained above.
+  Icons were clickable underneath and no obvious flicker occurred, but recovery
+  required explicit terminal disable and the enabled extension recreated the
+  actor after reboot. This exact insertion is rejected and both experiment flags
+  now default false.
+- Added a stable Qt Wayland application ID and X11 `WM_CLASS` without changing
+  QSettings identity. Nothing is installed or enabled automatically. Version
+  remains 0.9.0, and Desktop Mode remains a pre-1.0 investigation item.
+
 ## Alpha 0.8 — Stability, Performance and Diagnostics
 
 Status: Implementation complete; manual verification performed on the Inspiron-3147 test system.
@@ -115,6 +188,19 @@ Status: Implementation complete; manual Zorin verification pending.
 - No widget system has been added.
 
 ## Zorin verification notes
+
+### GNOME Shell 46 desktop-layer feasibility
+
+- Native-Wayland testing confirmed that `Meta.Window.lower()` did not change the
+  relevant visible order and safely fell back.
+- A second physical test changed the reported `MetaWindowGroup` sibling order,
+  but GrayHaired Desktop still obscured Zorin's real desktop icons; restoration
+  succeeded.
+- Managed ownership is physically proven. Managed window-list classification
+  then failed visually and its mutation was removed. Next work is read-only
+  architecture inspection; Zorin Desktop Icons and ordinary windows remain
+  untouched.
+- Desktop Mode remains unresolved and Version 1.0 is not declared ready.
 
 The project targets Zorin OS, so manual verification on real Zorin computers is part of the alpha process.
 

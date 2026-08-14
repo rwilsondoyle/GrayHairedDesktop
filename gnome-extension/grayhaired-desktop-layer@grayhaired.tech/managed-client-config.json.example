@@ -1,0 +1,11 @@
+{
+  "argv": [
+    "/absolute/path/to/GrayHairedDesktop/.venv/bin/python",
+    "-m",
+    "grayhaired_desktop.app"
+  ],
+  "cwd": "/absolute/path/to/GrayHairedDesktop",
+  "environment": {
+    "PYTHONPATH": "/absolute/path/to/GrayHairedDesktop/src"
+  }
+}

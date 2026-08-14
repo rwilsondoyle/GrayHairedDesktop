@@ -168,15 +168,20 @@ above the user's real Zorin desktop icons, hiding them. Show Desktop therefore
 exposed GrayHaired Desktop but not the user's files/program icons. X11 Desktop
 Mode is not accepted.
 
-Zorin GNOME normally implements desktop icons with a GNOME Shell desktop-icons
-extension, commonly Desktop Icons NG (DING). Those are shell-coordinated desktop
-surfaces, not part of the wallpaper and not a Qt child layer. EWMH offers a
-desktop type and a below state, but no standard ordering level between GNOME's
-background and its icon provider. Testing demonstrated both sides of that limit:
-the Qt desktop-type attempt was hidden below GNOME's desktop surface, while the
-normal stays-below attempt was above and hid the icons. Relative restacking
-against extension-owned windows would depend on private window discovery and
-extension lifecycle, so it would be a fragile shell-specific hack.
+The confirmed Zorin OS 18.1 target implements desktop icons with the active
+`zorin-desktop-icons@zorinos.com` extension (**Zorin Desktop Icons**), a fork of
+the original Desktop Icons extension. Installed source headers also confirm
+substantial DING-derived code under Zorin's provider identity. The exact Zorin
+source confirms that it manages separate icon client windows through
+`Meta.Window`, including explicit Wayland desktop-window emulation and lowering.
+EWMH offers a desktop type and a below state, but pure Qt exposes no standard ordering level
+between GNOME's background and the icon provider. Testing demonstrated both sides
+of that Qt limit: the desktop-type attempt was hidden below GNOME's desktop
+surface, while the normal stays-below attempt was above and hid the icons. A
+lower-only GNOME 46 experiment did not change the verified order and restored the
+ordinary GrayHaired window successfully. The current development mode reads the
+proven shared compositor hierarchy and conditionally moves only the GrayHaired
+actor below Zorin; Zorin remains unmodified.
 
 The application now treats Zorin/GNOME sessions—including X11/`xcb`—as
 unsupported and uses the safe normal/windowed fallback. This preserves the user's
