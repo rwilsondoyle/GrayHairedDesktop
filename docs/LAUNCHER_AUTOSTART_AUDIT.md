@@ -92,12 +92,15 @@ On the affected machine, from any checkout of this branch, run:
 ```
 
 The collector prints session/XDG environment values, standard user launcher and
-autostart directories, matching desktop-entry fields, matching process command
-lines, and relevant systemd user units. It writes only to stdout and does not
+autostart directories (including symlinked entries), matching desktop-entry
+fields, matching process command lines, and systemd user units whose names or
+unit contents reference GrayHaired Desktop. It writes only to stdout and does not
 install, launch, terminate, enable, disable, or modify anything. Preserve the
-complete output for review. If no standard mechanism is found, inspect GNOME
-session-restore behavior and other user login configuration as a separate,
-read-only follow-up rather than guessing.
+complete output for review. Earlier collector output that did not inspect
+symlinked entries and generically named systemd unit contents did not rule those
+sources out; run the updated collector on the physical target. If no standard
+mechanism is found, inspect GNOME session-restore behavior and other user login
+configuration as a separate, read-only follow-up rather than guessing.
 
 ## Duplicate launch behavior
 
