@@ -602,8 +602,8 @@ Shell-owned, non-window actor at the runtime-computed
 `MetaWindowActorWayland`; it creates and later destroys only an actor owned by
 the development extension.
 
-`SHELL_OWNED_LAYER_EXPERIMENT = true` enables that single visual test. Managed
-client auto-launch is disabled so its normal window cannot obscure the result.
+The now-completed test used `SHELL_OWNED_LAYER_EXPERIMENT = true`; managed-client
+auto-launch was disabled so its normal window could not obscure the result.
 After validating the background parent, insertion API, primary-monitor geometry,
 and current background index, the extension creates a non-reactive `St.BoxLayout`
 covering 42% by 24% of the primary monitor and labels it **GrayHaired Shell Layer
@@ -611,11 +611,20 @@ Test**. It inserts the actor immediately after the background group and logs the
 before/after hierarchy. It never moves an existing child. Disablement destroys
 only the retained test-actor reference.
 
-This is a physical placement test, not an external-content prototype. Success
-requires visual confirmation that the rectangle is above wallpaper, below
-visible/clickable Zorin icons and normal windows, below panel/dock, stable, and
-removed cleanly. The result cannot make private placement a supported API, nor
-does it solve the external frame/input bridge described below.
+Physical testing found that the rectangle appeared above wallpaper, but also
+above Zorin icons and ordinary application windows. Icons remained clickable
+underneath, the actor was not draggable, panel/dock remained above it, and no
+obvious flicker or Shell instability was observed. Disable cleanup did not behave
+safely enough in the session: the enabled extension persisted across reboot and
+recreated the rectangle, and explicit terminal disable was required to recover.
+This was a visual/usability and recovery failure, not a demonstrated Shell crash.
+
+The exact `global.window_group.insert_child_at_index(actor,
+backgroundIndex + 1)` placement is rejected as a Desktop Mode layer. No alternate
+indexes, reinsertion, or compositor fights are justified. The implementation is
+retained only as reproducible evidence and
+`SHELL_OWNED_LAYER_EXPERIMENT = false`; managed-client launch is also false. All
+mutation experiments are disabled by default.
 
 External content delivery has no small supported bridge:
 
@@ -635,16 +644,16 @@ path. B2 (a Shell-local launcher) does not meet the live Desktop Website
 requirement. No B3 mask/underlay mechanism distinct from the three failed
 stacking operations has been identified.
 
-The current decision remains **B: actor placement is plausible enough for one
-small GNOME-46 physical test, but it is Shell-private; external interactive
-content still requires an unproven, high-maintenance frame/input bridge**. Even a
-successful rectangle test would not make the complete architecture suitable for
-Version 1.0. Unless supported APIs or provider cooperation emerge, retain the
-normal-window fallback and reconsider the full interactive Desktop Mode
-requirement.
+The current decision is **B: the tested private `global.window_group` placement
+failed physically, and external interactive content still requires an unproven,
+high-maintenance frame/input bridge**. This does not disprove every possible
+Shell-owned actor architecture, but no supported or reasonably stable
+background-content container above wallpaper and below every client window is
+currently identified. Retain the normal-window fallback and reconsider the full
+interactive Desktop Mode requirement.
 
 No option yet proves Version 1.0 Desktop Mode. Managed ownership is proven, but
-the three isolated mutation approaches are closed as insufficient. Investigation
+the four isolated mutation approaches are closed as insufficient. Investigation
 is now narrowed to the Shell-owned visual background question while keeping all
 WebEngine/network execution in the Python process. A future provider-supported
 cooperation API could change the Option A assessment, but none exists in the
@@ -700,11 +709,11 @@ Wayland security must remain intact.
 
 The revised conclusion is: **`Meta.Window.lower()`, direct
 `MetaWindowActorWayland` sibling reordering, and managed-client
-`hide_from_window_list()` are all physically insufficient on the tested
-Zorin/GNOME Shell 46 Wayland target**. The current mode is
-`SAFE_INVESTIGATION_ONLY = true`; no live stacking or window-list mutation is
-active. Managed ownership is physically proven, but desktop-layer semantics and
-required relative stacking are not. No supported cooperation point was found in
-the installed Zorin provider, and the Shell-owned mirror alternative currently
-depends on private placement plus a costly, unproven frame/input bridge. Desktop
-Mode remains unresolved at version `0.9.0`, and Version 1.0 is not complete.
+`hide_from_window_list()` are physically insufficient, and the tested
+Shell-owned actor immediately above `_backgroundGroup` also failed visually and
+introduced recovery/usability risk on the tested Zorin/GNOME Shell 46 Wayland
+target**. Both experiment constants are false; no process or actor mutation runs
+automatically. Managed ownership is physically proven, but desktop-layer
+semantics and required relative stacking are not. No supported cooperation point
+was found in the installed Zorin provider. Desktop Mode remains unresolved at
+version `0.9.0`, and Version 1.0 is not complete.

@@ -120,7 +120,9 @@ def test_shell_owned_layer_experiment_only_inserts_its_new_actor():
         "    _logWindowRuntimeApis", 1
     )[0]
 
-    assert "const SHELL_OWNED_LAYER_EXPERIMENT = true;" in source
+    assert "const SHELL_OWNED_LAYER_EXPERIMENT = false;" in source
+    assert "const MANAGED_CLIENT_EXPERIMENT = false;" in source
+    assert "PHYSICALLY DISPROVEN" in source
     assert "new St.BoxLayout" in experiment
     assert "reactive: false" in experiment
     assert "const parent = global.window_group" in experiment

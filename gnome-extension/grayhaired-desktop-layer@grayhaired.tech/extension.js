@@ -13,10 +13,13 @@ const ZORIN_TITLE_PREFIX = 'Desktop Icons ';
 // Physical testing disproved both Meta.Window lowering and actor sibling
 // reordering. Stacking remains observation-only.
 const SAFE_INVESTIGATION_ONLY = true;
-// Keep the proven ownership implementation, but do not launch its normal window
-// while visually testing the independent Shell-owned actor layer.
+// All mutation experiments are disabled by default. Physical tests show that an
+// enabled development extension can persist across reboot. Explicit source
+// review and opt-in are required before any future mutation experiment.
 const MANAGED_CLIENT_EXPERIMENT = false;
-const SHELL_OWNED_LAYER_EXPERIMENT = true;
+// PHYSICALLY DISPROVEN — DO NOT ENABLE FOR NORMAL DEVELOPMENT. Inserting this
+// actor above _backgroundGroup obscured icons and ordinary application windows.
+const SHELL_OWNED_LAYER_EXPERIMENT = false;
 const MANAGED_CLIENT_CONFIG = 'managed-client-config.json';
 const WINDOW_API_NAMES = [
     'lower',

@@ -52,11 +52,11 @@ Managed ownership is proven; Desktop Mode and relative icon stacking are not.
 
 ## Confirmed window-list experiment failure
 
-`MANAGED_CLIENT_EXPERIMENT` and `SAFE_INVESTIGATION_ONLY` are both `true`. The
-extension launches one configured GrayHaired process through a fresh
-`Meta.WaylandClient`, then requires both raw `owns_window()` ownership and the
-exact WM class or instance `tech.grayhaired.GrayHairedDesktop` before reporting
-success.
+During the completed ownership test, the extension launched one configured
+GrayHaired process through a fresh `Meta.WaylandClient`, then required both raw
+`owns_window()` ownership and the exact WM class or instance
+`tech.grayhaired.GrayHairedDesktop` before reporting success. That evidence is
+retained, but `MANAGED_CLIENT_EXPERIMENT` now defaults to `false`.
 
 The one-shot `hide_from_window_list()` test physically changed `skipTaskbar` from
 false to true but left window type 0, layer 2, and the functionally incorrect
@@ -108,17 +108,20 @@ itself creates, inserts, removes, or reorders no actor.
 ## Shell-owned layer visual test
 
 Physical diagnostics found `Main.layoutManager._backgroundGroup` at index 0 of
-`global.window_group`. The current development source sets
-`SHELL_OWNED_LAYER_EXPERIMENT = true` and `MANAGED_CLIENT_EXPERIMENT = false` so
-no GrayHaired normal window obscures the result. It creates one non-reactive
-`St.BoxLayout`, calculates `backgroundIndex + 1`, and inserts only that new actor.
-Disablement destroys only the retained actor reference.
+`global.window_group`. The completed experiment inserted one non-reactive
+`St.BoxLayout` at `backgroundIndex + 1`.
 
-This is a rectangle-only placement test. It contains no WebEngine, network
-content, IPC, frame streaming, external image, or input forwarding, and does not
-move any existing actor or window. Its result requires physical confirmation.
+The rectangle appeared above wallpaper but also above real Zorin icons and normal
+applications. Panel/dock remained above; icons were clickable underneath; no
+obvious flicker occurred. Cleanup did not behave safely enough during the session,
+the enabled extension recreated the rectangle after reboot, and explicit terminal
+disable was required. This was not established as a Shell crash, but the exact
+placement is a physical visual failure and recovery/usability risk.
 
-After review, refresh the PR branch and replace the per-user development source:
+Both `SHELL_OWNED_LAYER_EXPERIMENT` and `MANAGED_CLIENT_EXPERIMENT` now default to
+false. Do not enable the mutation experiment for normal development. After
+refreshing the branch, replace the per-user source only if observation-only
+diagnostics are needed:
 
 ```bash
 git pull
@@ -129,17 +132,15 @@ cp -a gnome-extension/grayhaired-desktop-layer@grayhaired.tech \
   ~/.local/share/gnome-shell/extensions/
 ```
 
-Log out completely, log back into the Wayland session so Shell reloads the
-JavaScript, then enable the extension:
+Log out completely, log back into Wayland so Shell reloads the JavaScript, then
+enable the now observation-only extension:
 
 ```bash
 gnome-extensions enable grayhaired-desktop-layer@grayhaired.tech
 ```
 
-Verify that the rectangle appears above wallpaper; real Zorin icons are visible
-and clickable above it; normal windows and panel/dock remain above it; and no
-flicker or Shell instability occurs. Disable the extension and verify the
-rectangle disappears cleanly:
+No rectangle or GrayHaired process should appear automatically. Disable the
+extension after collecting diagnostics:
 
 ```bash
 gnome-extensions disable grayhaired-desktop-layer@grayhaired.tech

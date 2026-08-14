@@ -66,6 +66,12 @@ Status: Managed ownership verified; three desktop-layer mechanisms physically re
   inserted at the runtime-computed background index plus one and destroyed on
   disable. Managed-client auto-launch is off for an unobscured test. No existing
   actor or window is moved.
+- The physical Shell-owned actor test failed: the rectangle was above wallpaper
+  but also above Zorin icons and normal applications; panel/dock remained above.
+  Icons were clickable underneath and no obvious flicker occurred, but recovery
+  required explicit terminal disable and the enabled extension recreated the
+  actor after reboot. This exact insertion is rejected and both experiment flags
+  now default false.
 - Added a stable Qt Wayland application ID and X11 `WM_CLASS` without changing
   QSettings identity. Nothing is installed or enabled automatically. Version
   remains 0.9.0, and Desktop Mode remains a pre-1.0 investigation item.
