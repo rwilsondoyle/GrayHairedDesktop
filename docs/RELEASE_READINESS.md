@@ -11,6 +11,12 @@ Zorin installation and the release-readiness pull request is approved.
 
 ### Blockers
 
+- Complete the installed launcher/autostart investigation documented in
+  `LAUNCHER_AUTOSTART_AUDIT.md`. X11 login startup was observed on the physical
+  Inspiron-3147, but its exact machine-local source is not established. Run the
+  new read-only collector before adding or changing any autostart entry; Wayland
+  login startup remains unconfirmed.
+
 - Design and verify a GNOME Shell integration that can preserve the user's real
   desktop icons. The actual Zorin session is GNOME, where neither tested Qt X11
   strategy can occupy the required layer. Begin every manual run by recording the
