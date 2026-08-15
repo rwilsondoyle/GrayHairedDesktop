@@ -506,9 +506,15 @@ normal application runtime behavior. Development continues to use `scripts/run.s
 and the checkout `.venv`; installed updates use `scripts/update-user-install.sh`
 from a newer release checkout and preserve Qt settings.
 
-This closes the repository-design portion of the stable launcher blocker, but
-Version 1.0 remains blocked on the Inspiron-3147 physical install/menu/checkout-
-independence/uninstall test, Wayland and X11 login validation, investigation of
-the earlier unexplained X11 start, a decision about duplicate-launch protection,
-the unresolved Desktop Mode architecture, and the remaining physical release
-checklist. No single-instance protection or new GNOME behavior is included.
+The corrected lifecycle passed physical testing on the Inspiron-3147 under
+Wayland: its final-path shebang, stable command, repository independence,
+application-menu launch, opt-in canonical autostart, single login launch, and
+ownership-safe uninstall all worked. The earlier failed physical install is
+retained in the launcher audit because it exposed the relocated-venv shebang bug.
+
+Version 1.0 remains blocked on the installed X11 login/autostart retest,
+investigation of the earlier unexplained X11 start, a decision about duplicate-
+launch protection, the unresolved Desktop Mode architecture, and the remaining
+physical release checklist. No single-instance protection or new GNOME behavior
+is included. Slightly slow Desktop Website link opening was observed during the
+Wayland test and is a future performance follow-up, not a diagnosed regression.

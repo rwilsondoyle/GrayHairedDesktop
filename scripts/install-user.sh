@@ -56,9 +56,6 @@ printf '%s\n' "$OWNER_MARKER" > "$APP_ROOT/.grayhaired-desktop-install"
 "$APP_ROOT/venv/bin/python" -m pip install ${GRAYHAIRED_INSTALL_PIP_ARGS:-} "$SOURCE_ROOT"
 "$APP_ROOT/venv/bin/python" -c 'import grayhaired_desktop'
 
-trap - EXIT
-rm -rf "$BACKUP"
-
 cat > "$LAUNCHER" <<EOF_LAUNCHER
 #!/usr/bin/env bash
 # $OWNER_MARKER
@@ -69,4 +66,7 @@ chmod 0755 "$LAUNCHER"
 
 sed "s|@EXEC@|$LAUNCHER|g" "$SOURCE_ROOT/resources/grayhaired-desktop.desktop.in" > "$DESKTOP_FILE"
 chmod 0644 "$DESKTOP_FILE"
+
+trap - EXIT
+rm -rf "$BACKUP"
 printf '%s installed.\nLauncher: %s\nApplication menu: %s\n' "$PRODUCT" "$LAUNCHER" "$DESKTOP_FILE"
