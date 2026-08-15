@@ -31,28 +31,54 @@ apt-based `setup-zorin.sh` is specifically the Zorin installation path, not a
 universal Linux installer. See the detailed portability audit in the release
 readiness report.
 
-## Download and first-time setup
+## User-local installation
 
-The current distribution is a source checkout; there is no packaged installer or
-desktop launcher yet. A new user needs Git and permission to install missing OS
-packages:
+From a downloaded release or source checkout, install without `sudo`:
 
 ```bash
-sudo apt-get update
-sudo apt-get install -y git
-git clone https://github.com/rwilsondoyle/GrayHairedDesktop.git
-cd GrayHairedDesktop
-./scripts/setup-zorin.sh
+./scripts/install-user.sh
 ```
 
-`setup-zorin.sh` verifies Python, installs missing Zorin/Ubuntu dependencies,
-creates `.venv`, and installs the application into it. It is safe to run again to
-repair or refresh the environment. It may ask for the user's password only when
-`sudo apt-get` is required.
+This creates a dedicated, non-editable virtual environment under
+`~/.local/share/grayhaired-desktop/`, the stable command
+`~/.local/bin/grayhaired-desktop`, and the application-menu entry
+`~/.local/share/applications/grayhaired-desktop.desktop` (respecting
+`XDG_DATA_HOME` and `XDG_BIN_HOME`). Python 3.12+, its `venv` module, and access
+to the declared PySide6 dependency are required. No repository file or project
+`.venv` is used at runtime, so the checkout may be renamed or removed afterward.
+Existing application preferences are preserved.
+
+To refresh from a newer downloaded release or clean checkout, close the app and
+run:
+
+```bash
+./scripts/update-user-install.sh
+```
+
+Because Python virtual environments embed absolute paths, update temporarily moves
+the old runtime aside, creates and validates the replacement venv directly at its
+final path, and restores the old runtime if creation or package installation fails.
+The newly generated venv is never relocated. The stable wrapper and menu launcher
+are published only after validation. To uninstall the owned runtime and launchers
+while preserving preferences:
+
+```bash
+./scripts/uninstall-user.sh
+```
+
+The scripts refuse to overwrite or delete destinations without their ownership
+markers. The uninstaller removes the canonical autostart entry only when its
+identity and `Exec` match this installation. It never removes the checkout.
 
 ## Run
 
-From the checkout:
+Launch the installed desktop application from the application menu or:
+
+```bash
+grayhaired-desktop
+```
+
+For development from the checkout:
 
 ```bash
 ./scripts/run.sh
@@ -86,9 +112,9 @@ The native interface reads Zorin's light/dark preference at startup and otherwis
 inherits system fonts, scaling, and appearance. Theme changes made while the
 application is running take effect after restart.
 
-## Update
+## Development-checkout update
 
-Close the application, then run from a clean checkout on `main`:
+This is separate from the user-local update above. Close the application, then run from a clean checkout on `main`:
 
 ```bash
 git switch main

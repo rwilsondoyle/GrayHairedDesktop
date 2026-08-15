@@ -1,10 +1,11 @@
 # Launcher and autostart audit
 
-Status: **diagnostic evidence is required from the physical target.** This audit
-does not install a launcher, add a competing sign-in mechanism, or change runtime
-behavior. GrayHaired Desktop remains version 0.9.0.
+Status: **the installed user-local lifecycle has passed its Wayland physical
+retest; X11 login retesting remains pending.** GrayHaired Desktop remains version
+0.9.0. The original audit and failed installer result are retained below as
+historical evidence.
 
-## Finding
+## Historical finding
 
 GrayHaired Desktop was observed to start successfully at login on the physical
 Dell Inspiron-3147 running Zorin OS, GNOME, and an X11 session. This is valuable
@@ -113,8 +114,11 @@ source and packaging lifecycle are known.
 
 ## X11 and Wayland
 
-- **X11 autostart:** observed working on the Inspiron-3147; exact source unknown.
-- **Wayland autostart:** not yet confirmed.
+- **X11 autostart (historical):** observed once on the Inspiron-3147; its exact
+  source was not identified. The installed canonical lifecycle still needs an X11
+  login retest.
+- **Wayland autostart (current installed build):** physically confirmed with one
+  canonical entry and exactly one instance at login.
 
 XDG autostart itself is session-type independent and is the standard preferred
 mechanism for a GNOME login. The executable it invokes can start the normal safe,
@@ -159,3 +163,71 @@ entries cannot remain.
   background-content mechanism that meets the layering requirement.
 - Complete the remaining physical release-readiness checks. Version 1.0 is not
   ready and no Windows, macOS, or other-Linux-distribution support is claimed.
+
+## Implemented user-local lifecycle (0.9.0)
+
+The production design above is now implemented by `scripts/install-user.sh`.
+It builds a dedicated, non-editable venv at
+`$XDG_DATA_HOME/grayhaired-desktop/venv` (default
+`~/.local/share/grayhaired-desktop/venv`) and installs the package into it. The
+only public command is `$XDG_BIN_HOME/grayhaired-desktop` (default
+`~/.local/bin/grayhaired-desktop`); the application-menu entry is
+`$XDG_DATA_HOME/applications/grayhaired-desktop.desktop`. Neither points into the
+source checkout, uses `scripts/run.sh`, `PYTHONPATH`, or the development `.venv`.
+
+Install with `./scripts/install-user.sh`, refresh from a newer source release
+with `./scripts/update-user-install.sh`, and remove owned installed files with
+`./scripts/uninstall-user.sh`. Update temporarily moves the old runtime aside,
+then creates and populates the replacement venv at its final absolute path. This
+is required because venv console scripts contain absolute interpreter shebangs
+and a populated venv is not safely relocatable. If creation, installation, or import validation fails, the partial
+replacement is removed and the old runtime is returned to its original path. The
+new venv is never moved, and public launchers are updated only after validation.
+Settings and logs remain in their existing Qt/XDG locations and are not removed.
+Files and the runtime directory carry installer ownership markers; a collision
+with an unowned destination causes a safe failure.
+The uninstaller leaves unrecognized files alone.
+
+Autostart remains the existing, single opt-in XDG mechanism at
+`$XDG_CONFIG_HOME/autostart/grayhaired-desktop.desktop` (default
+`~/.config/autostart/grayhaired-desktop.desktop`). Installation does not enable
+it. The stable wrapper is eligible for the existing Settings logic, which creates
+or repairs the canonical entry on launch when the saved preference is enabled.
+Uninstall removes that entry only when its product name and `Exec` exactly match
+the installed wrapper. No systemd or GNOME mechanism was added.
+
+The launcher is session-type independent. It is intended to start the normal
+safe/windowed Desktop Launch Page on supported Zorin X11 and Wayland sessions;
+this is not a claim that Wayland Desktop Mode works. Duplicate launches remain
+possible because no single-instance guard was added.
+
+### Inspiron-3147 physical results
+
+The first physical installer run exposed a real failure: it populated a venv in a
+temporary directory and then moved it, leaving the console script shebang pointed
+at the deleted temporary interpreter. That failed result is the reason the
+installer now creates and populates the replacement venv only at its final path.
+
+The corrected version 0.9.0 installer was subsequently retested on the physical
+Dell Inspiron-3147 running Zorin OS, GNOME, and Wayland:
+
+1. Installation completed and the console-script shebang named
+   `/home/ron/.local/share/grayhaired-desktop/venv/bin/python`.
+2. `~/.local/bin/grayhaired-desktop` opened the normal safe/windowed Desktop
+   Launch Page.
+3. The installed launcher continued working while the repository checkout was
+   temporarily renamed, and the Zorin application-menu launcher worked.
+4. Before opt-in there was no canonical autostart file. With Desktop Mode left
+   off, enabling **Start GrayHaired Desktop when I sign in** created exactly one
+   `~/.config/autostart/grayhaired-desktop.desktop` whose `Exec` was
+   `/home/ron/.local/bin/grayhaired-desktop`.
+5. After logout and login on Wayland, exactly one instance opened automatically;
+   Settings and links continued to work.
+6. User-local uninstall removed the stable launcher and matching canonical
+   autostart entry while preserving preferences.
+
+The equivalent installed X11 login/autostart retest remains pending. Desktop Mode
+remains unresolved and separate from this lifecycle. Desktop Website links seemed
+somewhat slower than expected during this test; no direct regression was
+identified, so link performance is recorded only as a future follow-up and is not
+changed in this pull request.

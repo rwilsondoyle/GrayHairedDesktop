@@ -37,6 +37,15 @@ def test_source_checkout_virtualenv_is_not_used_for_autostart(tmp_path):
     assert installed_launch_executable(str(launcher)) is None
 
 
+
+def test_installed_wrapper_supplies_stable_public_launcher():
+    launcher = installed_launch_executable(
+        "/home/user/.local/share/grayhaired-desktop/venv/bin/grayhaired-desktop",
+        {"GRAYHAIRED_DESKTOP_LAUNCHER": "/home/user/.local/bin/grayhaired-desktop"},
+    )
+
+    assert launcher == Path("/home/user/.local/bin/grayhaired-desktop")
+
 def test_packaged_absolute_launcher_is_accepted():
     launcher = installed_launch_executable("/opt/grayhaired/bin/grayhaired-desktop")
 
