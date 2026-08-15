@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=GrayHaired Desktop
+Comment=Open the Desktop Launch Page
+Exec=@EXEC@
+Terminal=false
+Categories=Utility;
+StartupNotify=true
+X-GrayHaired-Desktop-Managed-By=GrayHaired-Desktop-user-installer

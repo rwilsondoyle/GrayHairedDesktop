@@ -159,3 +159,49 @@ entries cannot remain.
   background-content mechanism that meets the layering requirement.
 - Complete the remaining physical release-readiness checks. Version 1.0 is not
   ready and no Windows, macOS, or other-Linux-distribution support is claimed.
+
+## Implemented user-local lifecycle (0.9.0)
+
+The production design above is now implemented by `scripts/install-user.sh`.
+It builds a dedicated, non-editable venv at
+`$XDG_DATA_HOME/grayhaired-desktop/venv` (default
+`~/.local/share/grayhaired-desktop/venv`) and installs the package into it. The
+only public command is `$XDG_BIN_HOME/grayhaired-desktop` (default
+`~/.local/bin/grayhaired-desktop`); the application-menu entry is
+`$XDG_DATA_HOME/applications/grayhaired-desktop.desktop`. Neither points into the
+source checkout, uses `scripts/run.sh`, `PYTHONPATH`, or the development `.venv`.
+
+Install with `./scripts/install-user.sh`, refresh from a newer source release
+with `./scripts/update-user-install.sh`, and remove owned installed files with
+`./scripts/uninstall-user.sh`. Update constructs the replacement venv before
+switching it into place. Settings and logs remain in their existing Qt/XDG
+locations and are not removed. Files and the runtime directory carry installer
+ownership markers; a collision with an unowned destination causes a safe failure.
+The uninstaller leaves unrecognized files alone.
+
+Autostart remains the existing, single opt-in XDG mechanism at
+`$XDG_CONFIG_HOME/autostart/grayhaired-desktop.desktop` (default
+`~/.config/autostart/grayhaired-desktop.desktop`). Installation does not enable
+it. The stable wrapper is eligible for the existing Settings logic, which creates
+or repairs the canonical entry on launch when the saved preference is enabled.
+Uninstall removes that entry only when its product name and `Exec` exactly match
+the installed wrapper. No systemd or GNOME mechanism was added.
+
+The launcher is session-type independent. It is intended to start the normal
+safe/windowed Desktop Launch Page on supported Zorin X11 and Wayland sessions;
+this is not a claim that Wayland Desktop Mode works. Duplicate launches remain
+possible because no single-instance guard was added.
+
+### Inspiron-3147 physical test plan (not yet performed)
+
+1. Install the user-local build.
+2. Launch GrayHaired Desktop from the application menu.
+3. Confirm the normal safe/windowed Desktop Launch Page opens.
+4. Close the application normally.
+5. Temporarily rename the checkout and confirm the installed launcher still works.
+6. Opt into autostart in Settings and verify the one canonical entry.
+7. Log out and back in on Wayland.
+8. Confirm exactly one application instance starts.
+9. Repeat the login test on X11 later.
+10. Uninstall and verify the owned runtime, launcher, menu entry, and matching
+    canonical autostart entry are removed while preferences remain.

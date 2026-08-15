@@ -495,3 +495,20 @@ Every item remains pending until recorded during final manual verification.
 48. Nothing requires developer knowledge during normal daily use.
 49. Current public installation path is accurately documented.
 50. Version 1.0 could be released without misrepresenting platform support.
+
+## User-local launcher status
+
+Version 0.9.0 now has a no-`sudo` user-local install/update/uninstall lifecycle.
+It uses a dedicated installed venv, stable `~/.local/bin/grayhaired-desktop`
+entry point, application-menu launcher, and the existing opt-in canonical XDG
+autostart design. It does not alter GNOME Shell, Zorin files, Desktop Mode, or
+normal application runtime behavior. Development continues to use `scripts/run.sh`
+and the checkout `.venv`; installed updates use `scripts/update-user-install.sh`
+from a newer release checkout and preserve Qt settings.
+
+This closes the repository-design portion of the stable launcher blocker, but
+Version 1.0 remains blocked on the Inspiron-3147 physical install/menu/checkout-
+independence/uninstall test, Wayland and X11 login validation, investigation of
+the earlier unexplained X11 start, a decision about duplicate-launch protection,
+the unresolved Desktop Mode architecture, and the remaining physical release
+checklist. No single-instance protection or new GNOME behavior is included.

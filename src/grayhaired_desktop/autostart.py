@@ -33,10 +33,14 @@ def autostart_entry(executable: Path) -> str:
     )
 
 
-def installed_launch_executable(argument_zero: str) -> Path | None:
-    """Return a stable installed launcher, rejecting source-checkout virtualenvs."""
+def installed_launch_executable(
+    argument_zero: str, environment: dict[str, str] | None = None
+) -> Path | None:
+    """Return the stable public launcher, rejecting checkout virtualenvs."""
 
-    candidate = Path(argument_zero).expanduser().resolve()
+    env = os.environ if environment is None else environment
+    public_launcher = env.get("GRAYHAIRED_DESKTOP_LAUNCHER", argument_zero)
+    candidate = Path(public_launcher).expanduser().resolve()
     if candidate.name != "grayhaired-desktop" or ".venv" in candidate.parts:
         return None
     return candidate
