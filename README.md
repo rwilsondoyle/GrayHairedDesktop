@@ -55,8 +55,12 @@ run:
 ./scripts/update-user-install.sh
 ```
 
-The update builds a replacement environment before activating it. To uninstall
-the owned runtime and launchers while preserving preferences:
+Because Python virtual environments embed absolute paths, update temporarily moves
+the old runtime aside, creates and validates the replacement venv directly at its
+final path, and restores the old runtime if creation or package installation fails.
+The newly generated venv is never relocated. The stable wrapper and menu launcher
+are published only after validation. To uninstall the owned runtime and launchers
+while preserving preferences:
 
 ```bash
 ./scripts/uninstall-user.sh

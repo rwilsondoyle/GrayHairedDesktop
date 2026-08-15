@@ -13,6 +13,9 @@ def _fake_python(path: Path) -> None:
     path.write_text(
         """#!/usr/bin/env bash
 set -eu
+case "${1:-}" in
+  */grayhaired-desktop) printf 'installed package launched\n'; exit 0 ;;
+esac
 if [ "${1:-}" = "-c" ]; then exit 0; fi
 if [ "${1:-}" = "-m" ] && [ "${2:-}" = "venv" ] && [ "${3:-}" = "--help" ]; then exit 0; fi
 if [ "${1:-}" = "-m" ] && [ "${2:-}" = "venv" ]; then
@@ -21,10 +24,7 @@ if [ "${1:-}" = "-m" ] && [ "${2:-}" = "venv" ]; then
   exit 0
 fi
 if [ "${1:-}" = "-m" ] && [ "${2:-}" = "pip" ]; then
-  cat > "$(dirname "$0")/grayhaired-desktop" <<'APP'
-#!/usr/bin/env bash
-printf 'installed package launched\\n'
-APP
+  printf '#!%s\n# generated console entry point\n' "$0" > "$(dirname "$0")/grayhaired-desktop"
   chmod +x "$(dirname "$0")/grayhaired-desktop"
   exit 0
 fi
@@ -54,6 +54,14 @@ def test_install_update_and_uninstall_in_xdg_sandbox(tmp_path):
     subprocess.run([ROOT / "scripts/install-user.sh"], env=env, check=True)
     launcher = binary / "grayhaired-desktop"
     menu_entry = data / "applications/grayhaired-desktop.desktop"
+    console_script = data / "grayhaired-desktop" / "venv" / "bin" / "grayhaired-desktop"
+    final_interpreter = data / "grayhaired-desktop" / "venv" / "bin" / "python"
+    assert console_script.read_text(encoding="utf-8").splitlines()[0] == (
+        f"#!{final_interpreter}"
+    )
+    assert ".grayhaired-desktop-install." not in console_script.read_text(
+        encoding="utf-8"
+    )
     assert subprocess.check_output([launcher], text=True) == "installed package launched\n"
     assert f"Exec={launcher}" in menu_entry.read_text(encoding="utf-8")
 
@@ -62,6 +70,10 @@ def test_install_update_and_uninstall_in_xdg_sandbox(tmp_path):
     preference.parent.mkdir(parents=True)
     preference.write_text("saved=true\n", encoding="utf-8")
     subprocess.run([ROOT / "scripts/update-user-install.sh"], env=env, check=True)
+    assert console_script.read_text(encoding="utf-8").splitlines()[0] == (
+        f"#!{final_interpreter}"
+    )
+    assert subprocess.check_output([launcher], text=True) == "installed package launched\n"
     assert preference.read_text(encoding="utf-8") == "saved=true\n"
 
     autostart = config / "autostart" / "grayhaired-desktop.desktop"

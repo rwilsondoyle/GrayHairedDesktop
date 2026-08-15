@@ -28,25 +28,36 @@ owned_file "$LAUNCHER" || fail "$LAUNCHER exists and is not owned by $PRODUCT."
 owned_file "$DESKTOP_FILE" || fail "$DESKTOP_FILE exists and is not owned by $PRODUCT."
 
 mkdir -p "$DATA_HOME" "$BIN_HOME" "$APPLICATIONS_DIR"
-STAGE=$(mktemp -d "$DATA_HOME/.grayhaired-desktop-install.XXXXXX")
-trap 'rm -rf "$STAGE"' EXIT
-"$PYTHON" -m venv "$STAGE/venv"
-# GRAYHAIRED_INSTALL_PIP_ARGS is intended for isolated automated tests only.
-# shellcheck disable=SC2086
-"$STAGE/venv/bin/python" -m pip install ${GRAYHAIRED_INSTALL_PIP_ARGS:-} "$SOURCE_ROOT"
-printf '%s\n' "$OWNER_MARKER" > "$STAGE/.grayhaired-desktop-install"
-
 BACKUP=""
 if [ -d "$APP_ROOT" ]; then
   BACKUP="$DATA_HOME/.grayhaired-desktop-previous.$$"
   mv "$APP_ROOT" "$BACKUP"
 fi
-if ! mv "$STAGE" "$APP_ROOT"; then
-  [ -z "$BACKUP" ] || mv "$BACKUP" "$APP_ROOT"
-  fail "Could not activate the installed runtime."
-fi
-rm -rf "$BACKUP"
+
+restore_previous_install() {
+  local status=$?
+  trap - EXIT
+  rm -rf "$APP_ROOT"
+  if [ -n "$BACKUP" ] && [ -d "$BACKUP" ]; then
+    mv "$BACKUP" "$APP_ROOT"
+    printf 'Previous GrayHaired Desktop runtime restored after install failure.\n' >&2
+  fi
+  exit "$status"
+}
+trap restore_previous_install EXIT
+
+# A venv embeds absolute interpreter paths in generated console-script shebangs.
+# It must be created and populated at its permanent path; never relocate it.
+mkdir -p "$APP_ROOT"
+printf '%s\n' "$OWNER_MARKER" > "$APP_ROOT/.grayhaired-desktop-install"
+"$PYTHON" -m venv "$APP_ROOT/venv"
+# GRAYHAIRED_INSTALL_PIP_ARGS is intended for isolated automated tests only.
+# shellcheck disable=SC2086
+"$APP_ROOT/venv/bin/python" -m pip install ${GRAYHAIRED_INSTALL_PIP_ARGS:-} "$SOURCE_ROOT"
+"$APP_ROOT/venv/bin/python" -c 'import grayhaired_desktop'
+
 trap - EXIT
+rm -rf "$BACKUP"
 
 cat > "$LAUNCHER" <<EOF_LAUNCHER
 #!/usr/bin/env bash

@@ -173,9 +173,13 @@ source checkout, uses `scripts/run.sh`, `PYTHONPATH`, or the development `.venv`
 
 Install with `./scripts/install-user.sh`, refresh from a newer source release
 with `./scripts/update-user-install.sh`, and remove owned installed files with
-`./scripts/uninstall-user.sh`. Update constructs the replacement venv before
-switching it into place. Settings and logs remain in their existing Qt/XDG
-locations and are not removed. Files and the runtime directory carry installer
+`./scripts/uninstall-user.sh`. Update temporarily moves the old runtime aside,
+then creates and populates the replacement venv at its final absolute path. This is required because venv console
+scripts contain absolute interpreter shebangs and a populated venv is not safely
+relocatable. If creation, installation, or import validation fails, the partial
+replacement is removed and the old runtime is returned to its original path. The
+new venv is never moved, and public launchers are updated only after validation.
+Settings and logs remain in their existing Qt/XDG locations and are not removed. Files and the runtime directory carry installer
 ownership markers; a collision with an unowned destination causes a safe failure.
 The uninstaller leaves unrecognized files alone.
 
