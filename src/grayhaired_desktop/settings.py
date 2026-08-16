@@ -90,9 +90,17 @@ def load_preferences(settings: QSettings) -> UserPreferences:
     return UserPreferences(
         home_page_url=home_page_url or DEFAULT_HOME_PAGE_URL,
         shortcut_theme=shortcut_theme,
-        desktop_mode=_setting_bool(settings, DESKTOP_MODE_KEY),
+        # The retained legacy value belongs to unsupported future research. It
+        # must never activate a non-windowed mode in the Version 1.0 product.
+        desktop_mode=False,
         autostart=_setting_bool(settings, AUTOSTART_KEY),
     )
+
+
+def startup_desktop_mode_requested(_preferences: UserPreferences) -> bool:
+    """Always select the supported windowed startup, ignoring the legacy value."""
+
+    return False
 
 
 def save_preferences(settings: QSettings, preferences: UserPreferences) -> None:
@@ -100,6 +108,6 @@ def save_preferences(settings: QSettings, preferences: UserPreferences) -> None:
 
     settings.setValue(HOME_PAGE_URL_KEY, preferences.home_page_url)
     settings.setValue(SHORTCUT_THEME_KEY, preferences.shortcut_theme)
-    settings.setValue(DESKTOP_MODE_KEY, preferences.desktop_mode)
+    settings.setValue(DESKTOP_MODE_KEY, False)
     settings.setValue(AUTOSTART_KEY, preferences.autostart)
     settings.sync()

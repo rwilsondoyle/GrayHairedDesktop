@@ -1,5 +1,9 @@
 # GNOME Shell Desktop Integration Feasibility
 
+Current naming: **My Desktop** is the public/display name; GrayHairedDesktop and
+existing application IDs remain internal compatibility identities. Earlier
+GrayHaired Desktop names in this document are preserved historical observations.
+
 ## Current status
 
 PR #45 completed the current architecture investigation with **Result 3 — NO

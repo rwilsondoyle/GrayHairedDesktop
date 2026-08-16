@@ -1,5 +1,10 @@
 # Launcher and autostart audit
 
+Current naming: **My Desktop** is the public/display name. GrayHairedDesktop,
+`grayhaired-desktop.desktop`, and the `grayhaired-desktop` command remain stable
+internal compatibility identities. PR #48 changes only visible `Name=` wording;
+historical observations below retain the name visible when they were recorded.
+
 Status: **the installed user-local lifecycle and canonical autostart have passed
 physical X11 and Wayland testing.** The Qt local-IPC single-instance guard has
 also passed both sessions. GrayHaired Desktop remains version `0.9.0`. Obsolete
@@ -156,7 +161,8 @@ autostart, and single-instance work are complete rather than blockers. Desktop
 Website link follow-up found no current problem. Remaining decisions/work are:
 
 - Complete the final physical release-readiness checklist.
-- Decide the final public product name if it is still required before release.
+- Use the owner-approved **My Desktop** visible name while retaining stable
+  launcher and autostart compatibility identifiers.
 - Make the explicit final release decision and version bump after applicable
   checks pass.
 

@@ -22,6 +22,7 @@ def test_path_uses_xdg_config_home():
 def test_entry_uses_supplied_installed_launcher_without_user_hardcoding():
     entry = autostart_entry(Path("/opt/app/bin/grayhaired-desktop"))
 
+    assert "Name=My Desktop" in entry
     assert "Exec=/opt/app/bin/grayhaired-desktop" in entry
     assert "/home/" not in entry
 

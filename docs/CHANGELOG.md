@@ -87,7 +87,8 @@ Status: complete.
 - Completed manual verification on both supported physical Zorin systems: Primary Development System and Secondary Test System.
 - On both systems, successfully verified Application startup, Home page, Home, Reload, Preferences, About, Exit, external link launching, and that the Home page remains displayed after launching links.
 
-The public product name is still undecided.
+At this historical milestone, the public product name was still undecided. PR
+#48 later selected **My Desktop**.
 
 ## Alpha 0.3.1 — Documentation foundation
 
