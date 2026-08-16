@@ -365,3 +365,27 @@ These results record manual verification on exactly two physical Zorin systems. 
 - Version remains `0.9.0`.
 - Next task is the final Version 1.0 release-readiness/manual verification pass.
 - Final version bump to `1.0.0` must occur only after that pass succeeds.
+
+## Final Version 1.0 Release Readiness Audit — NO-GO
+
+This checkpoint records the chronological state before the My Desktop
+implementation. It is an audit only and contains no runtime implementation.
+
+- **Release decision: NO-GO.**
+- Version remains `0.9.0`.
+- The automated readiness audit result is **54 passed, 10 skipped**.
+- Final Wayland physical verification is pending.
+- Final X11 physical verification is pending.
+- The existing Desktop Mode Settings control is misleading and is a release
+  blocker.
+- The final public product name was still pending at the time of the audit.
+- No runtime changes are included.
+- No naming changes are included.
+- No Settings changes are included.
+- No launcher or autostart changes are included.
+- No tests are changed.
+- The audit does not create the My Desktop implementation.
+
+The NO-GO decision remains in force pending resolution of the misleading
+control, the public-name decision, both final physical verification passes, and
+a later explicit release decision.
