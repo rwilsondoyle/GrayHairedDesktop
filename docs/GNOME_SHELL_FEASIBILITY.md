@@ -52,10 +52,51 @@ the owner-selected PR #44 Path A, and the version remains `0.9.0`. This is an
 architecture conclusion, not a claim that private code could never display
 pixels on one exact build.
 
-No mutation prototype was justified. The installed Zorin extension is absent
-from this development container, so PR #45 added no physical evidence; it uses
-the read-only installed-source and physical evidence already collected on the
-Inspiron-3147 plus the GNOME 46 primary sources below.
+No mutation prototype was justified. After the initial container-only review,
+the read-only PR #45 collector was run on the Dell Inspiron-3147 under a native
+Wayland session with GNOME Shell 46.0. It passed without mutation and added the
+physical runtime evidence recorded below.
+
+### Physical read-only collector result
+
+The physical target reported:
+
+```text
+Dell Inspiron-3147
+Zorin OS
+XDG_SESSION_TYPE=wayland
+GNOME Shell 46.0
+```
+
+The public Shell Extensions D-Bus information confirmed the provider as enabled
+and active, with no reported error:
+
+```text
+name: Zorin Desktop Icons
+uuid: zorin-desktop-icons@zorinos.com
+state: active
+enabled: true
+path: /usr/share/gnome-shell/extensions/zorin-desktop-icons@zorinos.com
+error: none
+```
+
+The process observation physically confirmed the real external icon client:
+
+```text
+gjs /usr/share/gnome-shell/extensions/zorin-desktop-icons@zorinos.com/app/ding.js -E -P /usr/share/gnome-shell/extensions/zorin-desktop-icons@zorinos.com/app
+```
+
+Installed Zorin source also showed other Zorin extensions calling
+`Main.extensionManager.lookup(...)` to locate related extensions. Live
+cross-extension lookup is therefore technically possible on this tested build,
+not merely a source-level GNOME hypothesis. No discovered Zorin Desktop Icons
+contract registers a foreign visual surface, relative layer, shared icon-client
+renderer, or GrayHaired background-content provider. The observation strengthens
+the distinction between technically reachable and safe/supported cooperation;
+it does not change Result 3.
+
+The collector made no Shell Eval call. It changed no setting, extension,
+process, window, actor, or installed file.
 
 ### Runtime Zorin-extension cooperation
 
@@ -89,7 +130,7 @@ GNOME 46 [`extensionSystem.js`](https://gitlab.gnome.org/GNOME/gnome-shell/-/blo
 | --- | --- | --- |
 | `Extension.lookupByUUID(UUID)` and metadata | Public/documented | Establishes installation; it is not a cooperation contract and exposes no icon surfaces. |
 | `org.gnome.Shell.Extensions.GetExtensionInfo` | Public observation interface | Reports enabled/state metadata without code execution; exposes no live objects. |
-| `Main.extensionManager.lookup(UUID)` / enabled records | Inspectable Shell implementation | Can locate a runtime record, but manager internals are not a supported cross-extension dependency. |
+| `Main.extensionManager.lookup(UUID)` / enabled records | Inspectable Shell implementation, physically observed in installed Zorin source | Other Zorin extensions use it to locate related extensions, so live lookup is technically possible on the tested build; it remains no supported visual-composition contract. |
 | Runtime implementation/state object (`stateObj` in reviewed GNOME 46 source) | Private and version-sensitive | The Zorin instance may be technically reachable. Depending on private shape and enable timing is not safe enough to ship. |
 | Monkey-patching methods, signals, or retained objects | Unsupported/invasive | Risks enable/disable/restart and trusted-client lifecycle; prohibited for production. |
 

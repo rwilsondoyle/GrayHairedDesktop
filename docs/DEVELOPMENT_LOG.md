@@ -313,10 +313,18 @@ These results record manual verification on exactly two physical Zorin systems. 
 - No upstream-supported GNOME Shell 46/Mutter mechanism supplies the required
   external-client/background layer. `wlr-layer-shell` is not supported by Mutter
   on the target; portal capture/control does not provide embedding.
-- PR #45 performed no new physical testing and added no mutation prototype. The
-  installed Zorin extension was not present in the development container. The
-  report relies on PR #39/40 physical and read-only evidence plus pinned primary
-  API/source research. A new read-only collector is provided for the Inspiron.
+- PR #45 physical read-only collector: **PASSED** on the Dell Inspiron-3147 in a
+  Wayland session with GNOME Shell 46.0. Public Shell Extensions D-Bus state
+  confirmed `zorin-desktop-icons@zorinos.com` enabled and active with no error,
+  and process observation physically confirmed the external
+  `app/ding.js` DING-derived icon client.
+- Installed Zorin source physically confirmed that related Zorin extensions use
+  `Main.extensionManager.lookup(...)`. Cross-extension lookup is technically
+  present on this build, but no supported foreign-surface, relative-layer,
+  shared-rendering, or GrayHaired background-content contract was found. Result
+  3 is unchanged.
+- The collector made no Shell Eval call and changed no setting, extension,
+  process, window, actor, or installed file. PR #45 added no mutation prototype.
 - Exact PR #46 next step: open an explicit owner product-decision PR to revisit
   PR #44 Path B—ship the safe windowed launch-page application as Version 1.0 and
   move true Desktop Mode to future provider/upstream research. PR #45 does not

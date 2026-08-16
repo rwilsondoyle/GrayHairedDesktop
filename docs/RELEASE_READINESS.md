@@ -30,6 +30,7 @@ Completed work is recorded as such and is not an active blocker.
 | Desktop Website link follow-up | **NO CURRENT PROBLEM OBSERVED** |
 | Desktop Mode on Zorin/GNOME | **UNRESOLVED** |
 | PR #45 new-architecture investigation | **RESULT 3 — NO PRACTICAL SUPPORTED PATH FOUND** |
+| PR #45 physical read-only collector | **PASSED — WAYLAND / GNOME SHELL 46.0** |
 | Final Version 1.0 manual checklist | **PENDING** |
 | Final public product name | **PENDING if still required before release** |
 
@@ -52,6 +53,10 @@ PipeWire, DMA-BUF, Wayland-buffer, or shared-memory mirror would require an
 impractical custom frame, input, focus, clipboard, and accessibility bridge.
 Under Path A, Result 3 leaves Version 1.0 blocked. PR #46 should explicitly ask
 the owner whether to choose Path B; this report does not choose it automatically.
+The physical Inspiron-3147 collector confirmed the Zorin provider active, its
+external `app/ding.js` icon client running, and Zorin source use of live
+extension-manager lookup. It performed no mutation and found no supported
+surface-registration or composition hook, so the classification is unchanged.
 
 ### Non-blocking polish
 

@@ -132,3 +132,10 @@ The classification is **Result 3 — no practical supported path found**. Path A
 remains blocked at `0.9.0`; PR #46 must ask the owner whether to adopt PR #44
 Path B rather than redefining Desktop Mode. Full evidence and the candidate
 matrix are in [`GNOME_SHELL_FEASIBILITY.md`](GNOME_SHELL_FEASIBILITY.md).
+
+The PR #45 collector subsequently passed read-only physical verification on the
+Dell Inspiron-3147 under Wayland/GNOME Shell 46.0. It confirmed Zorin Desktop
+Icons active, observed its external `app/ding.js` process, and found installed
+Zorin use of `Main.extensionManager.lookup(...)`. This proves runtime lookup is
+technically present, but it revealed no supported surface/composition contract;
+Result 3 is unchanged.
