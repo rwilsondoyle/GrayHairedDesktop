@@ -24,8 +24,7 @@ def test_settings_actions_complete_the_tab_sequence(qapp) -> None:
 
     dialog = PreferencesDialog(UserPreferences())
 
-    assert dialog._shortcut_theme.nextInFocusChain() is dialog._desktop_mode
-    assert dialog._desktop_mode.nextInFocusChain() is dialog._autostart
+    assert dialog._shortcut_theme.nextInFocusChain() is dialog._autostart
     assert dialog._autostart.nextInFocusChain() is dialog._open_button
     assert dialog._open_button.nextInFocusChain() is dialog._save_button
     assert dialog._save_button.nextInFocusChain() is dialog._cancel_button
@@ -35,6 +34,13 @@ def test_settings_actions_complete_the_tab_sequence(qapp) -> None:
     scroll_area = dialog.findChild(QScrollArea)
     assert scroll_area is not None
     assert scroll_area.focusPolicy() == Qt.FocusPolicy.NoFocus
+
+
+def test_settings_has_no_desktop_mode_control(qapp) -> None:
+    dialog = PreferencesDialog(UserPreferences(desktop_mode=True))
+
+    assert not hasattr(dialog, "_desktop_mode")
+    assert dialog.preferences.desktop_mode is False
 
 
 def test_settings_address_is_enabled_only_for_custom_website(qapp) -> None:

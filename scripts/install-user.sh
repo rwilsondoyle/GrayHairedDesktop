@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-PRODUCT="GrayHaired Desktop"
+PRODUCT="My Desktop"
 OWNER_MARKER="Managed-By=GrayHaired-Desktop-user-installer"
 SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 SOURCE_ROOT=$(CDPATH= cd -- "$SCRIPT_DIR/.." && pwd)
@@ -40,7 +40,7 @@ restore_previous_install() {
   rm -rf "$APP_ROOT"
   if [ -n "$BACKUP" ] && [ -d "$BACKUP" ]; then
     mv "$BACKUP" "$APP_ROOT"
-    printf 'Previous GrayHaired Desktop runtime restored after install failure.\n' >&2
+    printf 'Previous My Desktop runtime restored after install failure.\n' >&2
   fi
   exit "$status"
 }

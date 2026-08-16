@@ -51,9 +51,9 @@ def create_actions(
     """Create the main-window actions and connect their callbacks."""
 
     exit_action = QAction("Exit", parent)
-    exit_action.setToolTip("Close GrayHaired Desktop")
-    exit_action.setStatusTip("Close GrayHaired Desktop")
-    exit_action.setWhatsThis("Close GrayHaired Desktop")
+    exit_action.setToolTip("Close My Desktop")
+    exit_action.setStatusTip("Close My Desktop")
+    exit_action.setWhatsThis("Close My Desktop")
     exit_action.triggered.connect(close)
 
     home_action = QAction("Home", parent)
@@ -83,9 +83,9 @@ def create_actions(
     desktop_website_action.triggered.connect(show_preferences)
 
     about_action = QAction("About", parent)
-    about_action.setToolTip("View information about GrayHaired Desktop")
-    about_action.setStatusTip("View information about GrayHaired Desktop")
-    about_action.setWhatsThis("View information about GrayHaired Desktop")
+    about_action.setToolTip("View information about My Desktop")
+    about_action.setStatusTip("View information about My Desktop")
+    about_action.setWhatsThis("View information about My Desktop")
     about_action.triggered.connect(show_about)
 
     open_log_folder_action = QAction("Open Log Folder", parent)

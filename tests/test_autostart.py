@@ -26,6 +26,13 @@ def test_entry_uses_supplied_installed_launcher_without_user_hardcoding():
     assert "/home/" not in entry
 
 
+def test_entry_uses_public_name_and_stable_launcher_command():
+    entry = autostart_entry(Path("/home/user/.local/bin/grayhaired-desktop"))
+
+    assert "Name=My Desktop" in entry
+    assert "Exec=/home/user/.local/bin/grayhaired-desktop" in entry
+
+
 def test_entry_rejects_relative_launcher():
     with pytest.raises(ValueError):
         autostart_entry(Path("grayhaired-desktop"))

@@ -79,7 +79,7 @@ def test_install_update_and_uninstall_in_xdg_sandbox(tmp_path):
     autostart = config / "autostart" / "grayhaired-desktop.desktop"
     autostart.parent.mkdir(parents=True)
     autostart.write_text(
-        "[Desktop Entry]\nName=GrayHaired Desktop\n" f"Exec={launcher}\n",
+        "[Desktop Entry]\nName=My Desktop\n" f"Exec={launcher}\n",
         encoding="utf-8",
     )
     subprocess.run([ROOT / "scripts/uninstall-user.sh"], env=env, check=True)

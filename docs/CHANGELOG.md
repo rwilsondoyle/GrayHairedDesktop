@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+- Use **My Desktop** as the public/display name while retaining all
+  `GrayHairedDesktop` compatibility identities and the `grayhaired-desktop`
+  launcher command.
+- Remove Desktop Mode from normal Settings, ignore its legacy preference, and
+  always start in a normal window.
+- Keep the application version at `0.9.0` pending final physical release checks.
+
 All notable project changes should be summarized here. Historical entries retain their milestone names; release packaging begins only after its own review and verification.
 
 ## Alpha 0.8 — Stability, Performance and Diagnostics
