@@ -16,8 +16,8 @@ safe, normal windowed launch-page application as the supported Version 1.0
 product scope. Stable user-local installation, canonical autostart, and
 single-instance behavior are complete and physically verified on both X11 and
 Wayland. Version 1.0 has not been released: the final manual Zorin checklist in
-[`docs/RELEASE_READINESS.md`](docs/RELEASE_READINESS.md), any still-required
-public-name decision, and a separate final version-bump/release decision remain.
+[`docs/RELEASE_READINESS.md`](docs/RELEASE_READINESS.md) and a separate final
+version-bump/release decision remain.
 True Desktop Mode is future research, not the name of the supported windowed
 experience. Windows and macOS are not supported.
 

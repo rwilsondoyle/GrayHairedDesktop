@@ -365,3 +365,25 @@ These results record manual verification on exactly two physical Zorin systems. 
 - Version remains `0.9.0`.
 - Next task is the final Version 1.0 release-readiness/manual verification pass.
 - Final version bump to `1.0.0` must occur only after that pass succeeds.
+
+## Version 1.0 Release-Readiness Audit — PR #47
+
+- Release decision: **NO-GO**.
+- The full automated suite completed with **54 passed, 10 skipped**.
+- Final physical verification remains pending on both Wayland and X11.
+- The normal Settings UI still exposes a misleading Desktop Mode control even
+  though Desktop Mode is outside the supported Version 1.0 scope. This is a
+  release blocker.
+- The final public product name was still pending at the time of this audit.
+- Version remains `0.9.0`; Version 1.0 has not been released.
+- This checkpoint changes documentation only. It makes no runtime, application
+  source, naming, launcher, autostart, Desktop Mode UI, or preference changes.
+
+### NEXT DEVELOPMENT CHECKPOINT
+
+- Resolve the misleading Desktop Mode UI blocker in a separate implementation
+  pull request.
+- Decide the public product name separately from this audit.
+- Complete final physical Wayland and X11 verification after the blockers are
+  resolved.
+- Keep version `0.9.0` until a later explicit release decision.

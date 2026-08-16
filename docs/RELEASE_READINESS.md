@@ -1,9 +1,11 @@
 # Version 1.0 release-readiness review
 
-Status: **The safe windowed launch-page scope is approved; the final manual
-Zorin checklist is pending.** Installation, autostart, and single-instance
-behavior are complete and physically verified on X11 and Wayland. This report
-does not declare Version 1.0 complete; the version remains `0.9.0`.
+Status: **NO-GO.** The automated review completed with **54 passed, 10 skipped**,
+but final physical Wayland and X11 verification remains pending. The normal
+Settings dialog still presents a misleading Desktop Mode control for behavior
+that is outside the supported Version 1.0 scope; that UI is a release blocker.
+The final public product name was also still pending when this audit was made.
+This audit makes no runtime or naming changes, and the version remains `0.9.0`.
 
 ## Release finding
 
@@ -43,16 +45,27 @@ Completed work is recorded as such and is not an active blocker.
 | PR #45 physical read-only collector | **PASSED — WAYLAND / GNOME SHELL 46.0** |
 | Final Version 1.0 manual checklist | **PENDING** |
 | Final public product name | **PENDING if still required before release** |
+| Automated test suite | **PASSED — 54 passed, 10 skipped** |
+| Misleading Desktop Mode Settings UI | **RELEASE BLOCKER** |
 
-### Current blockers
+### Current blockers and NO-GO decision
 
-- Complete the final Version 1.0 manual checklist.
+- Remove the misleading Desktop Mode control from normal Settings in a separate
+  implementation change, and ensure that legacy saved preferences cannot select
+  unsupported Desktop Mode behavior.
+- Complete final physical verification on both Wayland and X11.
 - Decide the final public product name if that decision is still required before
   release.
 - Only after all applicable checks pass, make an explicit release decision and
   change both version locations together. Version `0.9.0` remains current.
 - Resolve any genuinely incomplete checklist item discovered during final
   testing; none is invented in advance by this review.
+
+The release decision for this checkpoint is therefore **NO-GO**. This audit is
+documentation-only: it does not rename GrayHaired Desktop, remove or alter
+Desktop Mode UI/runtime behavior, change launcher or autostart naming, or include
+the later blocker implementation. Those changes belong in a separate pull
+request after this checkpoint.
 
 PR #45 found that private access to the running Zorin extension is technically
 plausible but supplies neither a supported cooperation contract nor a shared
