@@ -4,7 +4,7 @@ import pytest
 
 pytest.importorskip("PySide6.QtWidgets", exc_type=ImportError)
 from PySide6.QtCore import Qt
-from PySide6.QtWidgets import QApplication, QPushButton, QScrollArea
+from PySide6.QtWidgets import QApplication, QCheckBox, QLabel, QPushButton, QScrollArea
 
 from grayhaired_desktop.settings import UserPreferences
 from grayhaired_desktop.ui.favorite_dialog import FavoriteDialog
@@ -24,8 +24,7 @@ def test_settings_actions_complete_the_tab_sequence(qapp) -> None:
 
     dialog = PreferencesDialog(UserPreferences())
 
-    assert dialog._shortcut_theme.nextInFocusChain() is dialog._desktop_mode
-    assert dialog._desktop_mode.nextInFocusChain() is dialog._autostart
+    assert dialog._shortcut_theme.nextInFocusChain() is dialog._autostart
     assert dialog._autostart.nextInFocusChain() is dialog._open_button
     assert dialog._open_button.nextInFocusChain() is dialog._save_button
     assert dialog._save_button.nextInFocusChain() is dialog._cancel_button
@@ -35,6 +34,16 @@ def test_settings_actions_complete_the_tab_sequence(qapp) -> None:
     scroll_area = dialog.findChild(QScrollArea)
     assert scroll_area is not None
     assert scroll_area.focusPolicy() == Qt.FocusPolicy.NoFocus
+
+
+def test_settings_has_no_desktop_mode_control_or_promise(qapp) -> None:
+    dialog = PreferencesDialog(UserPreferences(desktop_mode=True))
+
+    assert not hasattr(dialog, "_desktop_mode")
+    visible_text = [widget.text() for widget in dialog.findChildren(QCheckBox)]
+    visible_text.extend(widget.text() for widget in dialog.findChildren(QLabel))
+    assert all("Desktop Mode" not in text for text in visible_text)
+    assert dialog.preferences.desktop_mode is False
 
 
 def test_settings_address_is_enabled_only_for_custom_website(qapp) -> None:

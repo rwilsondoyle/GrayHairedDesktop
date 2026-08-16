@@ -1,1 +1,1 @@
-"""User interface package for GrayHaired Desktop."""
+"""User interface package for My Desktop."""

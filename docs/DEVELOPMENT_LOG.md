@@ -389,3 +389,58 @@ implementation. It is an audit only and contains no runtime implementation.
 The NO-GO decision remains in force pending resolution of the misleading
 control, the public-name decision, both final physical verification passes, and
 a later explicit release decision.
+
+## My Desktop public-name and Settings implementation
+
+- The public/display product name is now **My Desktop**.
+- The GrayHairedDesktop technical/internal compatibility identity is preserved,
+  including package and launcher names, application IDs, QSettings scope, data
+  and log paths, and the single-instance endpoint.
+- The unsupported Desktop Mode checkbox and its behavior promise were removed
+  from normal Settings without disturbing Desktop Website, shortcut appearance,
+  autostart, Preview, Save, or Cancel controls.
+- A legacy `preferences/desktopMode=true` value is ignored and saved as false.
+  Normal startup always requests the supported safe windowed path.
+- Version remains `0.9.0`.
+- The automated suite result for this implementation is **55 passed, 10
+  skipped** in the available container; the skips are display-library-dependent
+  GUI collections.
+- Focused physical verification on the Dell Inspiron-3147, Zorin OS 18.1, and
+  GNOME Shell 46 passed in both Wayland and X11 sessions.
+- Installation wording, window title, application-menu name and Accessories
+  category, Settings control removal, and preservation of the saved Desktop
+  Website and shortcuts passed physically.
+- Canonical login autostart passed on Wayland and X11. Duplicate launches in
+  both sessions logged `Existing application instance notified; exiting`,
+  produced no second window, and left exactly **1** real process.
+- A focused CPU investigation isolated sustained use to the configured Desktop
+  Website content: idle QtWebEngine with `about:blank` was essentially 0% CPU,
+  while a plain QtWebEngine test of the same website reproduced the load. This
+  is a separate future website-performance concern, not a PR #52 blocker.
+- `QTWEBENGINE_CHROMIUM_FLAGS="--disable-gpu"` made CPU usage worse and must not
+  be added. No runtime behavior changed in response to this investigation.
+
+### NEXT DEVELOPMENT CHECKPOINT
+
+- PR #52 public/display rename to **My Desktop**: implementation complete and
+  physically passed.
+- GrayHairedDesktop internal compatibility identity preserved.
+- Unsupported Desktop Mode control removed from normal Settings.
+- Legacy `desktopMode=true` cannot activate unsupported behavior.
+- Normal startup always uses safe windowed mode.
+- Version remains `0.9.0`.
+- Automated result: **55 passed, 10 skipped**.
+- Focused Wayland physical verification: **PASSED**.
+- Focused X11 physical verification: **PASSED**.
+- Autostart on Wayland and X11: **PASSED**.
+- Single-instance behavior on Wayland and X11: **PASSED**, with a final real
+  process count of **1** after duplicate launch in each session.
+- Application-menu visible name **My Desktop**: **PASSED**.
+- Existing settings preservation: **PASSED**.
+- The Desktop Website CPU performance concern was isolated to website content
+  and is not a PR #52 blocker.
+- Final release-readiness physical pass remains pending.
+- After PR #52 merges, resume the final Version 1.0 release-readiness physical
+  checklist.
+- A `1.0.0` bump remains prohibited until that final readiness pass becomes GO
+  and a later release decision authorizes it.

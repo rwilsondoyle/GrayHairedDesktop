@@ -1,4 +1,4 @@
-"""QtWebEngine launch-page widget for the GrayHaired Desktop web surface."""
+"""QtWebEngine launch-page widget for the My Desktop web surface."""
 
 from __future__ import annotations
 
@@ -109,7 +109,7 @@ class BrowserView(QWebEngineView):
         self.loadFinished.connect(self._on_load_finished)
 
     def load_home(self, reason: str = "Home action") -> None:
-        """Load the configured GrayHaired Desktop URL."""
+        """Load the configured My Desktop URL."""
 
         self._next_load_reason = reason
         self._next_load_url = QUrl(self._url)

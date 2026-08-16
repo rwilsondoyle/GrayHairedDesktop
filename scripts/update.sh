@@ -39,4 +39,4 @@ source ".venv/bin/activate"
 python -m pip install -e .
 
 echo
-echo "Success: GrayHaired Desktop is updated."
+echo "Success: My Desktop is updated."
