@@ -118,3 +118,24 @@ Mode and investigate a materially different safe integration, or make a later
 owner-approved product decision to scope Version 1.0 to the existing windowed
 launch page and move Desktop Mode forward. No ordinary maximized/borderless
 window is called Desktop Mode, and this documentation makes no scope decision.
+
+PR #45 completed the materially different architecture review. A companion
+extension can likely inspect GNOME Shell's private runtime record and Zorin
+implementation instance, but the provider exposes no supported cross-extension
+contract and no shared GTK/Wayland surface. Icon pixels remain in external
+per-monitor GTK client windows. GNOME Shell 46 offers neither foreign-surface
+adoption nor a Mutter-supported layer-shell equivalent for the required slot.
+Frame mirroring would still require unsupported placement and a custom
+focus/input/accessibility bridge.
+
+The classification is **Result 3 — no practical supported path found**. Path A
+remains blocked at `0.9.0`; PR #46 must ask the owner whether to adopt PR #44
+Path B rather than redefining Desktop Mode. Full evidence and the candidate
+matrix are in [`GNOME_SHELL_FEASIBILITY.md`](GNOME_SHELL_FEASIBILITY.md).
+
+The PR #45 collector subsequently passed read-only physical verification on the
+Dell Inspiron-3147 under Wayland/GNOME Shell 46.0. It confirmed Zorin Desktop
+Icons active, observed its external `app/ding.js` process, and found installed
+Zorin use of `Main.extensionManager.lookup(...)`. This proves runtime lookup is
+technically present, but it revealed no supported surface/composition contract;
+Result 3 is unchanged.

@@ -41,6 +41,213 @@ Zorin taskbar, panel, and menus
 GrayHaired Desktop must remain interactive without becoming an icon manager,
 hiding real icons, or becoming an ordinary maximized application.
 
+## PR #45 new-architecture investigation
+
+### Decision
+
+**Result 3 — NO PRACTICAL SUPPORTED PATH FOUND.** No materially different
+architecture found is both safe enough to ship and capable of the required
+interactive order on GNOME Shell 46/Wayland. Version 1.0 remains blocked under
+the owner-selected PR #44 Path A, and the version remains `0.9.0`. This is an
+architecture conclusion, not a claim that private code could never display
+pixels on one exact build.
+
+No mutation prototype was justified. After the initial container-only review,
+the read-only PR #45 collector was run on the Dell Inspiron-3147 under a native
+Wayland session with GNOME Shell 46.0. It passed without mutation and added the
+physical runtime evidence recorded below.
+
+### Physical read-only collector result
+
+The physical target reported:
+
+```text
+Dell Inspiron-3147
+Zorin OS
+XDG_SESSION_TYPE=wayland
+GNOME Shell 46.0
+```
+
+The public Shell Extensions D-Bus information confirmed the provider as enabled
+and active, with no reported error:
+
+```text
+name: Zorin Desktop Icons
+uuid: zorin-desktop-icons@zorinos.com
+state: active
+enabled: true
+path: /usr/share/gnome-shell/extensions/zorin-desktop-icons@zorinos.com
+error: none
+```
+
+The process observation physically confirmed the real external icon client:
+
+```text
+gjs /usr/share/gnome-shell/extensions/zorin-desktop-icons@zorinos.com/app/ding.js -E -P /usr/share/gnome-shell/extensions/zorin-desktop-icons@zorinos.com/app
+```
+
+Installed Zorin source also showed other Zorin extensions calling
+`Main.extensionManager.lookup(...)` to locate related extensions. Live
+cross-extension lookup is therefore technically possible on this tested build,
+not merely a source-level GNOME hypothesis. No discovered Zorin Desktop Icons
+contract registers a foreign visual surface, relative layer, shared icon-client
+renderer, or GrayHaired background-content provider. The observation strengthens
+the distinction between technically reachable and safe/supported cooperation;
+it does not change Result 3.
+
+The collector made no Shell Eval call. It changed no setting, extension,
+process, window, actor, or installed file.
+
+### Runtime Zorin-extension cooperation
+
+The installed-source evidence establishes this object graph:
+
+```text
+Zorin extension instance
+├── LaunchSubprocess wrapper / Meta.WaylandClient
+├── map and lifecycle signal connections
+├── desktop-window emulator (active Meta.Window state per icon window)
+└── separately launched app/ding.js process
+    └── DesktopManager → per-monitor DesktopGrid GTK windows/widgets
+```
+
+The Shell side launches `app/ding.js` through `LaunchSubprocess`. On the tested
+GNOME 46 path the wrapper uses `Meta.WaylandClient`, retains the client/process,
+and verifies mapped windows with `owns_window()` through
+`query_window_belongs_to()`. Only an owned window with the `Desktop Icons ` role
+is accepted. The emulator retains and manages the active `Meta.Window` objects
+and monitor/desktop semantics. This is process ownership and window policy, not
+a shared rendering container.
+
+GNOME 45+ publishes the ES-module `Extension` base class and static metadata
+lookup (`lookupByUUID()`), while Shell's live extension manager has runtime
+records and enabled state. See the GNOME
+[extension class](https://gnome.pages.gitlab.gnome.org/gnome-shell/class-Extension.Extension.html),
+[extension anatomy](https://gjs.guide/extensions/overview/anatomy.html), and
+GNOME 46 [`extensionSystem.js`](https://gitlab.gnome.org/GNOME/gnome-shell/-/blob/46.0/js/ui/extensionSystem.js).
+
+| Access | Classification | PR #45 assessment |
+| --- | --- | --- |
+| `Extension.lookupByUUID(UUID)` and metadata | Public/documented | Establishes installation; it is not a cooperation contract and exposes no icon surfaces. |
+| `org.gnome.Shell.Extensions.GetExtensionInfo` | Public observation interface | Reports enabled/state metadata without code execution; exposes no live objects. |
+| `Main.extensionManager.lookup(UUID)` / enabled records | Inspectable Shell implementation, physically observed in installed Zorin source | Other Zorin extensions use it to locate related extensions, so live lookup is technically possible on the tested build; it remains no supported visual-composition contract. |
+| Runtime implementation/state object (`stateObj` in reviewed GNOME 46 source) | Private and version-sensitive | The Zorin instance may be technically reachable. Depending on private shape and enable timing is not safe enough to ship. |
+| Monkey-patching methods, signals, or retained objects | Unsupported/invasive | Risks enable/disable/restart and trusted-client lifecycle; prohibited for production. |
+
+The Zorin instance has internal lifecycle methods, signal connections,
+managed-client state, window-emulation objects, geometry callbacks, and
+desktop-process action-group/D-Bus plumbing. Inspection found no documented
+extension-to-extension interface, surface registry, provider callback, or
+compatibility promise. Its D-Bus/actions cover icon-client operations such as
+clipboard, timers, and desktop geometry—not foreign surface registration.
+Cooperation is therefore **technically reachable through private JavaScript
+objects**, but **not safe enough to ship**; reachability also provides no missing
+composition operation.
+
+Use the bounded collector on the target to refresh this evidence:
+
+```bash
+./scripts/collect-zorin-runtime-cooperation-info.sh \
+  | tee zorin-runtime-cooperation-info.txt
+```
+
+It observes extension state through settings/the Extensions D-Bus service,
+searches installed source, and observes matching processes. It never enables,
+disables, evaluates, injects, launches, kills, moves, or reorders anything.
+
+### Where the icon pixels live and shared-surface result
+
+Shell renders no real icon pixels in its wallpaper actor. The separate
+DING-derived GJS/GTK process owns desktop-sized per-monitor GTK windows;
+`DesktopManager` creates `DesktopGrid` objects and the grids own the GTK icon
+widgets. Shell sees compositor `Meta.Window` objects, not that GTK widget tree or
+a child content surface.
+
+The client windows use transparency around icons so wallpaper shows through.
+That is alpha compositing of one Wayland client buffer, not a portal through
+which another client can insert content. Only the icon process can populate the
+background pixels of its GTK surface. Wayland provides no foreign-client
+reparenting facility, and the icon client exposes no child-surface/frame-consumer
+API. Changing the background would require modifying/replacing the client,
+injecting into it, or a new provider-supported protocol.
+
+An **icon-client shared surface** could work only if Zorin added a supported
+background-provider API inside its client. A companion extension cannot obtain
+its GTK container merely by referencing the Shell instance. A **Shell shared
+desktop container** cannot adopt Zorin's external client buffers as icon actors.
+Neither concept is available under this PR's boundaries.
+
+### External WebEngine frame and input bridge
+
+Keeping QtWebEngine outside Shell is the correct security boundary, but no
+reviewed transport turns it into a small integration:
+
+| Transport | Frame/import reality | Cost and latency | Input/product assessment |
+| --- | --- | --- | --- |
+| PipeWire ScreenCast/portal | Can capture with user/session mediation; Shell still needs a nonstandard video texture path. | Capture, negotiation, buffer import, repaint, and damage add latency; end-to-end zero-copy into GJS/Clutter is not guaranteed. | RemoteDesktop is a separate consented control channel, not embedding. Too complex for persistent Desktop Mode. |
+| DMA-BUF | QtWebEngine publishes no stable extension-facing frame export, and GJS/Clutter has no supported foreign-buffer import/lifetime contract here. | Zero-copy is only potential after modifiers, fences, devices, resizing, and lifetime are solved. | No standard focus/input/accessibility association; would require unsafe native Shell code. |
+| Wayland buffers/subsurfaces | No protocol lets an arbitrary extension adopt a foreign Qt surface. | A custom Mutter protocol could be efficient, but stock Mutter has none. | Requires compositor changes and privileged input routing. |
+| Shared-memory/offscreen Qt frames | Custom readback is buildable, but normal QtWebEngine widgets do not provide a ready desktop stream. | 1366×768×4 is about 4 MiB/frame; 30 fps is roughly 120 MiB/s before extra copies. CPU readback/upload is risky on the Inspiron-3147. | Needs authenticated IPC and complete input semantics; unacceptable 1.0 complexity. |
+| GStreamer capture/mirror | Can consume PipeWire/video; does not create a supported under-window Shell layer. | Pipeline buffering adds latency and still needs texture import. | Solves transport only, not placement, focus, clipboard, or accessibility. |
+
+A real interaction bridge must translate scaled pointer coordinates and motion,
+buttons, hover, scrolling, keys/modifiers, composition/IME, and shortcuts;
+arbitrate keyboard focus with Shell and normal apps; preserve clipboard and
+external-browser handoff; expose an accessibility tree rather than a video
+rectangle; and recover securely from either process restarting. Portals are
+consented capture/remote-control services, not permanent embedding. A screenshot
+or view-only stream is not Desktop Mode. This is theoretically buildable as a
+remote-desktop system, but not realistic or maintainable for Version 1.0 or the
+Inspiron-3147.
+
+Primary interfaces reviewed include the
+[ScreenCast portal](https://flatpak.github.io/xdg-desktop-portal/docs/doc-org.freedesktop.portal.ScreenCast.html),
+[RemoteDesktop portal](https://flatpak.github.io/xdg-desktop-portal/docs/doc-org.freedesktop.portal.RemoteDesktop.html),
+[PipeWire DMA-BUF documentation](https://docs.pipewire.org/page_dma_buf.html),
+and Qt's [WebEngine overview](https://doc.qt.io/qt-6/qtwebengine-overview.html).
+None specifies a GNOME Shell extension embedding contract.
+
+### Upstream GNOME/Mutter alternatives
+
+GNOME Shell 46 supports extension-owned actors and chrome, and Mutter supports
+ordinary Wayland clients plus private compositor/background machinery. It does
+not publish an external-client layer below icon clients, foreign-surface adoption
+API, or third-party background-content registration. Private background details
+are in [`GNOME_BACKGROUND_LAYER_RESEARCH.md`](GNOME_BACKGROUND_LAYER_RESEARCH.md).
+
+`wlr-layer-shell` is a wlroots ecosystem protocol; Mutter/GNOME 46 does not
+support it as a client protocol. Experimental Mutter patches or a custom
+compositor protocol would cease to be stock Zorin. X11-only window types cannot
+solve the normal Wayland target. See the
+[Wayland protocols repository](https://gitlab.freedesktop.org/wayland/wayland-protocols),
+[wlr-layer-shell specification](https://wayland.app/protocols/wlr-layer-shell-unstable-v1),
+and Mutter's [Wayland protocol list](https://gitlab.gnome.org/GNOME/mutter/-/wikis/Wayland-Protocols).
+
+### Candidate comparison
+
+| Architecture | Technically possible? | Supported? | Preserves real Zorin icons? | Interactive? | Performance risk | Maintainability | Recommendation |
+| ------------ | --------------------- | ---------- | --------------------------- | ------------ | ---------------- | --------------- | -------------- |
+| Runtime cooperation with live Zorin instance | Private objects likely reachable; no composition hook exists | No provider contract | Only in theory | No new content/input path | Low observationally; high if patched | Poor | Reject for shipping; diagnostics only |
+| Shared Zorin icon-client GTK surface | Only if Zorin adds an API inside its client | No | Yes | Potentially | Provider-dependent | Viable only as upstream feature | Not available to companion extension |
+| Shell shared container with adopted icons/content | No stock embedding found | No | No; icons remain external buffers | No | High/unknown | Poor | Reject |
+| Shell visual mirror + input bridge | Theoretical remote-display subsystem | No | Visually, if a valid layer existed | Partial without extensive work | High | Very poor | Reject for 1.0 |
+| PipeWire/GStreamer streaming | Capture possible; placement/embedding absent | Capture yes; this use no | Potentially | Not alone | Medium/high | Poor | Reject |
+| DMA-BUF/custom Wayland bridge | Possible with native/compositor work | No GNOME extension contract | Potentially | Not alone | Very high engineering risk | Very poor | Reject |
+| Shared-memory/offscreen frames | Custom mirror buildable | No | Potentially | Only with custom input protocol | High on target | Very poor | Reject |
+| `wlr-layer-shell` | Works on supporting wlroots compositors | Not on Mutter/GNOME 46 | Not on target | N/A | N/A | Irrelevant | Do not recommend for Zorin |
+| Supported GNOME background/external-surface API | None found | None in reviewed GNOME 46 | N/A | N/A | N/A | N/A | Reassess if GNOME/Zorin adds one |
+
+### PR #46 next step
+
+No safe physical experiment follows Result 3: every remaining experiment repeats
+a rejected stack/actor mechanism, mutates private Zorin state, or begins a large
+frame/input subsystem without a supported placement endpoint. PR #46 should be
+an explicit owner product-decision PR revisiting PR #44 Path B: ship the safe
+windowed launch-page application as Version 1.0 and move true Desktop Mode to
+future provider/upstream research. PR #45 does **not** make that decision. A
+future Zorin background-provider API or GNOME external-surface/background-layer
+API would be genuinely new evidence.
+
 ## Confirmed target runtime
 
 Information collected on the real target computer establishes this baseline:
