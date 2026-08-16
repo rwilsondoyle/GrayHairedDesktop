@@ -365,3 +365,51 @@ These results record manual verification on exactly two physical Zorin systems. 
 - Version remains `0.9.0`.
 - Next task is the final Version 1.0 release-readiness/manual verification pass.
 - Final version bump to `1.0.0` must occur only after that pass succeeds.
+
+## PR #47 Final Version 1.0 Release Readiness Verification
+
+- Repository/version/documentation audit completed on 2026-08-16 without a
+  runtime change. Both version locations remain `0.9.0` and the metadata test
+  continues to guard them.
+- Automated result: `compileall`, both required Ruff runs, shell syntax, and
+  diff checks passed; pytest reported **54 passed, 10 skipped**. No configured
+  GitHub Actions/status-check workflow exists, so no CI pass is claimed.
+- The required current-candidate physical pass cannot be performed in the Codex
+  environment. A seven-stage, ordered procedure is recorded in the release
+  readiness report. Earlier PR #42 installation/autostart and PR #43
+  single-instance evidence remains historical evidence, not a PR #47 PASS.
+- Review found a release blocker: Settings still offers a Desktop Mode control
+  that promises placement behind applications, although true Desktop Mode is
+  now unsupported Future Research. PR #47 leaves runtime unchanged and records
+  this for a separate fix PR.
+- The owner has not yet decided whether **GrayHaired Desktop** is the final
+  public/display name. The public-name decision is required before 1.0.0.
+
+### NEXT DEVELOPMENT CHECKPOINT
+
+- PR #47 final readiness status: **NO-GO**.
+- Current version remains `0.9.0`.
+- Supported Version 1.0 scope remains the safe normal windowed launch page.
+- True Desktop Mode remains **Future Research** and is not a release requirement.
+- Automated totals: **54 passed, 10 skipped**; compile, Ruff, shell syntax, and
+  whitespace checks passed; no configured GitHub CI exists.
+- Wayland physical result: **PENDING PHYSICAL VERIFICATION**.
+- X11 physical result: **PENDING PHYSICAL VERIFICATION**.
+- Install/update/uninstall result: **PENDING PHYSICAL VERIFICATION** for the
+  PR #47 candidate; PR #42 historical evidence remains passed.
+- Autostart result: **PENDING PHYSICAL VERIFICATION** on Wayland and X11 for the
+  PR #47 candidate; PR #42 historical evidence remains passed.
+- Single-instance result: **PENDING PHYSICAL VERIFICATION** on Wayland and X11
+  for the PR #47 candidate; PR #43 historical evidence remains passed.
+- Settings/Desktop Website/shortcut result: **FAIL/PENDING**. The misleading
+  Desktop Mode setting is a release blocker; all physical feature checks remain
+  pending.
+- Appearance/accessibility result: **PENDING PHYSICAL VERIFICATION**.
+- Persistence result: **PENDING PHYSICAL VERIFICATION**.
+- Logging result: **PENDING PHYSICAL VERIFICATION**.
+- Public product-name decision: **PENDING — OWNER DECISION REQUIRED**.
+- Remaining blockers: remove or otherwise resolve the misleading legacy Desktop
+  Mode UI in a separate fix, obtain the owner public-name decision, and complete
+  and record the required physical Wayland/X11/lifecycle regression stages.
+- **Next PR: fix the specifically documented release blocker(s), then rerun the
+  affected PR #47 checks.**
