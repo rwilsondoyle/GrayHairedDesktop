@@ -189,6 +189,52 @@ Status: Implementation complete; manual Zorin verification pending.
 
 ## Zorin verification notes
 
+### Version 0.9.0 single-instance guard (PR #43)
+
+Status: Implementation, automated verification, and physical verification complete.
+
+- Added a focused Qt local-IPC guard using `QLocalServer` and `QLocalSocket`, so
+  no new dependency, launcher, service, or process-discovery mechanism is needed.
+- A secondary launch sends one activation message and exits successfully before
+  the WebEngine UI is imported. The primary restores a minimized window, shows a
+  hidden window, and requests normal Qt raise/activation behavior.
+- Stale endpoints are removed only after an initial connection failure, a failed
+  listen, and a second connection failure consistent with refusal/not-found.
+  Cleanup is restricted to the guard that successfully owns the endpoint.
+- **X11 physical verification: PASSED.** On the Dell Inspiron-3147 under Zorin
+  OS / GNOME / X11, the PR #43 build was installed through the existing
+  `update-user-install.sh` path. The installed launcher and canonical XDG
+  autostart worked, login produced exactly one instance, and a second
+  `~/.local/bin/grayhaired-desktop` invocation returned normally without a
+  second window. `pgrep -af 'venv/bin/grayhaired-desktop$'` confirmed a count of
+  one real application process. GNOME displayed its visual attention/flashing
+  indication rather than always forcing the existing window to the foreground;
+  this is acceptable and requires no X11-specific focus hack.
+- **Wayland physical verification: PASSED.** After logging into Zorin OS / GNOME
+  / Wayland on the same Dell, canonical autostart again produced exactly one
+  instance. A second installed-launcher invocation returned normally, created
+  no second window, and left the process count at one. GNOME briefly displayed
+  an already-open attention notice. This acceptable compositor behavior does
+  not weaken the single-instance guarantee and requires no focus workaround.
+- Desktop Website links showed no current performance problem during this
+  physical follow-up.
+
+## NEXT DEVELOPMENT CHECKPOINT
+
+- PR #43 single-instance guard: implementation complete.
+- Physical X11 verification: **PASSED**.
+- Physical Wayland verification: **PASSED**.
+- The stable installed launcher and canonical autostart from PR #42 remain
+  working.
+- Desktop Website links showed no current performance problem during physical
+  follow-up.
+- Version remains `0.9.0`.
+- Desktop Mode remains unresolved and is still the principal Version 1.0
+  blocker.
+- Do not repeat the failed GNOME Shell layering experiments documented in PR
+  #39.
+- Next development work should begin from this checkpoint.
+
 ### GNOME Shell 46 desktop-layer feasibility
 
 - Native-Wayland testing confirmed that `Meta.Window.lower()` did not change the

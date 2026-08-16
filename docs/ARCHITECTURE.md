@@ -15,7 +15,7 @@ GrayHairedDesktop is the repository and package identity. **GrayHaired Desktop**
 
 ## Application flow
 
-1. `grayhaired_desktop.app` configures logging, creates `QApplication`, applies Qt application metadata, creates `QSettings`, and shows the main window.
+1. `grayhaired_desktop.app` configures logging, creates `QApplication`, applies Qt application metadata, and acquires the user-local single-instance endpoint. A secondary launch sends an activation request and exits before importing the WebEngine UI; the primary creates `QSettings` and shows the main window.
 2. `grayhaired_desktop.ui.mainwindow.MainWindow` coordinates the launch page, external-link status, Settings workflow, and persistent window geometry. Focused UI modules create its shared actions, menu bar, and toolbar.
 3. `grayhaired_desktop.browser.BrowserView` wraps `QWebEngineView`, stores the configured home URL, and uses a `QWebEnginePage` navigation policy plus `QDesktopServices` to open clicked links externally. Same-page fragment navigation remains embedded.
 4. `grayhaired_desktop.settings` defines the immutable, alphabetically ordered built-in website configuration, matches saved addresses to built-in choices, loads and saves settings through `QSettings`, and provides reusable HTTP/HTTPS address validation.
@@ -26,6 +26,7 @@ GrayHairedDesktop is the repository and package identity. **GrayHaired Desktop**
 | Module | Responsibility |
 | --- | --- |
 | `app.py` | Application entry point, Qt application metadata, settings construction, main event loop. |
+| `single_instance.py` | User-local `QLocalServer`/`QLocalSocket` ownership, activation messages, and conservative stale-endpoint recovery. |
 | `browser.py` | Embedded launch-page widget, external-link policy, and page-load logging hooks. |
 | `config.py` | Application metadata and `QSettings` factory. |
 | `logger.py` | Central logging configuration. |
@@ -59,6 +60,19 @@ The application uses Qt `QSettings` under the current author/About attribution m
 - There is no local database, background service, or custom network protocol layer in the desktop app.
 - The app ships focused offscreen Qt tests, but manual Zorin verification remains important for release decisions.
 - The application does not add a widget system, dashboards, accounts, or synchronization.
+- Qt local IPC avoids another dependency and keeps the endpoint scoped to the current desktop user. A repeated launch asks the existing window to restore, show, raise, and activate through ordinary Qt APIs. Desktop environments, particularly Wayland compositors, may refuse the focus request; single-instance enforcement does not depend on focus being granted.
+
+## Single-instance physical verification
+
+PR #43 was physically verified on the Dell Inspiron-3147 under Zorin OS / GNOME
+in both X11 and Wayland sessions. In each session, canonical XDG autostart
+produced exactly one installed application instance. A second invocation through
+`~/.local/bin/grayhaired-desktop` returned normally, created no second window,
+and left exactly one real GrayHaired Desktop application process. GNOME used a
+visual attention/flashing indication instead of consistently forcing the window
+to the foreground on both sessions. That result is acceptable: the Qt activation
+request is best-effort, while the single-instance guarantee is enforced by the
+local IPC endpoint without X11- or compositor-specific focus workarounds.
 
 ## GNOME desktop-layer boundary
 
