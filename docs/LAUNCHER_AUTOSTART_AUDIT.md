@@ -1,9 +1,9 @@
 # Launcher and autostart audit
 
-Status: **the installed user-local lifecycle has passed its Wayland physical
-retest; X11 login retesting remains pending.** GrayHaired Desktop remains version
-0.9.0. The original audit and failed installer result are retained below as
-historical evidence.
+Status: **the installed user-local lifecycle and canonical autostart have passed
+physical X11 and Wayland testing.** The Qt local-IPC single-instance guard has
+also passed both sessions. GrayHaired Desktop remains version `0.9.0`. Obsolete
+pre-PR #42/PR #43 findings below are explicitly retained as historical evidence.
 
 ## Historical finding
 
@@ -14,7 +14,7 @@ launcher that GNOME executed. One run of the read-only
 `scripts/collect-launcher-autostart-info.sh` script on that machine is needed
 before launcher or autostart installation is changed.
 
-## Current launch mechanisms
+## Historical launch mechanisms before PR #42
 
 | Mechanism | Status | Checkout / `.venv` dependency |
 | --- | --- | --- |
@@ -36,7 +36,7 @@ one under `~/.local/share/applications` or a system data directory. The reposito
 does not use `XDG_DATA_HOME` for launcher installation. `PYTHONPATH=src` is a test
 and development path, not a supported end-user startup contract.
 
-## Current autostart mechanism
+## Historical autostart mechanism before PR #42
 
 The application contains one intentional XDG user-autostart implementation:
 
@@ -103,9 +103,9 @@ sources out; run the updated collector on the physical target. If no standard
 mechanism is found, inspect GNOME session-restore behavior and other user login
 configuration as a separate, read-only follow-up rather than guessing.
 
-## Duplicate launch behavior
+## Historical duplicate-launch behavior before PR #43
 
-There is no application singleton, lock file, D-Bus ownership check, or other
+At the time of this audit there was no application singleton, lock file, D-Bus ownership check, or other
 double-launch guard. Two valid launch requests can create two independent
 processes and windows. This makes it especially important not to introduce a
 second autostart path. Production installation should own one canonical entry;
@@ -114,11 +114,10 @@ source and packaging lifecycle are known.
 
 ## X11 and Wayland
 
-- **X11 autostart (historical):** observed once on the Inspiron-3147; its exact
-  source was not identified. The installed canonical lifecycle still needs an X11
-  login retest.
-- **Wayland autostart (current installed build):** physically confirmed with one
-  canonical entry and exactly one instance at login.
+- **X11 canonical autostart:** physically confirmed on the Inspiron-3147 with
+  exactly one installed instance at login.
+- **Wayland canonical autostart:** physically confirmed on the same machine with
+  exactly one installed instance at login.
 
 XDG autostart itself is session-type independent and is the standard preferred
 mechanism for a GNOME login. The executable it invokes can start the normal safe,
@@ -150,19 +149,20 @@ the stable installed entry point. Installer, updater, application Settings, and
 uninstaller behavior must agree on ownership and migration so stale or duplicate
 entries cannot remain.
 
-## Remaining Version 1.0 blockers
+## Current Version 1.0 blockers
 
-- Identify the exact source of the observed physical X11 startup.
-- Design and test a stable installed package, application-menu launcher, update,
-  and uninstall lifecycle that does not depend on a checkout or `.venv`.
-- Validate one canonical XDG autostart lifecycle on clean and upgraded Zorin OS
-  installations; separately confirm Wayland login startup.
-- Decide whether lightweight duplicate-launch protection is required.
-- Resolve Desktop Mode architecture while preserving Zorin's real desktop icons;
-  GNOME Shell 46 / Mutter 46 research has not found a supported extension-facing
-  background-content mechanism that meets the layering requirement.
-- Complete the remaining physical release-readiness checks. Version 1.0 is not
-  ready and no Windows, macOS, or other-Linux-distribution support is claimed.
+The installation, application-menu launch, update, uninstall, canonical XDG
+autostart, and single-instance work are complete rather than blockers. Desktop
+Website link follow-up found no current problem. Remaining decisions/work are:
+
+- Resolve the explicit Desktop Mode product gate: retain the exact Zorin/GNOME
+  layer requirement and investigate a materially new architecture, or revise 1.0
+  scope only in a later owner-approved PR.
+- Complete the final physical release-readiness checklist.
+- Decide the final public product name if it is still required before release.
+
+Version 1.0 is not ready and no Windows, macOS, or other-Linux-distribution
+support is claimed.
 
 ## Implemented user-local lifecycle (0.9.0)
 
@@ -198,8 +198,8 @@ the installed wrapper. No systemd or GNOME mechanism was added.
 
 The launcher is session-type independent. It is intended to start the normal
 safe/windowed Desktop Launch Page on supported Zorin X11 and Wayland sessions;
-this is not a claim that Wayland Desktop Mode works. Duplicate launches remain
-possible because no single-instance guard was added.
+this is not a claim that Wayland Desktop Mode works. PR #43 subsequently added
+a Qt local-IPC single-instance guard, physically verified on X11 and Wayland.
 
 ### Inspiron-3147 physical results
 
@@ -226,8 +226,9 @@ Dell Inspiron-3147 running Zorin OS, GNOME, and Wayland:
 6. User-local uninstall removed the stable launcher and matching canonical
    autostart entry while preserving preferences.
 
-The equivalent installed X11 login/autostart retest remains pending. Desktop Mode
-remains unresolved and separate from this lifecycle. Desktop Website links seemed
-somewhat slower than expected during this test; no direct regression was
-identified, so link performance is recorded only as a future follow-up and is not
-changed in this pull request.
+A subsequent installed X11 login/autostart retest passed. PR #43's single-instance
+behavior also passed physical X11 and Wayland testing: second invocations returned
+normally, created no second window, and left one real process. Desktop Mode remains
+unresolved and separate from this lifecycle. The earlier subjective link-speed
+observation is historical; later physical follow-up opened links normally and
+found no current performance problem.

@@ -10,10 +10,14 @@ GrayHairedDesktop is the repository and package identity. "GrayHaired Desktop"
 is the current working display wording; the final public product name has not
 been selected. This release-readiness review does not make that branding decision.
 
-The current implementation-review build is **0.9.0**. Version 1.0 has not been
-declared: code review and the manual Zorin release checklist in
-[`docs/RELEASE_READINESS.md`](docs/RELEASE_READINESS.md) must be completed first.
-Windows and macOS are not supported.
+The current implementation-review build is **0.9.0**. Stable user-local
+installation, canonical autostart, and single-instance behavior are complete and
+physically verified on both X11 and Wayland. Version 1.0 has not been declared:
+the required Zorin/GNOME Desktop Mode remains unresolved, an explicit product
+scope decision is required, and the final manual Zorin checklist in
+[`docs/RELEASE_READINESS.md`](docs/RELEASE_READINESS.md) remains pending. The
+safe windowed application is not silently redefined as Desktop Mode. Windows and
+macOS are not supported.
 
 ## Supported environment
 

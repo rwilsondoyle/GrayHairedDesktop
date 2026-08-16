@@ -1,7 +1,9 @@
 # Version 1.0 release-readiness review
 
-Status: **Desktop Mode implementation and final manual Zorin verification are
-pending.** This report does not declare Version 1.0 complete.
+Status: **Desktop Mode and the final manual Zorin checklist are pending.**
+Installation, autostart, and single-instance behavior are complete and
+physically verified on X11 and Wayland. This report does not declare Version
+1.0 complete; the version remains `0.9.0`.
 
 ## Release finding
 
@@ -9,33 +11,37 @@ The reviewed source is a credible Version 1.0 candidate, but it must not be
 released as 1.0 until the manual checklist below passes on a clean, supported
 Zorin installation and the release-readiness pull request is approved.
 
-### Blockers
+### Version 1.0 status table
 
-- Complete the installed launcher/autostart investigation documented in
-  `LAUNCHER_AUTOSTART_AUDIT.md`. X11 login startup was observed on the physical
-  Inspiron-3147, but its exact machine-local source is not established. Run the
-  new read-only collector before adding or changing any autostart entry; Wayland
-  login startup remains unconfirmed.
+Completed work is recorded as such and is not an active blocker.
 
-- Design and verify a GNOME Shell integration that can preserve the user's real
-  desktop icons. The actual Zorin session is GNOME, where neither tested Qt X11
-  strategy can occupy the required layer. Begin every manual run by recording the
-  detected XDG session type, Qt platform, desktop environment, and selected
-  Desktop Mode implementation/fallback path.
-- On Wayland, a normal Qt application cannot reliably insert an interactive
-  window beneath the compositor-managed shell wallpaper. The implementation
-  therefore remains in normal/windowed mode and reports the fallback rather than
-  presenting a borderless fullscreen window as Desktop Mode.
-- Provide a stable installed application launcher before Version 1.0 so the
-  intended sign-in startup experience can be enabled. The current source/`.venv`
-  distribution deliberately cannot produce a safe autostart entry.
-- Complete all 50 manual Zorin checks below, including clean installation,
-  upgrade persistence, both Zorin appearances, accessibility, and real external
-  browser handoff. These behaviors cannot be fully established in a headless
-  development environment.
-- After those checks pass, make the explicit release decision and change the
-  version from `0.9.0` to `1.0.0` in both version locations. Do not publish
-  mismatched package and runtime versions.
+| Item | Current status |
+| --- | --- |
+| Stable installed launcher | **COMPLETE** |
+| Application-menu launcher | **COMPLETE** |
+| Update lifecycle | **COMPLETE** |
+| Uninstall lifecycle | **COMPLETE** |
+| Canonical XDG autostart | **COMPLETE** |
+| X11 login/autostart physical verification | **PASSED** |
+| Wayland login/autostart physical verification | **PASSED** |
+| Single-instance guard | **COMPLETE** |
+| X11 single-instance physical verification | **PASSED** |
+| Wayland single-instance physical verification | **PASSED** |
+| Desktop Website link follow-up | **NO CURRENT PROBLEM OBSERVED** |
+| Desktop Mode on Zorin/GNOME | **UNRESOLVED** |
+| Final Version 1.0 manual checklist | **PENDING** |
+| Final public product name | **PENDING if still required before release** |
+
+### Current blockers
+
+- Decide the Desktop Mode product path below. If Desktop Mode remains mandatory,
+  design and verify a materially new architecture that preserves the user's real
+  Zorin desktop icons and the required layer order.
+- Complete the final Version 1.0 manual checklist after the product-scope decision.
+- Decide the final public product name if that decision is still required before
+  release.
+- Only after all applicable checks pass, make an explicit release decision and
+  change both version locations together. Version `0.9.0` remains current.
 
 ### Non-blocking polish
 
@@ -45,11 +51,10 @@ Zorin installation and the release-readiness pull request is approved.
   GrayHairedDesktop remains the repository/package identity, while GrayHaired
   Desktop is only current working/display wording. This review selects no name.
 
-### Future distribution
+### Future distribution polish
 
-- Provide a native package or installer and an application-menu `.desktop`
-  launcher/icon so a public user need not manage a source checkout or terminal.
-- Add a documented uninstaller/removal workflow; today removal is manual.
+- Consider a native distro package and signed artifacts beyond the completed
+  user-local installer and application-menu launcher.
 - Add release checksums and, if practical, signed artifacts.
 - Publish a concise public instruction sheet and technical release page using the
   checklists below.
@@ -57,168 +62,82 @@ Zorin installation and the release-readiness pull request is approved.
 These are distribution improvements rather than blockers for a clearly described
 source-based 1.0 release.
 
-## Desktop Mode feasibility and implementation
+## Desktop Mode decision gate
 
-Desktop Mode restores the original goal of showing the live Desktop Website and
-interactive shortcuts as a desktop/background layer. It is opt-in and normal
-windowed mode remains the default and safe fallback.
+The project owner must explicitly choose one of these paths before Version 1.0.
+PR #44 records the choice; it does not make it.
 
-- Session detection combines `XDG_SESSION_TYPE`, Qt's runtime platform name, and
-  the desktop environment. GNOME sessions are unsupported because the real icon
-  layer cannot be preserved by a Qt window. A non-GNOME X11 candidate is selected
-  only when the session says X11/Xorg and Qt uses `xcb`; contradictory or unknown
-  results are unsupported and logged.
-- On non-GNOME X11, the unverified candidate is a normal top-level window using
-  `FramelessWindowHint` and `WindowStaysOnBottomHint`, sized to the current/primary
-  screen without entering fullscreen mode. It explicitly clears
-  `WA_X11NetWmWindowTypeDesktop`: Zorin/GNOME's existing desktop surface hid the
-  application when that EWMH desktop classification was used. The stays-below
-  hint should place ordinary applications and the GNOME panel above this window,
-  but the complete strategy remains pending manual confirmation.
-- On Wayland, Desktop Mode safely falls back to the ordinary window with a short
-  explanation. No compositor bypass, layer-shell extension, static wallpaper,
-  or ordinary fullscreen substitute is used.
-- GNOME/Zorin desktop-icon extensions own their own desktop surface. The normal
-  below window was proven to sit above that surface and hide the real icons. Qt
-  provides no reliable standard layer between GNOME's wallpaper and icon
-  extension, so GNOME now falls back safely. This application neither hides icons
-  nor implements an icon manager.
-- Multi-monitor support deliberately targets one current/primary screen. Qt
-  screen geometry is read when mode is entered; live monitor add/remove handling
-  and one-window-per-screen behavior remain future work.
-- Desktop Mode does not use a no-focus flag: its shortcuts and controls remain
-  interactive. The stays-below hint avoids promoting it over ordinary windows.
-  Skip-taskbar, skip-pager, and sticky/all-workspaces hints are not requested:
-  Qt has no suitable cross-platform flags that preserve the required interactive
-  normal-window stacking. A taskbar entry and current-workspace-only behavior are
-  known limitations pending manual review.
-- Settings always remain available from the lower-left controls button. Saving
-  Desktop Mode Off returns to windowed mode. `Ctrl+Shift+D` is an additional
-  recovery shortcut that turns the setting off; unlike `Ctrl+Alt+D`, it is not a
-  common GNOME Show Desktop binding. Exit remains in the File menu.
-- Optional sign-in startup creates exactly one user entry at
-  `~/.config/autostart/grayhaired-desktop.desktop` (or under
-  `$XDG_CONFIG_HOME`). It uses the absolute installed console-script path,
-  requires no root/daemon/systemd, writes idempotently, and removes the file when
-  disabled. The present source setup installs that command inside the checkout's
-  `.venv`, which is not a stable distribution launcher: enabling autostart in
-  that setup therefore fails safely rather than recording a branch/check-out
-  path. The implementation becomes available when a future package supplies a
-  stable installed console-script path.
+### Path A — Desktop Mode remains mandatory for 1.0
 
-  In the current source distribution, Settings disables this option and explains
-  in plain language that it will become available after installation as a desktop
-  application. The implementation exists, but end-to-end login autostart testing
-  is unavailable—not a failed user test—until a stable installed launcher exists.
-  Because automatic startup is part of the intended desktop-replacement
-  experience, that stable launch/install path remains a pre-1.0 distribution
-  blocker. Packaging is not attempted in this Desktop Mode change.
+Version 1.0 remains blocked until a new architecture safely provides the exact
+required Zorin/GNOME layer. The version remains `0.9.0`; the project must not
+weaken the definition of Desktop Mode, call an ordinary maximized or borderless
+window Desktop Mode, hide real desktop icons, or resurrect rejected PR #39
+mechanisms. The next engineering investigation must be materially different.
 
-  At startup, a saved enabled preference is reconciled whenever a stable launcher
-  is available: a missing entry is recreated, an old launcher path or damaged
-  entry is replaced, and an already-correct entry is left untouched. If no stable
-  launcher is available, the preference remains saved so it can resume after a
-  proper installation, but Settings shows an unchecked disabled control and says
-  automatic start is unavailable. Write failures are logged without blocking
-  normal startup.
+### Path B — Windowed launch-page application becomes Version 1.0 scope
 
-No claim is made yet about real Zorin icon ordering, panel ordering, Show Desktop,
-focus, monitor changes, logout, or compositor behavior. All require the manual
-Desktop Mode checklist requested for this development task.
+This path is available only through a later, explicit owner decision. If chosen,
+the existing safe windowed application could proceed toward Version 1.0,
+Desktop Mode would move to a future milestone, and public wording and product
+requirements would need an honest revision. This report does not silently make
+that scope change.
 
-Manual testing on the user's Zorin Wayland session confirmed that requesting
-Desktop Mode selects the safe normal/windowed fallback. The informational message
-is shown when the user first enables the option in Settings, but subsequent
-startups fall back quietly and record the unsupported path in the log. The saved
-Desktop Mode preference remains enabled for possible future integration.
+## Required Desktop Mode and rejected approaches
 
-Real Zorin X11 testing reported session type `x11`, Qt platform `xcb`, and desktop
-environment `zorin:GNOME`; the application and Desktop Website loaded. The first
-attempt used `WindowType.Desktop`, which Qt 6 deprecated and ignored. The second
-attempt correctly used `WA_X11NetWmWindowTypeDesktop`, but the process remained
-running while its window was invisible beneath Zorin/GNOME's existing desktop
-surface. Applying a standards-correct hint is therefore not treated as success.
-The new `below-normal-window` strategy remains pending manual confirmation for
-visibility, stacking, panels, icons, focus, Show Desktop, and recovery.
+The required interactive order remains:
 
-A subsequent real X11 test improved visibility but did not meet the product goal:
-the application and Desktop Website were visible, remained visible with the
-desktop exposed, and shortcuts were clickable, but the surface was a smaller,
-offset application-like page with wallpaper around it. Bottom controls were hard
-to reach, `Ctrl+Shift+D` did not recover windowed mode, and stacking and panel
-behavior were not proven. That implementation applied full screen geometry only
-before the window manager mapped the recreated normal window and did not reserve
-the shell panel. Saved normal geometry is retained only for later recovery and is
-explicitly overridden while Desktop Mode is active.
+```text
+GNOME wallpaper
+↓
+GrayHaired Desktop live Desktop Website
+↓
+real Zorin Desktop Icons
+↓
+ordinary application windows
+↓
+Zorin panel, taskbar, menus and shell chrome
+```
 
-The first post-map geometry refinement crashed on real Zorin X11 immediately
-after its final geometry log. It combined a zero-delay `QTimer` resize of the
-mapped top-level `QMainWindow`/QtWebEngine surface with a new application-wide
-Python event filter. The precise native fault cannot be proven from a segmentation
-fault without a backtrace, so both newly introduced high-risk paths were removed:
-there is no post-show resize and no application-wide recovery event filter.
+GrayHaired Desktop must not replace or hide the icon manager, modify Zorin
+system extension files, require compositor patches, poll/restack against the
+compositor, impersonate another application, or leave unsafe persistent Shell
+experiments enabled.
 
-The stable candidate now applies work-area geometry exactly once before the first
-show. It temporarily removes the normal window's 720 px minimum, which exceeded
-the tested 716 px Zorin work area and explained the logged 720 px applied height.
-Normal mode restores that minimum, the original flags, and saved geometry.
-`Ctrl+Shift+D` returns to the earlier application-local `QShortcut` implementation;
-its real X11 reliability remains unverified. The lower-left controls button is the
-mouse-based route to Settings and Exit. Wayland's safe windowed fallback remains
-the only verified mode path.
+PR #39 physically rejected these mechanisms for that requirement:
 
-Commit `e35294e0` was then tested on real Zorin GNOME X11. It passed stability,
-usable work-area sizing, Desktop Website interaction, shortcuts, and gear access.
-It failed desktop-icon preservation: the full-size normal stays-below window sat
-above the user's real Zorin desktop icons, hiding them. Show Desktop therefore
-exposed GrayHaired Desktop but not the user's files/program icons. X11 Desktop
-Mode is not accepted.
+| Approach | Result |
+| --- | --- |
+| Pure Qt desktop-type window | Hidden below Zorin/GNOME's desktop surface. |
+| Normal Qt stays-below window | Visible, but above and hiding the real Zorin icons. |
+| `Meta.Window.lower()` | Did not produce the required visible order. |
+| Direct `MetaWindowActorWayland` sibling reordering | Reported order changed without the required visible icon relationship. |
+| Managed `Meta.WaylandClient.hide_from_window_list()` | Changed window-list/taskbar semantics, not the desktop layer. |
+| Shell-owned actor immediately above `backgroundGroup` | Appeared above wallpaper but also above icons and normal windows; the persistent development extension also caused a reboot/recovery hazard until disabled. |
+| Supported Zorin cooperation API | Read-only inspection found no supported third-party surface-registration or relative-layer API in the installed provider. |
 
-The confirmed Zorin OS 18.1 target implements desktop icons with the active
-`zorin-desktop-icons@zorinos.com` extension (**Zorin Desktop Icons**), a fork of
-the original Desktop Icons extension. Installed source headers also confirm
-substantial DING-derived code under Zorin's provider identity. The exact Zorin
-source confirms that it manages separate icon client windows through
-`Meta.Window`, including explicit Wayland desktop-window emulation and lowering.
-EWMH offers a desktop type and a below state, but pure Qt exposes no standard ordering level
-between GNOME's background and the icon provider. Testing demonstrated both sides
-of that Qt limit: the desktop-type attempt was hidden below GNOME's desktop
-surface, while the normal stays-below attempt was above and hid the icons. A
-lower-only GNOME 46 experiment did not change the verified order and restored the
-ordinary GrayHaired window successfully. The current development mode reads the
-proven shared compositor hierarchy and conditionally moves only the GrayHaired
-actor below Zorin; Zorin remains unmodified.
+Managed `Meta.WaylandClient` ownership itself **PASSED**, but ownership did not
+solve relative desktop layering and is not a successful Desktop Mode result.
 
-The application now treats Zorin/GNOME sessions—including X11/`xcb`—as
-unsupported and uses the safe normal/windowed fallback. This preserves the user's
-real icons and existing application behavior while keeping the saved Desktop Mode
-preference enabled. Non-GNOME X11 retains the unverified below-normal-window
-candidate, but no X11 environment is declared accepted. Achieving the required
-wallpaper → live application → real icons order on GNOME ultimately requires a
-small GNOME Shell integration component coordinated with the actual icons
-extension for both X11 and Wayland. Designing that component is a remaining
-pre-1.0 item and is intentionally not attempted as another Qt flag change.
+## Evidence-based recommendation
 
-### Manual Desktop Mode decision checklist
+Another small Qt flag adjustment or variation on the rejected GNOME stacking
+experiments is unlikely to satisfy the requirement. If Path A remains mandatory,
+the next investigation should evaluate a materially different architecture,
+without assuming feasibility: a separately maintained integration participating
+in the icon provider's rendering architecture without modifying system files; a
+supported background/plugin mechanism with interaction handled separately; an
+upstream-supported GNOME protocol or extension architecture absent from the
+tested Zorin implementation; or evidence that no safe supported relative layer
+exists and the product requirement must change. PR #44 implements none of these.
 
-Before judging desktop-layer behavior on Zorin, record from the application log:
+## Historical Desktop Mode evidence
 
-1. detected `XDG_SESSION_TYPE`;
-2. detected Qt platform name; and
-3. selected Desktop Mode implementation/fallback path.
-
-If the desktop environment includes GNOME, expect and verify the safe usable
-windowed fallback on both X11 and Wayland; this preserves the real desktop icons
-and is not a test failure. Only a non-GNOME X11/Xorg session with Qt `xcb` selects
-the below-normal-window candidate; test its ordinary-window ordering, native
-desktop facilities, panels, focus, Show Desktop, geometry, external links,
-controls, and recovery. Contradictory or unknown results must also fall back
-safely and be logged truthfully.
-
-For autostart, first check whether Settings enables the sign-in option. With the
-current source/`.venv` installation it should be disabled and the login test is
-pending. Test creation, single-entry idempotence, login launch, and removal only
-after a stable installed application launcher is available.
+Detailed experiment chronology remains in
+[`GNOME_SHELL_FEASIBILITY.md`](GNOME_SHELL_FEASIBILITY.md) and the development
+log. Those records explain why each approach was attempted; they are historical
+evidence, not current proposals. The decision gate and rejection table above are
+the current release finding.
 
 ## Audit results
 
@@ -241,22 +160,17 @@ after a stable installed application launcher is available.
 
 ### Installation, update, and run
 
-**What exists now:** the public artifact is the Git source repository (or an
-equivalent source ZIP), `scripts/setup-zorin.sh`, a project-local `.venv`, and
-`scripts/run.sh`. A ZIP does not support `scripts/update.sh`; Git is therefore the
-practical current distribution method.
+**What exists now:** `scripts/install-user.sh` creates a dedicated, non-editable
+user-local runtime, stable `~/.local/bin/grayhaired-desktop` command, and
+application-menu launcher without runtime dependence on the checkout. The
+matching update and ownership-safe uninstall scripts preserve preferences. This
+lifecycle passed physical testing. The Git checkout's `scripts/setup-zorin.sh`,
+project `.venv`, and `scripts/run.sh` remain the separate contributor path.
 
-**Clean-install path:** install Git, clone the repository, enter it, run
-`./scripts/setup-zorin.sh`, then `./scripts/run.sh`. The exact commands are in the
-README. Setup validates Python 3.12+, finds the matching `pythonX.Y-venv` package,
-installs missing `python3-pip` and `libxcb-cursor0`, creates or reuses `.venv`, and
-runs `pip install -e .`. It is rerunnable and deletes no user data. It does require
-terminal use, Git knowledge sufficient to clone, network access, and `sudo` when
-OS dependencies are absent.
-
-There is no `scripts/install.sh`; `scripts/setup-zorin.sh` is the existing install
-entry point. Renaming it or adding a second alias would not remove the larger
-source-distribution usability gap, so this review documents rather than masks it.
+**Clean-install path:** from a downloaded release or source checkout, run
+`./scripts/install-user.sh`, then launch from the application menu or stable
+command. The exact commands and prerequisites are in the README. No repository
+file or development `.venv` is used at installed runtime.
 
 **Update path:** from a clean checkout on `main`, close the app, run
 `git switch main`, then `./scripts/update.sh`. It refuses any dirty worktree,
@@ -512,9 +426,10 @@ application-menu launch, opt-in canonical autostart, single login launch, and
 ownership-safe uninstall all worked. The earlier failed physical install is
 retained in the launcher audit because it exposed the relocated-venv shebang bug.
 
-Version 1.0 remains blocked on the installed X11 login/autostart retest,
-investigation of the earlier unexplained X11 start, a decision about duplicate-
-launch protection, the unresolved Desktop Mode architecture, and the remaining
-physical release checklist. No single-instance protection or new GNOME behavior
-is included. Slightly slow Desktop Website link opening was observed during the
-Wayland test and is a future performance follow-up, not a diagnosed regression.
+X11 and Wayland installed login/autostart testing subsequently passed. PR #43's
+single-instance guard also passed both sessions: a second invocation returned
+normally without another window and exactly one real process remained. GNOME's
+attention indication instead of forced focus is acceptable. Desktop Website
+links opened normally during follow-up, with no current performance problem
+observed. Version 1.0 remains blocked by the Desktop Mode decision/architecture
+and applicable final manual checklist, not by these completed items.

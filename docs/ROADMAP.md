@@ -130,24 +130,30 @@ Status: Implementation complete; final manual Zorin verification pending.
 
 ## Version 1.0 release readiness
 
-Status: **Desktop Mode implementation review and final manual Zorin verification
-pending.** Version 1.0 is not declared complete.
+Status: **Desktop Mode and the final manual checklist remain pending.** Version
+1.0 is not declared complete, and the version remains `0.9.0`.
 
-- Desktop Mode is an important pre-1.0 requirement, not post-release polish.
-- Real Zorin GNOME testing proved that Qt desktop-type and normal stays-below
-  windows cannot occupy the required layer without becoming hidden or hiding the
-  user's real desktop icons. A reviewed GNOME Shell integration is now a pre-1.0
-  requirement; GNOME sessions safely remain windowed until it exists.
-- Non-GNOME X11 behavior, panels, focus, Show Desktop, multi-monitor behavior,
-  autostart login, and recovery remain unverified.
-
-- Audited current product/version wording, About information, installation,
-  update/run paths, persistence, logging, safety, and dependencies.
-- Documented the source-checkout distribution method, public-documentation gaps,
-  release findings, and the required 50-item manual Zorin checklist in
-  [`RELEASE_READINESS.md`](RELEASE_READINESS.md).
-- Retained Version 1.0 as a release decision to be made only after review and
-  successful manual testing.
+- PR #42 completed the stable user-local installation, application-menu launch,
+  update/uninstall lifecycle, and single canonical XDG autostart entry. X11 and
+  Wayland login/autostart checks passed on the physical Dell Inspiron-3147.
+- PR #43 completed the Qt local-IPC single-instance guard. X11 and Wayland
+  physical checks passed: a second invocation returned normally, created no
+  second window, and left one real process. GNOME attention indications are an
+  acceptable focus-policy result, not a blocker.
+- Desktop Website links opened normally during follow-up; no current performance
+  problem was observed.
+- Desktop Mode remains the principal unresolved product requirement. PR #39's
+  rejected Qt and GNOME stacking mechanisms must not be repeated without
+  materially new evidence.
+- Before Version 1.0, the owner must explicitly choose whether Desktop Mode
+  remains mandatory (requiring a materially new architecture) or whether a
+  future owner-approved scope change makes the safe windowed launch page the 1.0
+  product and moves Desktop Mode to a later milestone. This roadmap makes neither
+  decision automatically.
+- The final manual Zorin checklist and, if still required, final public-name
+  decision remain pending after that gate. See
+  [`RELEASE_READINESS.md`](RELEASE_READINESS.md) for the current status table,
+  exact Desktop Mode definition, and rejected-approach record.
 
 ## Longer-term ideas
 

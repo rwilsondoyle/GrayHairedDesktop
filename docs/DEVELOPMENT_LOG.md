@@ -219,7 +219,7 @@ Status: Implementation, automated verification, and physical verification comple
 - Desktop Website links showed no current performance problem during this
   physical follow-up.
 
-## NEXT DEVELOPMENT CHECKPOINT
+## PR #43 recovery checkpoint (historical)
 
 - PR #43 single-instance guard: implementation complete.
 - Physical X11 verification: **PASSED**.
@@ -263,3 +263,25 @@ These results record manual verification on exactly two physical Zorin systems. 
 - Do not alter application source code for documentation-only tasks.
 - Prefer small milestones with clear manual verification steps.
 - Record Zorin-specific findings in this log so future setup scripts and docs can improve from real installation feedback.
+
+### NEXT DEVELOPMENT CHECKPOINT
+
+- PR #44 release-readiness reconciliation is complete.
+- PR #42 stable installation and canonical autostart remain physically verified
+  on X11 and Wayland.
+- PR #43 single-instance behavior remains physically verified on X11 and Wayland.
+  GNOME attention indications instead of forced focus are acceptable.
+- Desktop Website links have no currently observed performance issue.
+- Version remains `0.9.0`; Version 1.0 is not declared ready.
+- Desktop Mode on Zorin/GNOME remains the principal unresolved Version 1.0
+  product requirement.
+- PR #39 rejected Qt desktop-type and stays-below windows,
+  `Meta.Window.lower()`, actor sibling ordering, managed window-list hiding, and
+  the tested Shell-owned actor placement above `backgroundGroup`. Managed
+  Wayland ownership passed but did not solve relative layering.
+- Do not repeat those rejected mechanisms without materially new evidence.
+- The next development task depends on an explicit Desktop Mode product decision:
+  either retain Desktop Mode as a 1.0 requirement and investigate a materially
+  new architecture, or explicitly revise Version 1.0 scope in a future
+  owner-approved PR.
+- PR #44 makes no such product-scope decision automatically.

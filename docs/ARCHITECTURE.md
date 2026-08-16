@@ -42,6 +42,9 @@ GrayHairedDesktop is the repository and package identity. **GrayHaired Desktop**
 | `scripts/setup-zorin.sh` | First-time Zorin/Ubuntu setup, system dependency checks, virtual environment creation, editable install. |
 | `scripts/run.sh` | Starts the installed app from the project virtual environment. |
 | `scripts/update.sh` | Safely updates a clean checkout and reinstalls into the existing virtual environment. |
+| `scripts/install-user.sh` | Creates the checkout-independent user-local runtime, stable command, and application-menu launcher. |
+| `scripts/update-user-install.sh` | Atomically refreshes the user-local runtime while preserving preferences and restoring the prior runtime on failure. |
+| `scripts/uninstall-user.sh` | Removes installer-owned runtime and launchers, and only the matching canonical autostart entry; preserves preferences. |
 
 ## Persistence
 
@@ -74,6 +77,11 @@ to the foreground on both sessions. That result is acceptable: the Qt activation
 request is best-effort, while the single-instance guarantee is enforced by the
 local IPC endpoint without X11- or compositor-specific focus workarounds.
 
+PR #42's installed launcher, application-menu entry, update/uninstall lifecycle,
+and single canonical XDG autostart entry were also physically verified on that
+machine. Login/autostart passed in X11 and Wayland. The installed runtime remains
+independent of its source checkout, and uninstall preserves preferences.
+
 ## GNOME desktop-layer boundary
 
 The confirmed target is Zorin OS 18.1 with GNOME Shell 46.0. Its real desktop-
@@ -94,3 +102,19 @@ layer-registration point in the installed Zorin provider. A Shell-owned mirror
 would require private placement plus a substantial external frame/input bridge,
 so it is not currently suitable for Version 1.0. The continuing investigation is documented in
 [`GNOME_SHELL_FEASIBILITY.md`](GNOME_SHELL_FEASIBILITY.md).
+
+The required layer is specifically wallpaper → interactive GrayHaired Desktop →
+real Zorin icons → ordinary windows → Shell chrome. PR #39 rejected a pure Qt
+desktop-type window, a normal stays-below window, `Meta.Window.lower()`, direct
+`MetaWindowActorWayland` sibling ordering, managed window-list hiding, and the
+tested Shell-owned actor above `backgroundGroup`. The actor experiment also
+persisted across reboot until its development extension was disabled. Read-only
+inspection found no supported Zorin third-party registration/relative-layer API.
+Managed `Meta.WaylandClient` ownership passed, but ownership did not solve this
+relative order.
+
+The Version 1.0 architecture gate is therefore explicit: either retain Desktop
+Mode and investigate a materially different safe integration, or make a later
+owner-approved product decision to scope Version 1.0 to the existing windowed
+launch page and move Desktop Mode forward. No ordinary maximized/borderless
+window is called Desktop Mode, and this documentation makes no scope decision.
