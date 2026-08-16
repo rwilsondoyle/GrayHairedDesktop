@@ -94,19 +94,14 @@ class PreferencesDialog(QDialog):
         theme_index = self._shortcut_theme.findData(preferences.shortcut_theme)
         self._shortcut_theme.setCurrentIndex(max(theme_index, 0))
 
-        self._desktop_mode = QCheckBox("Desktop Mode", self)
-        self._desktop_mode.setChecked(preferences.desktop_mode)
-        self._desktop_mode.setAccessibleDescription(
-            "Place the Desktop Website behind other applications when supported."
-        )
         self._autostart = QCheckBox(
-            "Start GrayHaired Desktop when I sign in", self
+            "Start My Desktop when I sign in", self
         )
         self._persisted_autostart = preferences.autostart
         self._autostart.setChecked(preferences.autostart and autostart_available)
         self._autostart.setEnabled(autostart_available)
         autostart_unavailable_message = (
-            "Automatic start will be available after GrayHaired Desktop is "
+            "Automatic start will be available after My Desktop is "
             "installed as a desktop application."
         )
         self._autostart.setToolTip(
@@ -134,7 +129,7 @@ class PreferencesDialog(QDialog):
         return UserPreferences(
             home_page_url=self._selected_address(),
             shortcut_theme=str(self._shortcut_theme.currentData()),
-            desktop_mode=self._desktop_mode.isChecked(),
+            desktop_mode=False,
             autostart=(
                 self._autostart.isChecked()
                 if self._autostart.isEnabled()
@@ -187,16 +182,6 @@ class PreferencesDialog(QDialog):
         appearance_help.setWordWrap(True)
         appearance_label = QLabel("Shortcut Appearance", self)
         appearance_label.setBuddy(self._shortcut_theme)
-        mode_separator = QFrame(self)
-        mode_separator.setFrameShape(QFrame.Shape.HLine)
-        mode_separator.setFrameShadow(QFrame.Shadow.Sunken)
-        mode_help = QLabel(
-            "Desktop Mode places the Desktop Website behind your other "
-            "applications when your computer supports it.",
-            self,
-        )
-        mode_help.setWordWrap(True)
-
         self._open_button = QPushButton("Preview in Browser", self)
         self._open_button.setMinimumHeight(CONTROL_MINIMUM_HEIGHT)
         self._open_button.setAccessibleName("Preview in Browser")
@@ -245,9 +230,6 @@ class PreferencesDialog(QDialog):
         content_layout.addWidget(appearance_help)
         content_layout.addWidget(appearance_label)
         content_layout.addWidget(self._shortcut_theme)
-        content_layout.addWidget(mode_separator)
-        content_layout.addWidget(self._desktop_mode)
-        content_layout.addWidget(mode_help)
         content_layout.addWidget(self._autostart)
         content_layout.addWidget(self._autostart_help)
 
@@ -272,8 +254,7 @@ class PreferencesDialog(QDialog):
         self.setTabOrder(self._another_website, self._home_page_url)
         self.setTabOrder(self._home_page_url, next(iter(self._built_in_buttons)))
         self.setTabOrder(list(self._built_in_buttons)[-1], self._shortcut_theme)
-        self.setTabOrder(self._shortcut_theme, self._desktop_mode)
-        self.setTabOrder(self._desktop_mode, self._autostart)
+        self.setTabOrder(self._shortcut_theme, self._autostart)
         self.setTabOrder(self._autostart, self._open_button)
         self.setTabOrder(self._open_button, self._save_button)
         self.setTabOrder(self._save_button, self._cancel_button)

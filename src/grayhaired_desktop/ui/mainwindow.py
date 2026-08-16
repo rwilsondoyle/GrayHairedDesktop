@@ -32,7 +32,6 @@ from grayhaired_desktop.desktop_mode import (
     SessionInfo,
     desktop_mode_unavailable_reason,
     select_desktop_mode,
-    should_notify_unsupported_mode,
 )
 from grayhaired_desktop.logger import log_file_path
 from grayhaired_desktop.settings import load_preferences, save_preferences
@@ -200,7 +199,7 @@ class MainWindow(QMainWindow):
     def apply_startup_mode(self) -> DesktopModePath:
         """Apply the requested mode before the window is first shown."""
 
-        return self._apply_desktop_mode(self._preferences.desktop_mode)
+        return self._apply_desktop_mode(False)
 
     def _apply_desktop_mode(self, requested: bool) -> DesktopModePath:
         path = select_desktop_mode(self._session_info, requested)
@@ -349,20 +348,17 @@ class MainWindow(QMainWindow):
             return
 
         updated_preferences = dialog.preferences
-        desktop_mode_newly_enabled = (
-            updated_preferences.desktop_mode and not self._preferences.desktop_mode
-        )
         if updated_preferences.autostart != self._preferences.autostart:
             if self._launch_executable is None and updated_preferences.autostart:
                 QMessageBox.warning(
                     self,
                     "Could Not Start Automatically",
-                    "Automatic start needs the installed GrayHaired Desktop launcher.",
+                    "Automatic start needs the installed My Desktop launcher.",
                 )
                 updated_preferences = type(updated_preferences)(
                     home_page_url=updated_preferences.home_page_url,
                     shortcut_theme=updated_preferences.shortcut_theme,
-                    desktop_mode=updated_preferences.desktop_mode,
+                    desktop_mode=False,
                     autostart=False,
                 )
             else:
@@ -376,7 +372,7 @@ class MainWindow(QMainWindow):
                     QMessageBox.warning(
                         self,
                         "Could Not Change Automatic Start",
-                        "GrayHaired Desktop could not change the sign-in setting.",
+                        "My Desktop could not change the sign-in setting.",
                     )
                     return
         self._preferences = updated_preferences
@@ -385,22 +381,13 @@ class MainWindow(QMainWindow):
         self._browser.set_home_url(self._preferences.home_page_url)
         self._browser.load_home("Settings-triggered load")
         self._logger.info("Settings saved")
-        mode_path = self._apply_desktop_mode(self._preferences.desktop_mode)
+        self._apply_desktop_mode(False)
         self.show()
-        if should_notify_unsupported_mode(
-            mode_path, newly_enabled=desktop_mode_newly_enabled
-        ):
-            QMessageBox.information(
-                self,
-                "Desktop Mode Unavailable",
-                "Desktop Mode is not available in this computer session. "
-                "GrayHaired Desktop will open normally instead.",
-            )
 
     def _show_about_dialog(self) -> None:
         QMessageBox.about(
             self,
-            "About GrayHaired Desktop",
+            "About My Desktop",
             (
                 f"{self._metadata.name} {self._metadata.version}\n\n"
                 "Displays your saved Desktop Website and opens its links and your "

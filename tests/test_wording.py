@@ -37,6 +37,8 @@ def test_settings_uses_approved_desktop_website_terms(qapp) -> None:
     labels = {label.text() for label in dialog.findChildren(QLabel)}
 
     assert dialog.windowTitle() == "Settings"
+    assert not hasattr(dialog, "_desktop_mode")
+    assert not any("Desktop Mode" in label.text() for label in dialog.findChildren(QLabel))
     assert "Desktop Website" in labels
     assert "Choose the website to display on your desktop." in labels
     assert "Website Address" in labels
