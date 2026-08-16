@@ -1,15 +1,23 @@
 # Version 1.0 release-readiness review
 
-Status: **The safe windowed launch-page scope is approved; the final manual
-Zorin checklist is pending.** Installation, autostart, and single-instance
-behavior are complete and physically verified on X11 and Wayland. This report
-does not declare Version 1.0 complete; the version remains `0.9.0`.
+Status: **NO-GO.** The automated readiness audit completed with **54 passed,
+10 skipped**, but final physical verification of the release candidate is still
+pending on both Wayland and X11. The version remains `0.9.0`.
 
 ## Release finding
 
-The reviewed source is a credible Version 1.0 candidate, but it must not be
-released as 1.0 until the manual checklist below passes on a clean, supported
-Zorin installation and the release-readiness pull request is approved.
+The release decision at the time of this audit is **NO-GO**. Although the
+automated suite reports **54 passed, 10 skipped**, final physical Wayland and
+X11 verification are both pending. Settings also still exposes a misleading
+**Desktop Mode** control. That control is a release blocker because true Desktop
+Mode is now Future Research and normal Version 1.0 users must not be promised
+unsupported background placement. The public product name had not yet been
+finalized at the time of this audit.
+
+This audit makes no runtime, naming, Settings, launcher/autostart, source, or
+test changes. Version `0.9.0` must remain unchanged. A later implementation
+change must resolve the misleading Settings control without rewriting this
+audit record.
 
 ### Version 1.0 status table
 

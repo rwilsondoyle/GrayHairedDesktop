@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-PRODUCT="GrayHaired Desktop"
+PRODUCT="My Desktop"
 OWNER_MARKER="Managed-By=GrayHaired-Desktop-user-installer"
 SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 SOURCE_ROOT=$(CDPATH= cd -- "$SCRIPT_DIR/.." && pwd)
@@ -20,7 +20,7 @@ owned_file() { [ ! -e "$1" ] || grep -Fq "$OWNER_MARKER" "$1" 2>/dev/null; }
   || fail "Python 3.12 or newer is required (set PYTHON to its executable)."
 "$PYTHON" -m venv --help >/dev/null 2>&1 \
   || fail "Python venv support is required."
-[ -f "$SOURCE_ROOT/pyproject.toml" ] || fail "Run this script from a complete GrayHaired Desktop source release."
+[ -f "$SOURCE_ROOT/pyproject.toml" ] || fail "Run this script from a complete My Desktop source release."
 if [ -e "$APP_ROOT" ] && [ ! -f "$APP_ROOT/.grayhaired-desktop-install" ]; then
   fail "$APP_ROOT exists and is not owned by $PRODUCT."
 fi
@@ -40,7 +40,7 @@ restore_previous_install() {
   rm -rf "$APP_ROOT"
   if [ -n "$BACKUP" ] && [ -d "$BACKUP" ]; then
     mv "$BACKUP" "$APP_ROOT"
-    printf 'Previous GrayHaired Desktop runtime restored after install failure.\n' >&2
+    printf 'Previous My Desktop runtime restored after install failure.\n' >&2
   fi
   exit "$status"
 }

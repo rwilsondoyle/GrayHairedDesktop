@@ -1,5 +1,18 @@
 # Development Log
 
+## Final Version 1.0 release-readiness audit — NO-GO
+
+- Version remains `0.9.0` and must not be bumped by this audit.
+- Automated readiness result: **54 passed, 10 skipped**.
+- Final physical verification remains pending on both Wayland and X11.
+- Settings still exposes a misleading **Desktop Mode** control. It is a release
+  blocker because true Desktop Mode is now Future Research and the control
+  promises unsupported background placement.
+- The public product name had not yet been finalized at the time of this audit.
+- Release decision: **NO-GO**.
+- This documentation-only audit makes no runtime, naming, Settings,
+  launcher/autostart, source, or test changes.
+
 This log records project-level development milestones and verification notes. It is intentionally concise so future contributors can quickly understand what changed and what still needs confirmation.
 
 ## GNOME Shell Desktop Integration Feasibility
@@ -365,3 +378,15 @@ These results record manual verification on exactly two physical Zorin systems. 
 - Version remains `0.9.0`.
 - Next task is the final Version 1.0 release-readiness/manual verification pass.
 - Final version bump to `1.0.0` must occur only after that pass succeeds.
+
+## NEXT DEVELOPMENT CHECKPOINT
+
+- Public/display name: **My Desktop**.
+- GrayHairedDesktop internal compatibility identity is preserved.
+- Desktop Mode UI is removed from normal Settings.
+- A legacy `preferences/desktopMode=true` preference cannot activate unsupported mode; it is treated and saved as false.
+- Version remains `0.9.0`.
+- Focused physical Wayland testing is pending.
+- Focused physical X11 testing is pending.
+- The final Version 1.0 release-readiness pass is still pending.
+- A `1.0.0` bump remains prohibited until physical testing passes.

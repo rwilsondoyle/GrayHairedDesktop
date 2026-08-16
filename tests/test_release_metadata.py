@@ -41,8 +41,8 @@ def test_about_is_product_focused_without_prerelease_wording(monkeypatch) -> Non
 
     MainWindow._show_about_dialog(window)
 
-    assert captured["title"] == "About GrayHaired Desktop"
-    assert captured["message"].startswith("GrayHaired Desktop 0.9.0")
+    assert captured["title"] == "About My Desktop"
+    assert captured["message"].startswith("My Desktop 0.9.0")
     assert "Desktop Website" in captured["message"]
     assert "default browser" in captured["message"]
     assert "Alpha" not in captured["message"]

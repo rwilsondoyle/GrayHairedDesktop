@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
-# This setup script prepares GrayHaired Desktop on Zorin OS or Ubuntu.
+# This setup script prepares My Desktop on Zorin OS or Ubuntu.
 # It is safe to run again when you want to repair or refresh the install.
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
@@ -21,9 +21,9 @@ trap on_error ERR
 
 cd "${REPO_ROOT}"
 
-# Make sure this script is running from a GrayHaired Desktop checkout.
-[[ -f "pyproject.toml" ]] || fail "Run this script from the GrayHaired Desktop repository. pyproject.toml was not found."
-[[ -d "src/grayhaired_desktop" ]] || fail "Run this script from the GrayHaired Desktop repository. src/grayhaired_desktop was not found."
+# Make sure this script is running from a My Desktop checkout.
+[[ -f "pyproject.toml" ]] || fail "Run this script from the My Desktop repository. pyproject.toml was not found."
+[[ -d "src/grayhaired_desktop" ]] || fail "Run this script from the My Desktop repository. src/grayhaired_desktop was not found."
 
 # Python 3.12 or newer is required by the application.
 PYTHON_BIN=""
@@ -81,5 +81,5 @@ python -m pip install --upgrade pip
 python -m pip install -e .
 
 echo
-echo "Success: GrayHaired Desktop is set up."
+echo "Success: My Desktop is set up."
 echo "Next, start the app with: ./scripts/run.sh"

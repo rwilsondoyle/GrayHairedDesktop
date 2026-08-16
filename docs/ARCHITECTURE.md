@@ -1,6 +1,6 @@
 # Architecture
 
-GrayHaired Desktop is a small native Linux desktop application. The codebase is intentionally simple: Python starts a Qt application, a main window owns the desktop controls, and an embedded QtWebEngine launch page loads and retains the configured Desktop Website. Clicked destinations are handed to the operating system's default browser.
+My Desktop is a small native Linux desktop application. The codebase is intentionally simple: Python starts a Qt application, a main window owns the desktop controls, and an embedded QtWebEngine launch page loads and retains the configured Desktop Website. Clicked destinations are handed to the operating system's default browser.
 
 ## Supported Version 1.0 architecture
 
@@ -32,7 +32,7 @@ until the final readiness pass and a separate release decision.
 
 ## Naming
 
-GrayHairedDesktop is the repository and package identity. **GrayHaired Desktop** is current working/display wording, not a final public-name decision. The public product name remains undecided before Version 1.0. This review does not rename the repository, Python package, QSettings identity, or application data paths. GrayHaired Tech and Ron Doyle remain appropriate project attribution.
+My Desktop is the public/display product name. GrayHairedDesktop remains the repository, Python package, launcher, QSettings compatibility identity, and application-data identity; no branding-only settings migration is required. GrayHaired Tech and Ron Doyle remain appropriate project attribution.
 
 ## Application flow
 
