@@ -2,6 +2,27 @@
 
 GrayHaired Desktop is a small native Linux desktop application. The codebase is intentionally simple: Python starts a Qt application, a main window owns the desktop controls, and an embedded QtWebEngine launch page loads and retains the configured Desktop Website. Clicked destinations are handed to the operating system's default browser.
 
+## Supported Version 1.0 architecture
+
+The owner-approved Version 1.0 product is the safe, normal windowed launch-page
+application:
+
+```text
+PySide6 / Qt
+↓
+normal application window
+↓
+QtWebEngine Desktop Website
+↓
+native Settings / shortcuts / controls
+```
+
+This supported architecture provides the configured Desktop Website,
+customizable shortcuts, persistent Settings, diagnostics, safe startup, and the
+verified user-local install/update/uninstall lifecycle. It is not called Desktop
+Mode. Version 1.0 has not yet been released, and the version remains `0.9.0`
+until the final readiness pass and a separate release decision.
+
 ## Runtime stack
 
 - **Language:** Python 3.12 or newer.
@@ -82,7 +103,7 @@ and single canonical XDG autostart entry were also physically verified on that
 machine. Login/autostart passed in X11 and Wayland. The installed runtime remains
 independent of its source checkout, and uninstall preserves preferences.
 
-## GNOME desktop-layer boundary
+## Future Desktop Mode research
 
 The confirmed target is Zorin OS 18.1 with GNOME Shell 46.0. Its real desktop-
 icon provider is the active `zorin-desktop-icons@zorinos.com` extension, named
@@ -95,12 +116,16 @@ renders icons in client windows and that Zorin's Shell code manages their
 `Meta.Window` lifecycle, stacking, workspaces, monitor geometry, and Wayland
 desktop-window emulation.
 
-The pure-Qt trials still establish an application boundary: a normal PySide6
-window cannot independently guarantee the required background → application →
-real-icons order on GNOME. Read-only inspection found no supported third-party
-layer-registration point in the installed Zorin provider. A Shell-owned mirror
-would require private placement plus a substantial external frame/input bridge,
-so it is not currently suitable for Version 1.0. The continuing investigation is documented in
+The historical GNOME/Zorin layering investigation is not part of the supported
+Version 1.0 architecture. It remains preserved because true Desktop Mode still
+means wallpaper → interactive GrayHaired Desktop → real Zorin icons → ordinary
+windows → Shell chrome. The pure-Qt trials establish an application boundary: a
+normal PySide6 window cannot independently guarantee the required background →
+application → real-icons order on GNOME. Read-only inspection found no supported
+third-party layer-registration point in the installed Zorin provider. A
+Shell-owned mirror would require private placement plus a substantial external
+frame/input bridge, so it is not suitable for the supported Version 1.0
+architecture. The completed investigation is documented in
 [`GNOME_SHELL_FEASIBILITY.md`](GNOME_SHELL_FEASIBILITY.md).
 
 The required layer is specifically wallpaper → interactive GrayHaired Desktop →
@@ -113,11 +138,9 @@ inspection found no supported Zorin third-party registration/relative-layer API.
 Managed `Meta.WaylandClient` ownership passed, but ownership did not solve this
 relative order.
 
-The Version 1.0 architecture gate is therefore explicit: either retain Desktop
-Mode and investigate a materially different safe integration, or make a later
-owner-approved product decision to scope Version 1.0 to the existing windowed
-launch page and move Desktop Mode forward. No ordinary maximized/borderless
-window is called Desktop Mode, and this documentation makes no scope decision.
+PR #46 selected the existing windowed launch page for Version 1.0 and moved true
+Desktop Mode to future research. No ordinary maximized or borderless window is
+called Desktop Mode.
 
 PR #45 completed the materially different architecture review. A companion
 extension can likely inspect GNOME Shell's private runtime record and Zorin
@@ -128,10 +151,13 @@ adoption nor a Mutter-supported layer-shell equivalent for the required slot.
 Frame mirroring would still require unsupported placement and a custom
 focus/input/accessibility bridge.
 
-The classification is **Result 3 — no practical supported path found**. Path A
-remains blocked at `0.9.0`; PR #46 must ask the owner whether to adopt PR #44
-Path B rather than redefining Desktop Mode. Full evidence and the candidate
-matrix are in [`GNOME_SHELL_FEASIBILITY.md`](GNOME_SHELL_FEASIBILITY.md).
+The current classification is **Result 3 — no practical supported path found**
+for Zorin OS / GNOME Shell 46. Full evidence and the candidate matrix are in
+[`GNOME_SHELL_FEASIBILITY.md`](GNOME_SHELL_FEASIBILITY.md). Research should
+resume only for a supported Zorin provider API, a suitable supported
+GNOME/Mutter layer or upstream protocol, an explicit Zorin third-party
+integration point, or a substantially different architecture that avoids the
+rejected mechanisms—not merely for a routine platform update.
 
 The PR #45 collector subsequently passed read-only physical verification on the
 Dell Inspiron-3147 under Wayland/GNOME Shell 46.0. It confirmed Zorin Desktop

@@ -1,9 +1,9 @@
 # Version 1.0 release-readiness review
 
-Status: **Desktop Mode and the final manual Zorin checklist are pending.**
-Installation, autostart, and single-instance behavior are complete and
-physically verified on X11 and Wayland. This report does not declare Version
-1.0 complete; the version remains `0.9.0`.
+Status: **The safe windowed launch-page scope is approved; the final manual
+Zorin checklist is pending.** Installation, autostart, and single-instance
+behavior are complete and physically verified on X11 and Wayland. This report
+does not declare Version 1.0 complete; the version remains `0.9.0`.
 
 ## Release finding
 
@@ -17,6 +17,13 @@ Completed work is recorded as such and is not an active blocker.
 
 | Item | Current status |
 | --- | --- |
+| Native PySide6/Qt application | **COMPLETE** |
+| Desktop Website display and external browser links | **COMPLETE** |
+| Customizable shortcuts | **COMPLETE** |
+| Settings and persistent preferences | **COMPLETE** |
+| Accessibility and keyboard navigation | **COMPLETE** |
+| Logging and diagnostics | **COMPLETE** |
+| Light/dark appearance compatibility | **COMPLETE** |
 | Stable installed launcher | **COMPLETE** |
 | Application-menu launcher | **COMPLETE** |
 | Update lifecycle | **COMPLETE** |
@@ -28,7 +35,10 @@ Completed work is recorded as such and is not an active blocker.
 | X11 single-instance physical verification | **PASSED** |
 | Wayland single-instance physical verification | **PASSED** |
 | Desktop Website link follow-up | **NO CURRENT PROBLEM OBSERVED** |
-| Desktop Mode on Zorin/GNOME | **UNRESOLVED** |
+| Installed runtime independence from checkout | **COMPLETE** |
+| Designed preference preservation through update/uninstall | **COMPLETE** |
+| Version 1.0 product scope | **APPROVED — SAFE WINDOWED LAUNCH PAGE** |
+| True Desktop Mode | **FUTURE RESEARCH — NOT A VERSION 1.0 BLOCKER** |
 | PR #45 new-architecture investigation | **RESULT 3 — NO PRACTICAL SUPPORTED PATH FOUND** |
 | PR #45 physical read-only collector | **PASSED — WAYLAND / GNOME SHELL 46.0** |
 | Final Version 1.0 manual checklist | **PENDING** |
@@ -36,14 +46,13 @@ Completed work is recorded as such and is not an active blocker.
 
 ### Current blockers
 
-- Decide the Desktop Mode product path below. If Desktop Mode remains mandatory,
-  design and verify a materially new architecture that preserves the user's real
-  Zorin desktop icons and the required layer order.
-- Complete the final Version 1.0 manual checklist after the product-scope decision.
+- Complete the final Version 1.0 manual checklist.
 - Decide the final public product name if that decision is still required before
   release.
 - Only after all applicable checks pass, make an explicit release decision and
   change both version locations together. Version `0.9.0` remains current.
+- Resolve any genuinely incomplete checklist item discovered during final
+  testing; none is invented in advance by this review.
 
 PR #45 found that private access to the running Zorin extension is technically
 plausible but supplies neither a supported cooperation contract nor a shared
@@ -51,8 +60,9 @@ icon/content surface. Icon pixels live in external GTK client windows. GNOME 46
 exposes no supported background/external-surface layer for this use, and a
 PipeWire, DMA-BUF, Wayland-buffer, or shared-memory mirror would require an
 impractical custom frame, input, focus, clipboard, and accessibility bridge.
-Under Path A, Result 3 leaves Version 1.0 blocked. PR #46 should explicitly ask
-the owner whether to choose Path B; this report does not choose it automatically.
+Under the former Path A, Result 3 would have left Version 1.0 blocked. In PR #46,
+the owner selected PR #44 Path B: the safe windowed application is now the
+supported Version 1.0 scope, and true Desktop Mode has moved to future research.
 The physical Inspiron-3147 collector confirmed the Zorin provider active, its
 external `app/ding.js` icon client running, and Zorin source use of live
 extension-manager lookup. It performed no mutation and found no supported
@@ -77,12 +87,16 @@ surface-registration or composition hook, so the classification is unchanged.
 These are distribution improvements rather than blockers for a clearly described
 source-based 1.0 release.
 
-## Desktop Mode decision gate
+## Desktop Mode product decision
 
-The project owner must explicitly choose one of these paths before Version 1.0.
-PR #44 records the choice; it does not make it.
+PR #44 recorded two possible paths. PR #46 is the explicit owner decision:
+**Path B is selected.** GrayHaired Desktop Version 1.0 will use the current safe
+windowed launch-page architecture as its supported product scope. True Desktop
+Mode remains a future research goal and is no longer a Version 1.0 release
+blocker. This is an evidence-based scope decision, not abandonment of the
+original concept and not a Version 1.0 release declaration.
 
-### Path A — Desktop Mode remains mandatory for 1.0
+### Path A — historical alternative, not selected
 
 Version 1.0 remains blocked until a new architecture safely provides the exact
 required Zorin/GNOME layer. The version remains `0.9.0`; the project must not
@@ -90,13 +104,24 @@ weaken the definition of Desktop Mode, call an ordinary maximized or borderless
 window Desktop Mode, hide real desktop icons, or resurrect rejected PR #39
 mechanisms. The next engineering investigation must be materially different.
 
-### Path B — Windowed launch-page application becomes Version 1.0 scope
+### Path B — selected Version 1.0 scope
 
-This path is available only through a later, explicit owner decision. If chosen,
-the existing safe windowed application could proceed toward Version 1.0,
-Desktop Mode would move to a future milestone, and public wording and product
-requirements would need an honest revision. This report does not silently make
-that scope change.
+The existing safe windowed application will proceed toward Version 1.0 after the
+final readiness pass. The supported product is a stable, senior-friendly desktop
+launch-page application for Zorin OS that displays the configured Desktop
+Website and provides customizable shortcuts, Settings, diagnostics, safe startup
+behavior, and reliable local installation. The normal windowed application is
+not described as Desktop Mode. The release and `1.0.0` version bump remain a
+separate later decision.
+
+### Future-research trigger
+
+Resume true Desktop Mode research only if Zorin Desktop Icons introduces a
+supported background/provider API; GNOME/Mutter introduces a supported external
+surface/background layer; Zorin provides an explicit third-party integration
+point; Mutter supports a relevant new upstream protocol; or a substantially
+different architecture avoids the rejected mechanisms. Do not restart the
+experiments merely because GNOME or Zorin receives a routine update.
 
 ## Required Desktop Mode and rejected approaches
 
@@ -151,8 +176,8 @@ exists and the product requirement must change. PR #44 implements none of these.
 Detailed experiment chronology remains in
 [`GNOME_SHELL_FEASIBILITY.md`](GNOME_SHELL_FEASIBILITY.md) and the development
 log. Those records explain why each approach was attempted; they are historical
-evidence, not current proposals. The decision gate and rejection table above are
-the current release finding.
+evidence, not current proposals. The product decision and rejection table above
+are the current release finding.
 
 ## Audit results
 
@@ -446,5 +471,6 @@ single-instance guard also passed both sessions: a second invocation returned
 normally without another window and exactly one real process remained. GNOME's
 attention indication instead of forced focus is acceptable. Desktop Website
 links opened normally during follow-up, with no current performance problem
-observed. Version 1.0 remains blocked by the Desktop Mode decision/architecture
-and applicable final manual checklist, not by these completed items.
+observed. Desktop Mode is now future research rather than a Version 1.0 blocker.
+The applicable final manual checklist, any still-required public-name decision,
+and the explicit release/version bump remain, not these completed items.

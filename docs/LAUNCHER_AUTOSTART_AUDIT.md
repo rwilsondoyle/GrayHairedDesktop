@@ -155,11 +155,13 @@ The installation, application-menu launch, update, uninstall, canonical XDG
 autostart, and single-instance work are complete rather than blockers. Desktop
 Website link follow-up found no current problem. Remaining decisions/work are:
 
-- Resolve the explicit Desktop Mode product gate: retain the exact Zorin/GNOME
-  layer requirement and investigate a materially new architecture, or revise 1.0
-  scope only in a later owner-approved PR.
 - Complete the final physical release-readiness checklist.
 - Decide the final public product name if it is still required before release.
+- Make the explicit final release decision and version bump after applicable
+  checks pass.
+
+PR #46 selected the safe windowed launch-page application for Version 1.0.
+True Desktop Mode is future research and is not a current release blocker.
 
 Version 1.0 is not ready and no Windows, macOS, or other-Linux-distribution
 support is claimed.

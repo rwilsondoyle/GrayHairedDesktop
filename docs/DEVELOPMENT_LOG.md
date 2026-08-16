@@ -286,7 +286,7 @@ These results record manual verification on exactly two physical Zorin systems. 
   owner-approved PR.
 - PR #44 makes no such product-scope decision automatically.
 
-### NEXT DEVELOPMENT CHECKPOINT
+### PR #45 recovery checkpoint (historical)
 
 - PR #45 classification: **Result 3 — NO PRACTICAL SUPPORTED PATH FOUND**.
   Version 1.0 is not ready under the owner-selected PR #44 Path A.
@@ -336,3 +336,32 @@ These results record manual verification on exactly two physical Zorin systems. 
   title impersonation, or system-extension modification. Managed Wayland client
   ownership passed but did not solve relative layering.
 - Version remains `0.9.0`.
+
+## Version 1.0 Product Scope Decision — PR #46
+
+- The owner selected PR #44 **Path B**.
+- The safe, normal windowed launch-page application is the supported Version 1.0
+  scope. It is not described as Desktop Mode.
+- True Desktop Mode moved to **Future Research** and is no longer a Version 1.0
+  blocker. Its exact layering requirement and the PR #39/PR #45 engineering
+  history remain preserved.
+- PR #45 **Result 3 — NO PRACTICAL SUPPORTED PATH FOUND** remains the current
+  conclusion for Zorin OS / GNOME Shell 46.
+- No runtime behavior, installer behavior, dependencies, application defaults,
+  or Desktop Mode code paths changed in this documentation-only decision.
+- Version remains `0.9.0`; Version 1.0 has not been released.
+- The final Version 1.0 release-readiness/manual verification pass is next.
+
+### NEXT DEVELOPMENT CHECKPOINT
+
+- PR #46 owner product decision complete.
+- PR #44 Path B selected.
+- Version 1.0 scope is the safe windowed launch-page application.
+- True Desktop Mode moved to future research.
+- PR #45 Result 3 remains the current GNOME/Zorin feasibility conclusion.
+- Do not repeat PR #39 rejected mechanisms without materially new evidence.
+- Stable install/autostart from PR #42 remains verified.
+- Single-instance behavior from PR #43 remains verified.
+- Version remains `0.9.0`.
+- Next task is the final Version 1.0 release-readiness/manual verification pass.
+- Final version bump to `1.0.0` must occur only after that pass succeeds.
