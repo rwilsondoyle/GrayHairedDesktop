@@ -32,4 +32,4 @@ Documentation-only milestones should not change application source code. Applica
 
 ## 8. Keep branding flexible
 
-GrayHairedDesktop is the repository and package identity; GrayHaired Desktop is current working/display wording. The final public product name remains undecided before Version 1.0. GrayHaired Tech and Ron Doyle are appropriate project attribution. Release-readiness work must not rename the repository, package, QSettings identity, or application data paths.
+My Desktop is the public display name. GrayHairedDesktop remains the repository, package, and internal compatibility identity. GrayHaired Tech and Ron Doyle are appropriate project attribution. Product naming must not rename the repository, package, QSettings identity, application IDs, launcher filenames, or application data paths.

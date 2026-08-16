@@ -90,7 +90,9 @@ def load_preferences(settings: QSettings) -> UserPreferences:
     return UserPreferences(
         home_page_url=home_page_url or DEFAULT_HOME_PAGE_URL,
         shortcut_theme=shortcut_theme,
-        desktop_mode=_setting_bool(settings, DESKTOP_MODE_KEY),
+        # Desktop Mode is not part of the supported product. Ignore the legacy
+        # preference so an older saved opt-in cannot activate its runtime path.
+        desktop_mode=False,
         autostart=_setting_bool(settings, AUTOSTART_KEY),
     )
 
@@ -100,6 +102,7 @@ def save_preferences(settings: QSettings, preferences: UserPreferences) -> None:
 
     settings.setValue(HOME_PAGE_URL_KEY, preferences.home_page_url)
     settings.setValue(SHORTCUT_THEME_KEY, preferences.shortcut_theme)
-    settings.setValue(DESKTOP_MODE_KEY, preferences.desktop_mode)
+    # Keep the compatibility key, but force it off for older installations.
+    settings.setValue(DESKTOP_MODE_KEY, False)
     settings.setValue(AUTOSTART_KEY, preferences.autostart)
     settings.sync()

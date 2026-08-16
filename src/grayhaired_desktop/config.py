@@ -8,6 +8,8 @@ from PySide6.QtCore import QSettings
 
 from grayhaired_desktop import __app_name__, __domain__, __organization__, __version__
 
+SETTINGS_APPLICATION_NAME = "GrayHaired Desktop"
+
 
 @dataclass(frozen=True, slots=True)
 class AppMetadata:
@@ -22,7 +24,7 @@ class AppMetadata:
 
 
 def create_settings(metadata: AppMetadata) -> QSettings:
-    """Create a QSettings instance scoped to the application."""
+    """Create settings with the established pre-rename compatibility identity."""
 
     QSettings.setDefaultFormat(QSettings.Format.IniFormat)
-    return QSettings(metadata.organization, metadata.name)
+    return QSettings(metadata.organization, SETTINGS_APPLICATION_NAME)
