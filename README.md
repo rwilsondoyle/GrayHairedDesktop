@@ -1,23 +1,24 @@
 # GrayHaired Desktop
 
-GrayHaired Desktop is a native desktop application for Zorin OS. It displays a
-saved **Desktop Website** in its main window, provides native controls and
-configurable shortcut buttons, and hands ordinary website links and shortcuts to
-the operating system's default browser or web application. It is not itself a
-general-purpose browser.
+GrayHaired Desktop is a native desktop launch-page application for Zorin OS that
+displays a selected **Desktop Website** and provides easy access to favorite
+shortcuts. It hands ordinary website links and shortcuts to the operating
+system's default browser or web application; it is not itself a general-purpose
+browser.
 
 GrayHairedDesktop is the repository and package identity. "GrayHaired Desktop"
 is the current working display wording; the final public product name has not
 been selected. This release-readiness review does not make that branding decision.
 
-The current implementation-review build is **0.9.0**. Stable user-local
-installation, canonical autostart, and single-instance behavior are complete and
-physically verified on both X11 and Wayland. Version 1.0 has not been declared:
-the required Zorin/GNOME Desktop Mode remains unresolved, an explicit product
-scope decision is required, and the final manual Zorin checklist in
-[`docs/RELEASE_READINESS.md`](docs/RELEASE_READINESS.md) remains pending. The
-safe windowed application is not silently redefined as Desktop Mode. Windows and
-macOS are not supported.
+The current implementation-review build is **0.9.0**. The owner has approved the
+safe, normal windowed launch-page application as the supported Version 1.0
+product scope. Stable user-local installation, canonical autostart, and
+single-instance behavior are complete and physically verified on both X11 and
+Wayland. Version 1.0 has not been released: the final manual Zorin checklist in
+[`docs/RELEASE_READINESS.md`](docs/RELEASE_READINESS.md), any still-required
+public-name decision, and a separate final version-bump/release decision remain.
+True Desktop Mode is future research, not the name of the supported windowed
+experience. Windows and macOS are not supported.
 
 ## Supported environment
 

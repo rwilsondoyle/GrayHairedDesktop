@@ -2,6 +2,23 @@
 
 ## Current status
 
+PR #45 completed the current architecture investigation with **Result 3 — NO
+PRACTICAL SUPPORTED PATH FOUND** for Zorin OS / GNOME Shell 46. PR #46 then
+selected the safe windowed launch-page product as the supported Version 1.0
+scope. True Desktop Mode is now **Future Research**, not a Version 1.0 blocker;
+the version remains `0.9.0` until the separate readiness and release work is
+complete. Rejected mechanisms in this report and PR #39 must not be retried
+without materially new evidence.
+
+Research should resume only if Zorin Desktop Icons supplies a supported
+background/provider API, GNOME/Mutter supplies a suitable supported external
+surface/background layer or newly supported upstream protocol, Zorin supplies
+an explicit third-party integration point, or a substantially different
+architecture avoids the rejected mechanisms. A routine GNOME/Zorin update is
+not, by itself, materially new evidence.
+
+## Historical investigation status
+
 The focused GNOME Shell 46/Mutter 46 source investigation is documented in
 [`GNOME_BACKGROUND_LAYER_RESEARCH.md`](GNOME_BACKGROUND_LAYER_RESEARCH.md).
 It found internal wallpaper groups, background managers, and per-monitor actors,
@@ -10,9 +27,10 @@ supported bridge for the external interactive QtWebEngine surface. No new actor
 experiment or physical run is justified; the historical findings below remain
 unchanged.
 
-This investigation remains open. Real testing has proved that pure Qt window
-hints do not provide the required GNOME desktop layer, but it has **not** proved
-that cooperation with the installed Zorin desktop-icon extension is impossible.
+At this historical checkpoint, the investigation remained open. Real testing
+had proved that pure Qt window hints do not provide the required GNOME desktop
+layer, but it had **not** proved that cooperation with the installed Zorin
+desktop-icon extension was impossible.
 A GNOME Shell prototype is included as manually installed development source.
 The lower-only Phase 2 experiment and the subsequent direct actor sibling-order
 experiment both failed safely on the physical Wayland target. The prototype is
@@ -25,8 +43,9 @@ remaining Shell-owned visual-layer direction currently depends on private layer
 placement and an unproven external frame/input bridge, so it is not suitable for
 Version 1.0 at present.
 Normal application startup still installs or enables nothing. The
-project remains version `0.9.0`, and a safe Zorin/Wayland Desktop Mode remains a
-pre-Version 1.0 investigation requirement.
+project remained version `0.9.0`, and a safe Zorin/Wayland Desktop Mode remained
+a pre-Version 1.0 investigation requirement. PR #46 supersedes that release
+requirement while preserving the technical definition and evidence.
 
 The required order is:
 
