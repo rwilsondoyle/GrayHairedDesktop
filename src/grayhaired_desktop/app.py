@@ -1,4 +1,4 @@
-"""Application entry point for GrayHaired Desktop."""
+"""Application entry point for My Desktop."""
 
 from __future__ import annotations
 
@@ -51,7 +51,7 @@ def build_application(argv: list[str] | None = None) -> QApplication:
 
 
 def run(argv: list[str] | None = None) -> int:
-    """Run the GrayHaired Desktop application."""
+    """Run the My Desktop application."""
 
     started_at = time.perf_counter()
     logger = configure_logging(logging.INFO)

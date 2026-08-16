@@ -64,6 +64,7 @@ def test_install_update_and_uninstall_in_xdg_sandbox(tmp_path):
     )
     assert subprocess.check_output([launcher], text=True) == "installed package launched\n"
     assert f"Exec={launcher}" in menu_entry.read_text(encoding="utf-8")
+    assert "Name=My Desktop" in menu_entry.read_text(encoding="utf-8")
 
     # A refresh is idempotent and leaves unrelated preferences untouched.
     preference = config / "GrayHaired Tech" / "GrayHaired Desktop.ini"

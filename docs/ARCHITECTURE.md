@@ -1,6 +1,6 @@
 # Architecture
 
-GrayHaired Desktop is a small native Linux desktop application. The codebase is intentionally simple: Python starts a Qt application, a main window owns the desktop controls, and an embedded QtWebEngine launch page loads and retains the configured Desktop Website. Clicked destinations are handed to the operating system's default browser.
+My Desktop is a small native Linux desktop application. The codebase is intentionally simple: Python starts a Qt application, a main window owns the desktop controls, and an embedded QtWebEngine launch page loads and retains the configured Desktop Website. Clicked destinations are handed to the operating system's default browser.
 
 ## Supported Version 1.0 architecture
 
@@ -32,7 +32,12 @@ until the final readiness pass and a separate release decision.
 
 ## Naming
 
-GrayHairedDesktop is the repository and package identity. **GrayHaired Desktop** is current working/display wording, not a final public-name decision. The public product name remains undecided before Version 1.0. This review does not rename the repository, Python package, QSettings identity, or application data paths. GrayHaired Tech and Ron Doyle remain appropriate project attribution.
+**My Desktop** is the public/display name. **GrayHairedDesktop** remains the
+technical/internal compatibility identity. The repository, Python package,
+launcher and desktop filenames, application IDs, old `GrayHaired Desktop`
+QSettings scope, application-data and log paths, and single-instance server are
+unchanged. No settings migration is needed. GrayHaired Tech and Ron Doyle remain
+appropriate project attribution.
 
 ## Application flow
 
@@ -40,7 +45,7 @@ GrayHairedDesktop is the repository and package identity. **GrayHaired Desktop**
 2. `grayhaired_desktop.ui.mainwindow.MainWindow` coordinates the launch page, external-link status, Settings workflow, and persistent window geometry. Focused UI modules create its shared actions, menu bar, and toolbar.
 3. `grayhaired_desktop.browser.BrowserView` wraps `QWebEngineView`, stores the configured home URL, and uses a `QWebEnginePage` navigation policy plus `QDesktopServices` to open clicked links externally. Same-page fragment navigation remains embedded.
 4. `grayhaired_desktop.settings` defines the immutable, alphabetically ordered built-in website configuration, matches saved addresses to built-in choices, loads and saves settings through `QSettings`, and provides reusable HTTP/HTTPS address validation.
-5. `grayhaired_desktop.ui.preferences.PreferencesDialog` presents the **Settings** screen. It places **Another Website...** first, builds the remaining radio buttons from the reusable built-in configuration, and enables **Website Address** only for a custom selection. Preview does not save; Save applies the selection; Cancel changes nothing.
+5. `grayhaired_desktop.ui.preferences.PreferencesDialog` presents the **Settings** screen. It places **Another Website...** first, builds the remaining radio buttons from the reusable built-in configuration, and enables **Website Address** only for a custom selection. Preview does not save; Save applies the selection; Cancel changes nothing. Unsupported Desktop Mode is not exposed.
 
 ## Module responsibilities
 

@@ -1,4 +1,4 @@
-"""Logging setup for GrayHaired Desktop."""
+"""Logging setup for My Desktop."""
 
 from __future__ import annotations
 

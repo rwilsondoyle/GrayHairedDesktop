@@ -83,3 +83,18 @@ The **NO-GO** decision remains in force until later work, outside this audit:
 
 This audit is a chronological checkpoint, not permission to implement My
 Desktop, rename the application, change Settings, or release Version 1.0.
+
+## Later implementation milestone
+
+The later **Rename Public Product to My Desktop and Remove Desktop Mode UI**
+implementation resolves the first two presentation blockers recorded above:
+the public/display name is now **My Desktop**, with the GrayHairedDesktop
+technical/internal compatibility identity preserved, and normal Settings no
+longer exposes the unsupported Desktop Mode control. Legacy
+`preferences/desktopMode=true` is ignored and persisted as false, so startup is
+always the supported normal windowed path.
+
+This later milestone does not alter the audit's historical NO-GO result. The
+version remains `0.9.0`; focused Wayland and X11 physical verification and the
+final release-readiness physical pass remain pending. A `1.0.0` bump remains
+prohibited until those checks pass and a new release decision authorizes it.

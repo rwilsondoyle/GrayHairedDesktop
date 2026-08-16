@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+- Selected **My Desktop** as the public/display name while preserving the
+  GrayHairedDesktop compatibility identity.
+- Removed the unsupported Desktop Mode control from normal Settings and forced
+  the retained legacy preference false so startup remains safely windowed.
+- Kept the version at `0.9.0`; final Wayland, X11, and release-readiness physical
+  verification remains pending.
+
 All notable project changes should be summarized here. Historical entries retain their milestone names; release packaging begins only after its own review and verification.
 
 ## Alpha 0.8 — Stability, Performance and Diagnostics

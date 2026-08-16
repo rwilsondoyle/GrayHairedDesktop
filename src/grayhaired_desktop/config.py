@@ -8,6 +8,8 @@ from PySide6.QtCore import QSettings
 
 from grayhaired_desktop import __app_name__, __domain__, __organization__, __version__
 
+QSETTINGS_APPLICATION_NAME = "GrayHaired Desktop"
+
 
 @dataclass(frozen=True, slots=True)
 class AppMetadata:
@@ -25,4 +27,6 @@ def create_settings(metadata: AppMetadata) -> QSettings:
     """Create a QSettings instance scoped to the application."""
 
     QSettings.setDefaultFormat(QSettings.Format.IniFormat)
-    return QSettings(metadata.organization, metadata.name)
+    # The public name is deliberately not used here. Existing installations are
+    # scoped under this application name and must continue to see their settings.
+    return QSettings(metadata.organization, QSETTINGS_APPLICATION_NAME)

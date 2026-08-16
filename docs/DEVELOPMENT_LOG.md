@@ -389,3 +389,34 @@ implementation. It is an audit only and contains no runtime implementation.
 The NO-GO decision remains in force pending resolution of the misleading
 control, the public-name decision, both final physical verification passes, and
 a later explicit release decision.
+
+## My Desktop public-name and Settings implementation
+
+- The public/display product name is now **My Desktop**.
+- The GrayHairedDesktop technical/internal compatibility identity is preserved,
+  including package and launcher names, application IDs, QSettings scope, data
+  and log paths, and the single-instance endpoint.
+- The unsupported Desktop Mode checkbox and its behavior promise were removed
+  from normal Settings without disturbing Desktop Website, shortcut appearance,
+  autostart, Preview, Save, or Cancel controls.
+- A legacy `preferences/desktopMode=true` value is ignored and saved as false.
+  Normal startup always requests the supported safe windowed path.
+- Version remains `0.9.0`.
+- The automated suite result for this implementation is **55 passed, 10
+  skipped** in the available container; the skips are display-library-dependent
+  GUI collections.
+
+### NEXT DEVELOPMENT CHECKPOINT
+
+- Public/display name = **My Desktop**.
+- GrayHairedDesktop internal compatibility identity preserved.
+- Unsupported Desktop Mode control removed from normal Settings.
+- Legacy `desktopMode=true` cannot activate unsupported behavior.
+- Normal startup always uses safe windowed mode.
+- Version remains `0.9.0`.
+- Automated result: **55 passed, 10 skipped**.
+- Focused Wayland physical verification pending.
+- Focused X11 physical verification pending.
+- Final release-readiness physical pass remains pending.
+- A `1.0.0` bump remains prohibited until those checks pass and a later release
+  decision authorizes it.
