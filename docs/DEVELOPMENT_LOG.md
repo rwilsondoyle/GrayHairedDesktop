@@ -264,7 +264,7 @@ These results record manual verification on exactly two physical Zorin systems. 
 - Prefer small milestones with clear manual verification steps.
 - Record Zorin-specific findings in this log so future setup scripts and docs can improve from real installation feedback.
 
-### NEXT DEVELOPMENT CHECKPOINT
+### PR #44 recovery checkpoint (historical)
 
 - PR #44 release-readiness reconciliation is complete.
 - PR #42 stable installation and canonical autostart remain physically verified
@@ -285,3 +285,46 @@ These results record manual verification on exactly two physical Zorin systems. 
   new architecture, or explicitly revise Version 1.0 scope in a future
   owner-approved PR.
 - PR #44 makes no such product-scope decision automatically.
+
+### NEXT DEVELOPMENT CHECKPOINT
+
+- PR #45 classification: **Result 3 — NO PRACTICAL SUPPORTED PATH FOUND**.
+  Version 1.0 is not ready under the owner-selected PR #44 Path A.
+- New architectures examined: live runtime cooperation with the Zorin extension;
+  a shared Zorin icon-client GTK surface; a Shell shared container; Shell visual
+  mirroring; PipeWire/GStreamer, DMA-BUF, Wayland-buffer, and shared-memory frame
+  transport; a complete external input bridge; `wlr-layer-shell`; and supported
+  GNOME/Mutter background or external-surface APIs.
+- Runtime cooperation is technically reachable only through private Shell/Zorin
+  implementation objects. The installed provider exposes no supported
+  extension-to-extension contract, surface registry, or relative-layer callback,
+  so this is not safe enough to ship.
+- A shared visual surface is not available. Real icon pixels live in external
+  per-monitor GTK client windows. Their transparency is alpha in the icon
+  client's own buffer, not a foreign-content insertion facility. Sharing would
+  require a new Zorin-supported provider API, modifying/replacing the icon
+  client, or unsafe injection.
+- An external QtWebEngine frame/input bridge is theoretically buildable as a
+  remote-display subsystem, but is not practical for Version 1.0. No supported
+  end-to-end zero-copy QtWebEngine-to-GJS/Clutter path was found, and pointer,
+  keyboard/IME, focus, scrolling/hover, clipboard, external launch, accessibility,
+  scaling, lifecycle, and authentication remain a large custom subsystem. The
+  copy/readback risk is especially poor for the Dell Inspiron-3147.
+- No upstream-supported GNOME Shell 46/Mutter mechanism supplies the required
+  external-client/background layer. `wlr-layer-shell` is not supported by Mutter
+  on the target; portal capture/control does not provide embedding.
+- PR #45 performed no new physical testing and added no mutation prototype. The
+  installed Zorin extension was not present in the development container. The
+  report relies on PR #39/40 physical and read-only evidence plus pinned primary
+  API/source research. A new read-only collector is provided for the Inspiron.
+- Exact PR #46 next step: open an explicit owner product-decision PR to revisit
+  PR #44 Path B—ship the safe windowed launch-page application as Version 1.0 and
+  move true Desktop Mode to future provider/upstream research. PR #45 does not
+  silently make that decision. Do not start another physical architecture test
+  unless GNOME or Zorin first supplies a genuinely new supported hook.
+- Do not repeat PR #39's rejected Qt desktop-type/stays-below windows,
+  `Meta.Window.lower()`, direct actor sibling ordering, managed window-list
+  hiding, the tested Shell actor above `backgroundGroup`, polling/restacking,
+  title impersonation, or system-extension modification. Managed Wayland client
+  ownership passed but did not solve relative layering.
+- Version remains `0.9.0`.
