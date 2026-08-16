@@ -1,14 +1,15 @@
-# GrayHaired Desktop
+# My Desktop
 
-GrayHaired Desktop is a native desktop launch-page application for Zorin OS that
+My Desktop is a native desktop launch-page application for Zorin OS that
 displays a selected **Desktop Website** and provides easy access to favorite
 shortcuts. It hands ordinary website links and shortcuts to the operating
 system's default browser or web application; it is not itself a general-purpose
 browser.
 
-GrayHairedDesktop is the repository and package identity. "GrayHaired Desktop"
-is the current working display wording; the final public product name has not
-been selected. This release-readiness review does not make that branding decision.
+My Desktop is the public display name. GrayHairedDesktop remains the repository,
+Python package, launcher filename, and internal compatibility identity. Existing
+application IDs, QSettings data, autostart paths, and the
+`~/.local/bin/grayhaired-desktop` command remain unchanged.
 
 The current implementation-review build is **0.9.0**. The owner has approved the
 safe, normal windowed launch-page application as the supported Version 1.0

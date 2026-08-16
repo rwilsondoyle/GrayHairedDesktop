@@ -55,8 +55,8 @@ def test_key_actions_expose_plain_english_help() -> None:
     assert actions.desktop_website.whatsThis() == (
         "Choose the Desktop Website and shortcut appearance"
     )
-    assert actions.about.whatsThis() == "View information about GrayHaired Desktop"
-    assert actions.exit.whatsThis() == "Close GrayHaired Desktop"
+    assert actions.about.whatsThis() == "View information about My Desktop"
+    assert actions.exit.whatsThis() == "Close My Desktop"
 
 
 def test_menu_actions_expose_expected_tooltips() -> None:
@@ -75,7 +75,7 @@ def test_menu_actions_expose_expected_tooltips() -> None:
         open_log_folder=callback,
     )
 
-    assert actions.exit.toolTip() == "Close GrayHaired Desktop"
+    assert actions.exit.toolTip() == "Close My Desktop"
     assert actions.home.toolTip() == "Return to your saved Desktop Website"
     assert actions.reload.toolTip() == "Refresh the current Desktop Website"
     assert actions.desktop_website.toolTip() == (
@@ -84,7 +84,7 @@ def test_menu_actions_expose_expected_tooltips() -> None:
     assert actions.open_log_folder.toolTip() == (
         "Open the folder containing diagnostic logs"
     )
-    assert actions.about.toolTip() == "View information about GrayHaired Desktop"
+    assert actions.about.toolTip() == "View information about My Desktop"
 
 
 def test_desktop_website_action_uses_settings_callback() -> None:
