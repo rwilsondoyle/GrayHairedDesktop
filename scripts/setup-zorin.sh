@@ -81,5 +81,5 @@ python -m pip install --upgrade pip
 python -m pip install -e .
 
 echo
-echo "Success: GrayHaired Desktop is set up."
+echo "Success: My Desktop is set up."
 echo "Next, start the app with: ./scripts/run.sh"

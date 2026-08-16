@@ -357,7 +357,7 @@ class MainWindow(QMainWindow):
                 QMessageBox.warning(
                     self,
                     "Could Not Start Automatically",
-                    "Automatic start needs the installed GrayHaired Desktop launcher.",
+                    "Automatic start needs the installed My Desktop launcher.",
                 )
                 updated_preferences = type(updated_preferences)(
                     home_page_url=updated_preferences.home_page_url,
@@ -376,7 +376,7 @@ class MainWindow(QMainWindow):
                     QMessageBox.warning(
                         self,
                         "Could Not Change Automatic Start",
-                        "GrayHaired Desktop could not change the sign-in setting.",
+                        "My Desktop could not change the sign-in setting.",
                     )
                     return
         self._preferences = updated_preferences
@@ -400,7 +400,7 @@ class MainWindow(QMainWindow):
     def _show_about_dialog(self) -> None:
         QMessageBox.about(
             self,
-            "About GrayHaired Desktop",
+            "About My Desktop",
             (
                 f"{self._metadata.name} {self._metadata.version}\n\n"
                 "Displays your saved Desktop Website and opens its links and your "

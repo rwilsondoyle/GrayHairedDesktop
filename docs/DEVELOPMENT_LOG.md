@@ -365,3 +365,35 @@ These results record manual verification on exactly two physical Zorin systems. 
 - Version remains `0.9.0`.
 - Next task is the final Version 1.0 release-readiness/manual verification pass.
 - Final version bump to `1.0.0` must occur only after that pass succeeds.
+
+## Version 1.0 release-readiness audit — PR #47
+
+- Release decision: **NO-GO**.
+- Automated result: **54 passed, 10 skipped**.
+- Final physical Wayland verification remains pending.
+- Final physical X11 verification remains pending.
+- The Desktop Mode control shown in normal Settings is misleading and is a
+  release blocker for the approved windowed product.
+- The final public product name was still pending at the time of this audit.
+  This audit does not select or anticipate a name.
+- Version remains `0.9.0`.
+- This audit is documentation-only: it makes no runtime, launcher, autostart,
+  application-source, Settings, or test changes. It does not implement **My
+  Desktop** and does not remove the Desktop Mode interface.
+- Blocker fixes must be made in a separate implementation pull request based on
+  this audit, preserving this chronological release-readiness finding.
+
+## My Desktop release-blocker implementation — PR #48
+
+- Selected **My Desktop** as the public/display name while preserving the
+  `GrayHairedDesktop` internal compatibility identity.
+- Removed the Desktop Mode control and explanation from normal Settings.
+- Legacy `preferences/desktopMode` values are ignored and saved as disabled;
+  normal startup is therefore always windowed.
+- Updated application-window, About, action, application-menu, autostart, and
+  installer-facing display wording to **My Desktop**.
+- Preserved the stable `grayhaired-desktop` launcher command, QSettings
+  organization/application identity, reverse-DNS application ID, Python package,
+  data paths, and single-instance server identity.
+- Version remains `0.9.0`.
+- Automated result: **56 passed, 10 skipped**.

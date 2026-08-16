@@ -26,7 +26,7 @@ def autostart_entry(executable: Path) -> str:
     return (
         "[Desktop Entry]\n"
         "Type=Application\n"
-        "Name=GrayHaired Desktop\n"
+        "Name=My Desktop\n"
         f"Exec={shlex.quote(str(executable))}\n"
         "Terminal=false\n"
         "X-GNOME-Autostart-enabled=true\n"

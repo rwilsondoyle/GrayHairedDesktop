@@ -14,7 +14,7 @@ def test_desktop_options_default_off(tmp_path):
     assert preferences.autostart is False
 
 
-def test_desktop_options_round_trip_without_changing_other_preferences(tmp_path):
+def test_legacy_desktop_mode_is_forced_off_without_changing_other_preferences(tmp_path):
     settings = QSettings(str(tmp_path / "settings.ini"), QSettings.Format.IniFormat)
     expected = UserPreferences(
         home_page_url="https://example.com",
@@ -25,4 +25,10 @@ def test_desktop_options_round_trip_without_changing_other_preferences(tmp_path)
 
     save_preferences(settings, expected)
 
-    assert load_preferences(settings) == expected
+    assert load_preferences(settings) == UserPreferences(
+        home_page_url=expected.home_page_url,
+        shortcut_theme=expected.shortcut_theme,
+        desktop_mode=False,
+        autostart=True,
+    )
+    assert settings.value("preferences/desktopMode", type=bool) is False

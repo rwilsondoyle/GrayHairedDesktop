@@ -20,7 +20,7 @@ remove_owned_file() {
 remove_owned_file "$LAUNCHER"
 remove_owned_file "$DESKTOP_FILE"
 if [ -f "$AUTOSTART_FILE" ] && \
-   grep -Fxq 'Name=GrayHaired Desktop' "$AUTOSTART_FILE" && \
+   grep -Fxq 'Name=My Desktop' "$AUTOSTART_FILE" && \
    grep -Fxq "Exec=$LAUNCHER" "$AUTOSTART_FILE"; then
   rm -f "$AUTOSTART_FILE"
 elif [ -e "$AUTOSTART_FILE" ]; then
@@ -33,4 +33,4 @@ if [ -d "$APP_ROOT" ]; then
     printf 'Not removing unowned directory: %s\n' "$APP_ROOT" >&2
   fi
 fi
-printf 'GrayHaired Desktop user-local installation removed; user preferences were preserved.\n'
+printf 'My Desktop user-local installation removed; user preferences were preserved.\n'

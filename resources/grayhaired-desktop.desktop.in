@@ -1,6 +1,6 @@
 [Desktop Entry]
 Type=Application
-Name=GrayHaired Desktop
+Name=My Desktop
 Comment=Open the Desktop Launch Page
 Exec=@EXEC@
 Terminal=false

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-__app_name__ = "GrayHaired Desktop"
+__app_name__ = "My Desktop"
 __version__ = "0.9.0"
 __organization__ = "GrayHaired Tech"
 __domain__ = "grayhaired.tech"
