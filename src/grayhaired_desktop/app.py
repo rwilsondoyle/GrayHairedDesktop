@@ -24,7 +24,11 @@ from grayhaired_desktop.desktop_mode import (
     select_desktop_mode,
 )
 from grayhaired_desktop.logger import configure_logging, log_file_path
-from grayhaired_desktop.ui.mainwindow import MainWindow
+from grayhaired_desktop.single_instance import (
+    InstanceRole,
+    SingleInstanceGuard,
+    server_name,
+)
 
 
 def build_application(argv: list[str] | None = None) -> QApplication:
@@ -55,6 +59,14 @@ def run(argv: list[str] | None = None) -> int:
     logger.info("Application startup began")
     metadata = AppMetadata()
     app = build_application(argv)
+    instance_guard = SingleInstanceGuard(server_name(metadata.application_id), app)
+    if instance_guard.acquire() is InstanceRole.SECONDARY:
+        logger.info("Existing application instance notified; exiting")
+        return 0
+
+    # Keep WebEngine/UI imports out of the secondary-launch path.
+    from grayhaired_desktop.ui.mainwindow import MainWindow
+
     system_appearance = detect_system_appearance()
     fallback_applied = apply_system_appearance(app, system_appearance)
     logger.info("System appearance detected: %s", system_appearance.value)
@@ -77,6 +89,17 @@ def run(argv: list[str] | None = None) -> int:
     window = MainWindow(
         metadata, settings, logger, session_info, launch_executable
     )
+
+    def activate_window() -> None:
+        if window.isMinimized():
+            window.showNormal()
+        if not window.isVisible():
+            window.show()
+        window.raise_()
+        window.activateWindow()
+
+    instance_guard.activation_requested.connect(activate_window)
+    app.aboutToQuit.connect(instance_guard.close)
     mode_path = window.apply_startup_mode()
     desktop_available = (
         select_desktop_mode(session_info, True) is DesktopModePath.X11_DESKTOP

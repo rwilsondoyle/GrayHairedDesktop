@@ -189,6 +189,22 @@ Status: Implementation complete; manual Zorin verification pending.
 
 ## Zorin verification notes
 
+### Version 0.9.0 single-instance guard (PR #43)
+
+Status: Implementation and automated verification complete; physical verification pending.
+
+- Added a focused Qt local-IPC guard using `QLocalServer` and `QLocalSocket`, so
+  no new dependency, launcher, service, or process-discovery mechanism is needed.
+- A secondary launch sends one activation message and exits successfully before
+  the WebEngine UI is imported. The primary restores a minimized window, shows a
+  hidden window, and requests normal Qt raise/activation behavior.
+- Stale endpoints are removed only after an initial connection failure, a failed
+  listen, and a second connection failure consistent with refusal/not-found.
+  Cleanup is restricted to the guard that successfully owns the endpoint.
+- X11 and Wayland physical results on the Dell Inspiron-3147 are not yet tested.
+  Wayland focus-stealing policy may reject foreground activation without
+  compromising the one-instance guarantee.
+
 ### GNOME Shell 46 desktop-layer feasibility
 
 - Native-Wayland testing confirmed that `Meta.Window.lower()` did not change the
