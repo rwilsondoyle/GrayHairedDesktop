@@ -1,22 +1,22 @@
-# GrayHaired Desktop
+# My Desktop
 
-GrayHaired Desktop is a native desktop launch-page application for Zorin OS that
+**My Desktop** is a native desktop launch-page application for Zorin OS. It
 displays a selected **Desktop Website** and provides easy access to favorite
-shortcuts. It hands ordinary website links and shortcuts to the operating
-system's default browser or web application; it is not itself a general-purpose
-browser.
+shortcuts while ordinary links open in the system's default browser.
 
-GrayHairedDesktop is the repository and package identity. "GrayHaired Desktop"
-is the current working display wording; the final public product name has not
-been selected. This release-readiness review does not make that branding decision.
+**My Desktop** is the owner-approved public/display product name.
+GrayHairedDesktop remains the GitHub repository, Python package, and internal
+compatibility identity; existing settings, paths, application IDs, and the
+`grayhaired-desktop` command remain stable.
 
 The current implementation-review build is **0.9.0**. The owner has approved the
 safe, normal windowed launch-page application as the supported Version 1.0
 product scope. Stable user-local installation, canonical autostart, and
 single-instance behavior are complete and physically verified on both X11 and
 Wayland. Version 1.0 has not been released: the final manual Zorin checklist in
-[`docs/RELEASE_READINESS.md`](docs/RELEASE_READINESS.md), any still-required
-public-name decision, and a separate final version-bump/release decision remain.
+[`docs/RELEASE_READINESS.md`](docs/RELEASE_READINESS.md), the required physical
+regression checks, and a separate final version-bump/release decision
+remain. The public-name decision is complete.
 True Desktop Mode is future research, not the name of the supported windowed
 experience. Windows and macOS are not supported.
 

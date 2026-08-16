@@ -156,7 +156,7 @@ Status: Implementation complete; manual verification pending.
 - Covered ordinary clicks, `target="_blank"`, `window.open()`, and new-tab/new-window requests while preserving same-page fragment links.
 - Removed Back and Forward actions, shortcuts, toolbar/menu entries, and browser-history coordination.
 - Preserved Home, Reload, Preferences, About, Exit, window persistence, logging, and status-message behavior.
-- The public product name is still undecided.
+- At this milestone, the public product name was still undecided.
 - Completed manual verification on both supported physical Zorin systems: Primary Development System and Secondary Test System.
 - On both systems, successfully verified Application startup, Home page, Home, Reload, Preferences, About, Exit, external link launching, and that the Home page remains displayed after launching links.
 - Alpha 0.4 is complete.
@@ -413,3 +413,41 @@ These results record manual verification on exactly two physical Zorin systems. 
   and record the required physical Wayland/X11/lifecycle regression stages.
 - **Next PR: fix the specifically documented release blocker(s), then rerun the
   affected PR #47 checks.**
+
+## Version 1.0 Branding and Desktop Mode UI Cleanup — PR #48
+
+- The owner selected **My Desktop** as the public/display product name.
+- GrayHairedDesktop remains the repository, Python package, QSettings scope, and
+  internal compatibility identity. Existing application IDs, paths, launcher
+  filenames, command, and single-instance endpoint remain unchanged.
+- Normal Settings no longer exposes unsupported Desktop Mode or related help.
+  Layout and keyboard order now flow directly from Shortcut Appearance to the
+  unchanged autostart control.
+- A saved legacy Desktop Mode value is ignored and forced off, and startup always
+  selects the supported normal windowed path.
+- No Desktop Mode architecture work was resumed. Research helpers and historical
+  evidence remain dormant for Future Research.
+- Application-menu and canonical autostart visible names are now **My Desktop**;
+  canonical filenames, ownership markers, and `Exec=` remain unchanged.
+- Version remains `0.9.0`. The next step is focused PR #48 physical testing,
+  followed by resumption of the PR #47 physical release-readiness stages.
+
+### NEXT DEVELOPMENT CHECKPOINT
+
+- PR #48 public-name decision implemented: public/display name = **My Desktop**.
+- Repository/package/internal compatibility identity remains GrayHairedDesktop.
+- Unsupported Desktop Mode UI is removed from normal Settings.
+- A legacy Desktop Mode preference cannot activate unsupported behavior; normal
+  startup is always windowed.
+- Automated result: **56 passed, 10 skipped**; compileall, both Ruff checks,
+  shell syntax, and whitespace checks passed. The skips reflect unavailable
+  graphical Qt libraries in the Codex environment, not physical results.
+- Focused Wayland physical result: **PENDING PHYSICAL VERIFICATION**.
+- Focused X11 physical result: **PENDING PHYSICAL VERIFICATION**.
+- Single-instance regression result: automated tests **PASSED**; focused physical
+  verification remains pending. Mechanism and identifiers are unchanged.
+- Application-menu visible-name result: **PENDING PHYSICAL VERIFICATION**;
+  generated entry is expected to display My Desktop.
+- Next step: resume and complete PR #47 final physical release-readiness
+  verification after focused PR #48 testing passes.
+- Final `1.0.0` bump remains prohibited until PR #47 becomes GO.

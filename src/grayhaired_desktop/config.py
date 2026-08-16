@@ -18,6 +18,7 @@ class AppMetadata:
     organization: str = __organization__
     domain: str = __domain__
     application_id: str = "tech.grayhaired.GrayHairedDesktop"
+    settings_application: str = "GrayHaired Desktop"
     desktop_url: str = "https://grayhaired.tech/desktop-c/"
 
 
@@ -25,4 +26,5 @@ def create_settings(metadata: AppMetadata) -> QSettings:
     """Create a QSettings instance scoped to the application."""
 
     QSettings.setDefaultFormat(QSettings.Format.IniFormat)
-    return QSettings(metadata.organization, metadata.name)
+    # Keep the pre-rename QSettings scope so existing preferences need no migration.
+    return QSettings(metadata.organization, metadata.settings_application)

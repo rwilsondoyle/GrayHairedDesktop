@@ -63,7 +63,9 @@ def test_install_update_and_uninstall_in_xdg_sandbox(tmp_path):
         encoding="utf-8"
     )
     assert subprocess.check_output([launcher], text=True) == "installed package launched\n"
-    assert f"Exec={launcher}" in menu_entry.read_text(encoding="utf-8")
+    menu_contents = menu_entry.read_text(encoding="utf-8")
+    assert "Name=My Desktop" in menu_contents
+    assert f"Exec={launcher}" in menu_contents
 
     # A refresh is idempotent and leaves unrelated preferences untouched.
     preference = config / "GrayHaired Tech" / "GrayHaired Desktop.ini"
@@ -79,7 +81,7 @@ def test_install_update_and_uninstall_in_xdg_sandbox(tmp_path):
     autostart = config / "autostart" / "grayhaired-desktop.desktop"
     autostart.parent.mkdir(parents=True)
     autostart.write_text(
-        "[Desktop Entry]\nName=GrayHaired Desktop\n" f"Exec={launcher}\n",
+        "[Desktop Entry]\nName=My Desktop\n" f"Exec={launcher}\n",
         encoding="utf-8",
     )
     subprocess.run([ROOT / "scripts/uninstall-user.sh"], env=env, check=True)

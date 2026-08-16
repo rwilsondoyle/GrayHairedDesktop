@@ -8,7 +8,9 @@ The project vision is to provide a comfortable desktop entry point: a native win
 
 ## Naming
 
-GrayHairedDesktop is the repository and package identity; GrayHaired Desktop is current working/display wording. The final public product name remains undecided before Version 1.0, and this release-readiness phase does not select one. GrayHaired Tech and Ron Doyle remain appropriate project attribution.
+**My Desktop** is the owner-approved public/display product name for Version
+1.0. GrayHairedDesktop remains the repository, Python package, and internal
+compatibility identity. GrayHaired Tech and Ron Doyle remain project attribution.
 
 ## Alpha milestones
 
@@ -59,7 +61,7 @@ Status: complete.
 - Preserved Home, Reload, Preferences, window persistence, status, About, and Exit behavior.
 - Completed manual verification on both supported physical Zorin systems: Primary Development System and Secondary Test System.
 - On both systems, successfully verified Application startup, Home page, Home, Reload, Preferences, About, Exit, external link launching, and that the Home page remains displayed after launching links.
-- The public product name is still undecided.
+- At this historical milestone, the public product name was still undecided.
 
 ### Alpha 0.5 — Launch Page Personalization
 
@@ -145,8 +147,8 @@ experience as Desktop Mode. Version 1.0 is not released, and the version remains
   acceptable focus-policy result, not a blocker.
 - Desktop Website links opened normally during follow-up; no current performance
   problem was observed.
-- The final manual Zorin release-readiness checklist and, if still required, the
-  final public-name decision remain pending. A separate release PR must make the
+- The final manual Zorin release-readiness checklist remains pending. PR #48
+  subsequently finalized the **My Desktop** public name. A separate release PR must make the
   explicit release decision and change `0.9.0` to `1.0.0` only after that pass
   succeeds. See
   [`RELEASE_READINESS.md`](RELEASE_READINESS.md) for the current status table,

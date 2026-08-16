@@ -1,7 +1,8 @@
 # Version 1.0 release-readiness review
 
-Status: **PR #47 is NO-GO while final physical verification, the public-name
-decision, and the misleading legacy Desktop Mode control remain unresolved.**
+Status: **PR #47 remains NO-GO while final physical verification is pending.**
+PR #48 implements the owner-approved **My Desktop** public name and removes the
+misleading legacy Desktop Mode control from normal Settings.
 Installation, autostart, and single-instance behavior were physically verified
 on X11 and Wayland in PRs #42 and #43, but the required release-candidate
 regression pass has not yet been reported. The version remains `0.9.0`.
@@ -43,13 +44,11 @@ Completed work is recorded as such and is not an active blocker.
 | PR #45 new-architecture investigation | **RESULT 3 — NO PRACTICAL SUPPORTED PATH FOUND** |
 | PR #45 physical read-only collector | **PASSED — WAYLAND / GNOME SHELL 46.0** |
 | Final Version 1.0 manual checklist | **PENDING** |
-| Final public product name | **PENDING if still required before release** |
+| Final public product name | **DECIDED — MY DESKTOP (PR #48)** |
 
 ### Current blockers
 
 - Complete the final Version 1.0 manual checklist.
-- Decide the final public product name if that decision is still required before
-  release.
 - Only after all applicable checks pass, make an explicit release decision and
   change both version locations together. Version `0.9.0` remains current.
 - Resolve any genuinely incomplete checklist item discovered during final
@@ -73,9 +72,8 @@ surface-registration or composition hook, so the classification is unchanged.
 
 - Refresh older architecture and development-history prose as the implementation
   evolves. Historical milestone names and test records are intentionally retained.
-- Decide the final public product name before producing signed, branded artifacts.
-  GrayHairedDesktop remains the repository/package identity, while GrayHaired
-  Desktop is only current working/display wording. This review selects no name.
+- Use **My Desktop** for signed, public, and user-visible artifacts.
+  GrayHairedDesktop remains the repository/package/internal compatibility identity.
 
 ### Future distribution polish
 
@@ -473,8 +471,8 @@ normally without another window and exactly one real process remained. GNOME's
 attention indication instead of forced focus is acceptable. Desktop Website
 links opened normally during follow-up, with no current performance problem
 observed. Desktop Mode is now future research rather than a Version 1.0 blocker.
-The applicable final manual checklist, any still-required public-name decision,
-and the explicit release/version bump remain, not these completed items.
+The applicable final manual checklist and explicit release/version bump remain,
+not these completed items. PR #48 completed the public-name decision.
 
 ## PR #47 final release-readiness verification
 
@@ -487,7 +485,8 @@ manual Zorin checklist above. No runtime or version change was made.
 - The worktree was clean at the start of the audit on branch `work`.
 - `pyproject.toml` and `grayhaired_desktop.__version__` both report `0.9.0`.
   `tests/test_release_metadata.py` explicitly guards that equality and checks
-  that the About dialog starts with `GrayHaired Desktop 0.9.0` without Alpha or
+  that the About dialog starts with the then-current `GrayHaired Desktop 0.9.0`
+  wording without Alpha or
   Beta wording.
 - A source and current-documentation search found no current claim that 1.0 is
   released, stable installation/autostart is unavailable, duplicate instances
@@ -552,7 +551,7 @@ VERIFICATION**, even where earlier PR evidence exists.
 | Desktop Website | **PENDING PHYSICAL VERIFICATION** | Feature pass required in both session baselines. |
 | External links | **PENDING PHYSICAL VERIFICATION** | Browser handoff observation required. |
 | Shortcuts | **PENDING PHYSICAL VERIFICATION** | Add/edit/remove/order/appearance/restart pass required. |
-| Settings | **FAIL — RELEASE BLOCKER** | Legacy Desktop Mode control promises unsupported future-research behavior. |
+| Settings | **PENDING PHYSICAL VERIFICATION** | PR #48 removed the misleading control; focused and final physical checks remain. |
 | Persistence | **PENDING PHYSICAL VERIFICATION** | Close/reopen and applicable logout/login checks required. |
 | Accessibility/usability | **PENDING PHYSICAL VERIFICATION** | Human keyboard, focus, scaling, wording, and contrast pass required. |
 | Light appearance | **PENDING PHYSICAL VERIFICATION** | Zorin Light observation required. |
@@ -566,15 +565,14 @@ VERIFICATION**, even where earlier PR evidence exists.
 | Uninstall/reinstall | **PENDING PHYSICAL VERIFICATION** | Safe lifecycle regression and restored final state pending. |
 | Logging/diagnostics | **PENDING PHYSICAL VERIFICATION** | File, events, Help action, and sanitized URL observation pending. |
 | Documentation accuracy | **PASS** | Session-independent review of the seven required documents and README lifecycle instructions. |
-| Public product name | **PENDING** | Owner decision has not been supplied. |
+| Public product name | **DECIDED — MY DESKTOP** | Owner decision implemented by PR #48. |
 | True Desktop Mode | **FUTURE RESEARCH** | Not applicable to Version 1.0 and not a blocker. |
 
-`PUBLIC PRODUCT NAME DECISION REQUIRED: YES`
+`PUBLIC PRODUCT NAME DECISION REQUIRED: NO`
 
-Before 1.0.0, the owner must either explicitly approve **GrayHaired Desktop** as
-the Version 1.0 public/display name (with **GrayHairedDesktop** retained as the
-repository/package identity) or provide a separate naming decision. PR #47 does
-not make that owner decision.
+The owner approves **My Desktop** as the Version 1.0 public/display name.
+**GrayHairedDesktop** and existing IDs remain repository/package/internal
+compatibility identities.
 
 ### Small ordered physical test sequence
 
@@ -636,13 +634,39 @@ Blockers, without treating “almost ready” as PASS:
 
 1. All required PR #47 physical checks on the Dell Inspiron-3147 remain pending,
    including current Wayland and X11 regression evidence.
-2. The current Settings Desktop Mode control is misleading now that true Desktop
-   Mode is explicitly unsupported Future Research. A separate PR #48 should fix
-   that user-facing blocker, followed by affected regression testing.
-3. The public product-name owner decision remains pending.
+2. PR #48's branding, Settings cleanup, legacy-preference safety, launcher name,
+   and unchanged single-instance behavior require focused Wayland and X11
+   physical confirmation before the full PR #47 pass resumes.
 
 The automated and documentation checks passed, and no additional blocker was
-found by repository inspection. Version remains `0.9.0`. After PR #48 addresses
-the documented UI blocker and the owner supplies the name decision, rerun and
-record the affected PR #47 physical checks before considering a separate final
-version-bump PR.
+found by repository inspection. Version remains `0.9.0`. After PR #48 passes its
+focused physical checks, rerun and record the PR #47 physical stages before
+considering a separate final version-bump PR.
+
+## PR #48 blocker resolution
+
+- Public/display product name: **DECIDED — My Desktop**.
+- Repository, Python package, QSettings scope, paths, desktop/application IDs,
+  launcher filenames, command, and single-instance identity retain their
+  GrayHairedDesktop compatibility values.
+- Normal Settings no longer exposes Desktop Mode or related help text. Its
+  remaining tab order flows directly from Shortcut Appearance to autostart.
+- Loading or saving an old `preferences/desktopMode=true` value forces the
+  effective value off, and startup explicitly requests the normal windowed path.
+- True Desktop Mode implementation helpers and feasibility history remain
+  dormant Future Research; no architecture experiment was resumed.
+- PR #48 automated result: **56 passed, 10 skipped**; compileall, both Ruff
+  checks, shell syntax, and whitespace checks passed in the Codex environment.
+- Version remains `0.9.0`. PR #48 does not change the PR #47 NO-GO decision into
+  GO; focused physical checks and the full final physical pass remain required.
+
+### PR #48 focused physical check
+
+Under Wayland, update/install the candidate, confirm the window, About dialog,
+and application-menu entry say **My Desktop**, confirm Settings has no Desktop
+Mode control or layout gap, save a harmless setting, reopen normally, and launch
+a second time to confirm one process. Safely simulate or back up/restore a legacy
+Desktop Mode value and confirm startup is still a normal window. Repeat the
+essential branding, Settings, normal-start, single-instance, menu-entry, and
+canonical autostart visible-name checks under X11. Record both sessions as
+**PENDING PHYSICAL VERIFICATION** until observed on the Inspiron.

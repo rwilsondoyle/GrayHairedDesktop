@@ -1,6 +1,6 @@
 # Architecture
 
-GrayHaired Desktop is a small native Linux desktop application. The codebase is intentionally simple: Python starts a Qt application, a main window owns the desktop controls, and an embedded QtWebEngine launch page loads and retains the configured Desktop Website. Clicked destinations are handed to the operating system's default browser.
+My Desktop is a small native Linux desktop application. The codebase is intentionally simple: Python starts a Qt application, a main window owns the desktop controls, and an embedded QtWebEngine launch page loads and retains the configured Desktop Website. Clicked destinations are handed to the operating system's default browser.
 
 ## Supported Version 1.0 architecture
 
@@ -32,7 +32,11 @@ until the final readiness pass and a separate release decision.
 
 ## Naming
 
-GrayHairedDesktop is the repository and package identity. **GrayHaired Desktop** is current working/display wording, not a final public-name decision. The public product name remains undecided before Version 1.0. This review does not rename the repository, Python package, QSettings identity, or application data paths. GrayHaired Tech and Ron Doyle remain appropriate project attribution.
+**My Desktop** is the public/display product name. GrayHairedDesktop and the
+existing desktop/application IDs are internal compatibility identities. The
+pre-rename `GrayHaired Desktop` QSettings scope and application data paths are
+deliberately retained, so existing users need no settings migration. GrayHaired
+Tech and Ron Doyle remain project attribution.
 
 ## Application flow
 
@@ -74,7 +78,8 @@ The application uses Qt `QSettings` under the current author/About attribution m
 - `preferences/homePageUrl` for the configurable home page URL.
 - `mainwindow/geometry` for window size and placement.
 - `mainwindow/windowState` for Qt window state.
-- `preferences/desktopMode` for the explicit Desktop Mode choice (default off).
+- `preferences/desktopMode` is a retained legacy key that is always ignored and
+  forced off; normal Settings provides no control for future-research behavior.
 - `preferences/autostart` for the explicit sign-in startup choice (default off).
 
 ## Current boundaries

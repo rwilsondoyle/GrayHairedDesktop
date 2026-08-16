@@ -8,6 +8,7 @@ import pytest
 pytest.importorskip("PySide6.QtWidgets", exc_type=ImportError)
 
 from grayhaired_desktop import __app_name__, __version__
+from grayhaired_desktop.config import AppMetadata
 from grayhaired_desktop.ui.mainwindow import MainWindow
 
 
@@ -22,6 +23,15 @@ def test_packaging_and_runtime_versions_match() -> None:
     )
 
     assert packaging_version == __version__ == "0.9.0"
+    assert __app_name__ == "My Desktop"
+
+
+def test_public_name_does_not_change_compatibility_identity() -> None:
+    metadata = AppMetadata()
+
+    assert metadata.name == "My Desktop"
+    assert metadata.settings_application == "GrayHaired Desktop"
+    assert metadata.application_id == "tech.grayhaired.GrayHairedDesktop"
 
 
 def test_about_is_product_focused_without_prerelease_wording(monkeypatch) -> None:
@@ -41,8 +51,9 @@ def test_about_is_product_focused_without_prerelease_wording(monkeypatch) -> Non
 
     MainWindow._show_about_dialog(window)
 
-    assert captured["title"] == "About GrayHaired Desktop"
-    assert captured["message"].startswith("GrayHaired Desktop 0.9.0")
+    assert captured["title"] == "About My Desktop"
+    assert captured["message"].startswith("My Desktop 0.9.0")
+    assert "GrayHaired Desktop" not in captured["title"]
     assert "Desktop Website" in captured["message"]
     assert "default browser" in captured["message"]
     assert "Alpha" not in captured["message"]
