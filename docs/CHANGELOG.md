@@ -174,3 +174,10 @@ Status: complete.
 - Initial Python package structure.
 - Project metadata and dependency declarations.
 - Application entry point foundation.
+
+## PR #56 — Safe interactive Desktop Shortcuts (unreleased)
+
+- Added managed `.desktop` launchers for the existing shortcut configuration, with safe XDG Desktop resolution and HTTP/HTTPS-only opening.
+- Added Settings actions to add, refresh, and remove only My Desktop-owned launchers.
+- Preserved PR #55 static Wallpaper Mode and Zorin's desktop-icons provider.
+- Physical Wayland and X11 verification remains **PENDING**.

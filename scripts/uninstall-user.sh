@@ -8,6 +8,14 @@ APP_ROOT="$DATA_HOME/grayhaired-desktop"
 LAUNCHER="$BIN_HOME/grayhaired-desktop"
 DESKTOP_FILE="$DATA_HOME/applications/grayhaired-desktop.desktop"
 AUTOSTART_FILE="$CONFIG_HOME/autostart/grayhaired-desktop.desktop"
+DESKTOP_DIR=""
+if command -v xdg-user-dir >/dev/null 2>&1; then
+  DESKTOP_DIR=$(xdg-user-dir DESKTOP 2>/dev/null || true)
+fi
+case "$DESKTOP_DIR" in
+  "$HOME"/*) ;;
+  *) DESKTOP_DIR="$HOME/Desktop" ;;
+esac
 
 remove_owned_file() {
   local path=$1
@@ -32,5 +40,14 @@ if [ -d "$APP_ROOT" ]; then
   else
     printf 'Not removing unowned directory: %s\n' "$APP_ROOT" >&2
   fi
+fi
+if [ -d "$DESKTOP_DIR" ]; then
+  for shortcut in "$DESKTOP_DIR"/my-desktop-*.desktop; do
+    [ -f "$shortcut" ] || continue
+    if grep -Fxq 'X-MyDesktop-Managed=true' "$shortcut" 2>/dev/null; then
+      rm -f "$shortcut"
+      printf 'Removed My Desktop-managed shortcut: %s\n' "$shortcut"
+    fi
+  done
 fi
 printf 'My Desktop user-local installation removed; user preferences were preserved.\n'

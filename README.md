@@ -206,3 +206,13 @@ The GNOME Wayland desktop-layer investigation and its read-only target-system
 diagnostic steps are in
 [`docs/GNOME_SHELL_FEASIBILITY.md`](docs/GNOME_SHELL_FEASIBILITY.md). The project
 does not install or enable a GNOME Shell extension automatically.
+
+### Desktop Shortcuts (PR #56 development)
+
+Settings provides **Add My Desktop Shortcuts to Desktop**, **Refresh Desktop Shortcuts**, and **Remove My Desktop Shortcuts from Desktop**. These copy the existing configured shortcut list into ordinary user-level `.desktop` launchers; there is no second shortcut database. Wallpaper Mode remains a static snapshot, Desktop Shortcuts are real files shown by Zorin's existing desktop-icons provider, and True Desktop Mode remains separate Future Research.
+
+My Desktop queries `xdg-user-dir DESKTOP`, accepts only an absolute result strictly inside the resolved home directory, otherwise uses `~/Desktop`, creates the chosen directory if needed, and logs it. Generated `my-desktop-*.desktop` files use mode `0700`, carry `X-MyDesktop-Managed=true`, and invoke `grayhaired-desktop --open-url`. That helper accepts only HTTP/HTTPS and opens the default browser without starting the full UI. Unmarked files are never overwritten or removed.
+
+GNOME/Zorin may initially show a launcher as untrusted even though its executable bit is set. If so, right-click it and choose **Allow Launching**. My Desktop deliberately does not forge GNOME trust metadata; trust remains a user decision.
+
+Physical verification on the Inspiron remains **PENDING**. On Wayland: verify PR #55 Wallpaper Mode; open Settings and add shortcuts; minimize My Desktop; confirm the new icons coexist with Home, Trash, drives, folders, and files; open one; edit its source shortcut and refresh; remove the generated shortcuts and confirm every unrelated icon remains. Repeat the essential add/open/remove checks on X11.

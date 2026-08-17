@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 import shutil
+import sys
 from pathlib import Path
 
 from PySide6.QtCore import QSettings, Qt, QUrl
@@ -33,6 +34,12 @@ from grayhaired_desktop.settings import (
     find_built_in_website,
     is_valid_home_page_url,
 )
+from grayhaired_desktop.desktop_shortcuts import (
+    DesktopShortcutManager,
+    resolve_desktop_directory,
+)
+from grayhaired_desktop.autostart import installed_launch_executable
+from grayhaired_desktop.favorites import load_favorites
 from grayhaired_desktop.wallpaper import (
     WallpaperManager,
     WallpaperRenderer,
@@ -160,6 +167,26 @@ class PreferencesDialog(QDialog):
         self._restore_wallpaper_button.clicked.connect(self._restore_wallpaper)
         self._wallpaper_status = QLabel("", self)
         self._wallpaper_status.setWordWrap(True)
+
+        self._add_shortcuts_button = QPushButton(
+            "Add My Desktop Shortcuts to Desktop", self
+        )
+        self._refresh_shortcuts_button = QPushButton("Refresh Desktop Shortcuts", self)
+        self._remove_shortcuts_button = QPushButton(
+            "Remove My Desktop Shortcuts from Desktop", self
+        )
+        for button in (
+            self._add_shortcuts_button,
+            self._refresh_shortcuts_button,
+            self._remove_shortcuts_button,
+        ):
+            button.setMinimumHeight(CONTROL_MINIMUM_HEIGHT)
+            button.setEnabled(settings is not None)
+        self._add_shortcuts_button.clicked.connect(self._sync_desktop_shortcuts)
+        self._refresh_shortcuts_button.clicked.connect(self._sync_desktop_shortcuts)
+        self._remove_shortcuts_button.clicked.connect(self._remove_desktop_shortcuts)
+        self._shortcuts_status = QLabel("", self)
+        self._shortcuts_status.setWordWrap(True)
 
         self._create_layout()
         self._update_address_field()
@@ -301,6 +328,25 @@ class PreferencesDialog(QDialog):
         content_layout.addWidget(self._restore_wallpaper_button)
         content_layout.addWidget(self._wallpaper_status)
 
+        shortcuts_separator = QFrame(self)
+        shortcuts_separator.setFrameShape(QFrame.Shape.HLine)
+        shortcuts_separator.setFrameShadow(QFrame.Shadow.Sunken)
+        shortcuts_title = QLabel("Desktop Shortcuts", self)
+        shortcuts_title.setFont(section_title_font)
+        shortcuts_help = QLabel(
+            "Put copies of your My Desktop shortcuts on the real Zorin desktop. "
+            "They work like normal desktop icons.",
+            self,
+        )
+        shortcuts_help.setWordWrap(True)
+        content_layout.addWidget(shortcuts_separator)
+        content_layout.addWidget(shortcuts_title)
+        content_layout.addWidget(shortcuts_help)
+        content_layout.addWidget(self._add_shortcuts_button)
+        content_layout.addWidget(self._refresh_shortcuts_button)
+        content_layout.addWidget(self._remove_shortcuts_button)
+        content_layout.addWidget(self._shortcuts_status)
+
         scroll_area = QScrollArea(self)
         # The container is not an interactive control. Keeping it out of the Tab
         # chain lets focus move directly among the child form controls while the
@@ -327,6 +373,31 @@ class PreferencesDialog(QDialog):
         self.setTabOrder(self._open_button, self._save_button)
         self.setTabOrder(self._save_button, self._cancel_button)
         self.setTabOrder(self._cancel_button, self._another_website)
+
+    def _desktop_shortcut_manager(self) -> DesktopShortcutManager | None:
+        if self._settings is None:
+            return None
+        desktop = resolve_desktop_directory(Path.home(), logger=self._logger)
+        command = str(installed_launch_executable(sys.argv[0]) or "grayhaired-desktop")
+        return DesktopShortcutManager(desktop, self._logger, command)
+
+    def _sync_desktop_shortcuts(self) -> None:
+        manager = self._desktop_shortcut_manager()
+        if manager is None or self._settings is None:
+            return
+        result = manager.sync(load_favorites(self._settings))
+        self._shortcuts_status.setText(
+            f"Desktop shortcuts updated: {result.created} added, "
+            f"{result.updated} changed, {result.removed} removed."
+            + (f" {result.refused + result.invalid} could not be added safely." if result.refused + result.invalid else "")
+        )
+
+    def _remove_desktop_shortcuts(self) -> None:
+        manager = self._desktop_shortcut_manager()
+        if manager is None:
+            return
+        removed = manager.remove_all()
+        self._shortcuts_status.setText(f"Removed {removed} My Desktop shortcuts.")
 
     def _set_wallpaper_busy(self, busy: bool) -> None:
         available = self._wallpaper_manager is not None and shutil.which(

@@ -201,3 +201,11 @@ experiments. Preserve and consult PR #39 and PR #45 evidence before future work.
 - Evaluate accessibility and high-DPI behavior on the target Zorin hardware.
 - Build an equivalent Windows version only as future platform work; Windows and
   macOS are not supported by the current release.
+
+## Post-1.0 Desktop Shortcuts milestone (PR #56)
+
+- Standard user-level launchers derived from existing shortcuts: implemented.
+- Preserve Zorin icons and manage only marked files: automated coverage complete; Inspiron verification pending.
+- Wayland physical add/open/remove check: **PENDING**.
+- X11 physical add/open/remove check: **PENDING**.
+- Live interactive True Desktop Mode remains separate **Future Research**.

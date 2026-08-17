@@ -543,3 +543,20 @@ a later explicit release decision.
 - Do not resume Desktop Mode work unless a materially new supported platform
   capability justifies the Future Research criteria.
 - Treat website CPU optimization as its own non-blocking future follow-up.
+
+## PR #56 Safe Interactive Desktop Shortcuts
+
+The bounded real-icon layer uses existing shortcut configuration, validates XDG Desktop containment, refuses unowned collisions, marks ownership, safely removes stale entries, and accepts only HTTP/HTTPS in a UI-free browser helper. Static Wallpaper Mode and Zorin's real icon provider are unchanged.
+
+### NEXT DEVELOPMENT CHECKPOINT
+
+- **My Desktop 1.0.0 remains the stable released baseline.**
+- PR #55 Wallpaper Mode foundation is merged and physically passed on the Dell Inspiron-3147 under Wayland and X11.
+- PR #56 adds safe interactive desktop shortcuts using standard user-level launcher files.
+- Zorin's real desktop icon provider remains untouched.
+- Only My Desktop-managed launchers may be created, updated, or removed.
+- Wallpaper remains static.
+- True Desktop Mode remains separate Future Research.
+- Physical Wayland verification: **PENDING**.
+- Physical X11 verification: **PENDING**.
+- Next step after implementation is Inspiron testing using the README's Wayland-first plan, followed by essential X11 checks.
