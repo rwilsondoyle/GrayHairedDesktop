@@ -444,3 +444,30 @@ a later explicit release decision.
   checklist.
 - A `1.0.0` bump remains prohibited until that final readiness pass becomes GO
   and a later release decision authorizes it.
+
+## Final post-PR #52 Version 1.0 Release Readiness — GO
+
+- PR #51 remains the historical **NO-GO** checkpoint for the state before the
+  naming, Desktop Mode UI cleanup, and final physical verification work.
+- PR #52 was merged to `main` as `94d1929`; it established **My Desktop** as the
+  public name, removed the unsupported Desktop Mode control, prevented legacy
+  `desktopMode=true` from activating that mode, and preserved the
+  GrayHairedDesktop / `grayhaired-desktop` compatibility identity.
+- A clean install from that current-main merge using
+  `./scripts/update-user-install.sh` succeeded on the Dell Inspiron-3147 with
+  Zorin OS 18.1 and GNOME Shell 46. Version remained `0.9.0`.
+- Final X11/Xorg physical release-readiness verification: **PASS**.
+- Final Wayland physical release-readiness verification: **PASS**.
+- Autostart, one-real-process single-instance behavior, normal Settings,
+  Desktop Website and shortcut use, external link handoff, and compatibility
+  logging passed in the applicable final checks. X11 Save/Cancel persistence
+  and **Help → Open Log Folder** also passed.
+- Configured-website CPU activity remains a separate, non-blocking performance
+  follow-up. Plain QtWebEngine with the same site reproduced it, while
+  `about:blank` was essentially idle; `--disable-gpu` made it worse and must not
+  be added.
+- **Final Version 1.0 release-readiness decision: GO.**
+- The project may proceed only to a separate, small, controlled `1.0.0`
+  release/version-bump PR after this GO checkpoint is reviewed and merged.
+- This documentation checkpoint does not change runtime behavior or the
+  current `0.9.0` version.

@@ -6,8 +6,13 @@
   GrayHairedDesktop compatibility identity.
 - Removed the unsupported Desktop Mode control from normal Settings and forced
   the retained legacy preference false so startup remains safely windowed.
-- Kept the version at `0.9.0`; final Wayland, X11, and release-readiness physical
-  verification remains pending.
+- Recorded the post-PR #52 clean-main final physical verification as **PASS** on
+  X11/Xorg and Wayland and the final Version 1.0 release-readiness decision as
+  **GO**, while preserving PR #51's earlier **NO-GO** history.
+- Classified configured Desktop Website CPU activity as a separate,
+  non-blocking website-performance follow-up; no GPU flag is added.
+- Kept the version at `0.9.0`; a separate controlled `1.0.0` release PR is the
+  next step after the GO checkpoint is reviewed and merged.
 
 All notable project changes should be summarized here. Historical entries retain their milestone names; release packaging begins only after its own review and verification.
 

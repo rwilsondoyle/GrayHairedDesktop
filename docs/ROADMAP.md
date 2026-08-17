@@ -132,8 +132,8 @@ Status: Implementation complete; final manual Zorin verification pending.
 
 ## Version 1.0 release readiness
 
-Status: **Windowed launch-page scope approved; final release-readiness work is
-pending.** The owner selected PR #44 Path B in PR #46. Version 1.0 will support
+Status: **Final release-readiness GO; controlled release bump is next.** The
+owner selected PR #44 Path B in PR #46. Version 1.0 will support
 the safe, normal windowed launch-page application; it will not present that
 experience as Desktop Mode. Version 1.0 is not released, and the version remains
 `0.9.0`.
@@ -145,12 +145,17 @@ experience as Desktop Mode. Version 1.0 is not released, and the version remains
   physical checks passed: a second invocation returned normally, created no
   second window, and left one real process. GNOME attention indications are an
   acceptable focus-policy result, not a blocker.
-- Desktop Website links opened normally during follow-up; no current performance
-  problem was observed.
-- The final manual Zorin release-readiness checklist and, if still required, the
-  final public-name decision remain pending. A separate release PR must make the
-  explicit release decision and change `0.9.0` to `1.0.0` only after that pass
-  succeeds. See
+- PR #51's historical audit was **NO-GO**. PR #52 then established **My
+  Desktop**, removed unsupported Desktop Mode from normal Settings, preserved
+  compatibility identifiers, and passed focused X11 and Wayland checks.
+- The post-PR #52 clean-main install at `94d1929` passed the final physical
+  checklist on the Dell Inspiron-3147 in both X11/Xorg and Wayland. The final
+  Version 1.0 release-readiness decision is **GO**.
+- Configured Desktop Website CPU use is a separate non-blocking optimization
+  follow-up; controlled testing reproduced it in plain QtWebEngine loading the
+  same site, not with idle `about:blank`. Do not add `--disable-gpu`.
+- A separate controlled release PR may change `0.9.0` to `1.0.0` only after
+  this documentation checkpoint is reviewed and merged. See
   [`RELEASE_READINESS.md`](RELEASE_READINESS.md) for the current status table,
   exact Desktop Mode definition, and rejected-approach record.
 
