@@ -1,20 +1,22 @@
-"""Safe user-level launchers for the configured My Desktop shortcuts."""
+"""Safe user-level launchers and placement for My Desktop shortcuts."""
 
 from __future__ import annotations
 
 import logging
+import os
 import re
 import subprocess
 import unicodedata
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Callable, Iterable
+from typing import Callable, Iterable, Mapping
 from urllib.parse import urlsplit, urlunsplit
 
 from grayhaired_desktop.favorites import Favorite
 
 MANAGED_MARKER = "X-MyDesktop-Managed=true"
 FILE_PREFIX = "my-desktop-"
+POSITION_ATTRIBUTE = "metadata::nautilus-icon-position"
 
 
 def safe_web_url(value: str) -> str | None:
@@ -81,7 +83,7 @@ def launcher_slug(title: str) -> str:
 
     normalized = unicodedata.normalize("NFKD", title).encode("ascii", "ignore").decode()
     slug = re.sub(r"[^a-z0-9]+", "-", normalized.lower()).strip("-")
-    return (slug[:60].rstrip("-") or "shortcut")
+    return slug[:60].rstrip("-") or "shortcut"
 
 
 def _desktop_string(value: str) -> str:
@@ -130,6 +132,55 @@ class SyncResult:
     removed: int = 0
     refused: int = 0
     invalid: int = 0
+
+
+@dataclass(frozen=True, slots=True)
+class PlacementResult:
+    moved: int = 0
+    skipped: int = 0
+    failed: int = 0
+
+
+def parse_icon_position(value: str) -> tuple[int, int] | None:
+    """Parse a non-negative ``x,y`` desktop icon position."""
+
+    match = re.fullmatch(r"\s*(\d+)\s*,\s*(\d+)\s*", value)
+    if match is None:
+        return None
+    return int(match.group(1)), int(match.group(2))
+
+
+def format_icon_position(position: tuple[int, int]) -> str:
+    """Serialize a desktop icon position for GIO metadata."""
+
+    x, y = position
+    if x < 0 or y < 0:
+        raise ValueError("desktop icon coordinates must be non-negative")
+    return f"{x},{y}"
+
+
+def preset_positions(count: int, width: int, height: int) -> list[tuple[int, int]]:
+    """Return a conservative two-row layout above the panel/right icon strip."""
+
+    if count <= 0 or width <= 0 or height <= 0:
+        return []
+    columns = min(4, count)
+    rows = (count + columns - 1) // columns
+    left = max(24, min(72, width // 20))
+    right = max(left, width - max(180, width // 8))
+    top = max(40, min(100, height // 10))
+    lower = max(top, min(height - 180, int(height * 0.55)))
+    xs = (
+        [left]
+        if columns == 1
+        else [round(left + index * (right - left) / (columns - 1)) for index in range(columns)]
+    )
+    ys = (
+        [top]
+        if rows == 1
+        else [round(top + index * (lower - top) / (rows - 1)) for index in range(rows)]
+    )
+    return [(xs[index % columns], ys[index // columns]) for index in range(count)]
 
 
 class DesktopShortcutManager:
@@ -204,3 +255,128 @@ class DesktopShortcutManager:
                 self.logger.info("Cleanup removed managed Desktop shortcut: %s", path.name)
         self.logger.info("Desktop shortcut cleanup complete: removed=%d", removed)
         return removed
+
+
+class DesktopShortcutPlacementManager:
+    """Read and update positions for My Desktop-owned launchers only."""
+
+    def __init__(
+        self,
+        desktop: Path,
+        logger: logging.Logger,
+        *,
+        runner: Callable[..., subprocess.CompletedProcess[str]] = subprocess.run,
+        refresher: Callable[[Path], None] | None = None,
+    ) -> None:
+        self.desktop = desktop.resolve(strict=False)
+        self.logger = logger
+        self.runner = runner
+        self.refresher = refresher or self._refresh_file
+
+    @staticmethod
+    def _refresh_file(path: Path) -> None:
+        # Equivalent to the physically verified ``touch`` test without changing
+        # launcher contents or trust metadata, and without creating a missing file.
+        os.utime(path, None, follow_symlinks=False)
+
+    def _managed_launchers(self) -> list[Path]:
+        launchers = []
+        for path in sorted(self.desktop.glob(f"{FILE_PREFIX}*.desktop")):
+            if path.is_symlink() or not path.is_file() or not is_managed_launcher(path):
+                continue
+            if path.parent.resolve(strict=False) != self.desktop:
+                continue
+            launchers.append(path)
+        return launchers
+
+    def read_position(self, path: Path) -> tuple[int, int] | None:
+        """Read one managed launcher's saved position using GIO."""
+
+        if path not in self._managed_launchers():
+            return None
+        try:
+            result = self.runner(
+                ["gio", "info", "-a", POSITION_ATTRIBUTE, str(path)],
+                check=True,
+                capture_output=True,
+                text=True,
+                timeout=5,
+            )
+        except (FileNotFoundError, OSError, subprocess.SubprocessError):
+            self.logger.warning("Could not read Desktop shortcut position: %s", path.name)
+            return None
+        for line in result.stdout.splitlines():
+            if POSITION_ATTRIBUTE not in line:
+                continue
+            _, _, value = line.partition(":")
+            return parse_icon_position(value)
+        return None
+
+    def capture_positions(self) -> dict[str, str]:
+        """Capture readable positions for currently managed launchers."""
+
+        captured: dict[str, str] = {}
+        for path in self._managed_launchers():
+            position = self.read_position(path)
+            if position is not None:
+                captured[path.name] = format_icon_position(position)
+        self.logger.info("Captured previous Desktop shortcut positions: %d", len(captured))
+        return captured
+
+    def _write_position(self, path: Path, position: tuple[int, int]) -> bool:
+        if path not in self._managed_launchers():
+            return False
+        value = format_icon_position(position)
+        try:
+            self.runner(
+                ["gio", "set", str(path), POSITION_ATTRIBUTE, value],
+                check=True,
+                capture_output=True,
+                text=True,
+                timeout=5,
+            )
+            self.refresher(path)
+        except (FileNotFoundError, OSError, subprocess.SubprocessError):
+            self.logger.warning("Could not place Desktop shortcut: %s", path.name)
+            return False
+        self.logger.info("Placed managed Desktop shortcut %s at %s", path.name, value)
+        return True
+
+    def arrange(self, width: int, height: int) -> PlacementResult:
+        """Arrange managed launchers in a conservative primary-screen layout."""
+
+        launchers = self._managed_launchers()
+        positions = preset_positions(len(launchers), width, height)
+        moved = failed = 0
+        for path, position in zip(launchers, positions, strict=True):
+            if self._write_position(path, position):
+                moved += 1
+            else:
+                failed += 1
+        result = PlacementResult(moved=moved, failed=failed)
+        self.logger.info("Desktop shortcut arrangement complete: moved=%d failed=%d", moved, failed)
+        return result
+
+    def restore(self, positions: Mapping[str, str]) -> PlacementResult:
+        """Restore saved coordinates to matching managed launchers only."""
+
+        moved = skipped = failed = 0
+        managed = {path.name: path for path in self._managed_launchers()}
+        for name, value in positions.items():
+            path = managed.get(name)
+            position = parse_icon_position(value)
+            if path is None or position is None:
+                skipped += 1
+                continue
+            if self._write_position(path, position):
+                moved += 1
+            else:
+                failed += 1
+        result = PlacementResult(moved=moved, skipped=skipped, failed=failed)
+        self.logger.info(
+            "Desktop shortcut restore complete: moved=%d skipped=%d failed=%d",
+            moved,
+            skipped,
+            failed,
+        )
+        return result
