@@ -161,7 +161,7 @@ application; it is not presented as Desktop Mode.
 ## Principal post-1.0 direction — Wallpaper Mode
 
 Status: implementation complete; physical Wayland and X11 verification
-**PENDING**.
+**PASSED** on the Dell Inspiron-3147 with Zorin OS 18.1 / GNOME Shell 46.
 
 - Render the configured Desktop Website as a static primary-screen PNG through
   normal GNOME/Zorin wallpaper configuration.
@@ -173,6 +173,10 @@ Status: implementation complete; physical Wayland and X11 verification
   physical reliability, CPU, and visual-quality testing.
 - Wallpaper Mode is a non-interactive picture; **True Desktop Mode** remains
   separate Future Research for a hypothetical live interactive layer.
+- Physical testing confirmed the actual Zorin wallpaper, sizing/readability,
+  real-icon visibility and usability, Refresh, Restore, and Wayland Light/Dark
+  persistence. The next work may investigate safe desktop interactivity or
+  future wallpaper enhancements without conflating them with True Desktop Mode.
 
 ## Future research — true Desktop Mode
 

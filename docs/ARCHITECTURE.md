@@ -108,6 +108,14 @@ persistent hidden browser, multi-monitor compositor, GNOME Shell integration,
 or clickable wallpaper. The PNG is retained by uninstall so an active GNOME
 reference cannot be broken.
 
+The foundation passed physical testing on Zorin OS 18.1 / GNOME Shell 46 on the
+Dell Inspiron-3147 under Wayland and X11. The generated static image became the
+actual wallpaper while real Zorin icons remained visible and usable; Refresh
+and Restore passed, and Wayland Light/Dark switching retained the image. The
+separate My Desktop window remained normally interactive. GNOME may briefly
+redraw after an in-place PNG refresh, as observed once before it recovered
+without intervention.
+
 ## Current boundaries
 
 - The desktop launch page retains the configured home page in the application, while clicked links open in the operating system's default browser.

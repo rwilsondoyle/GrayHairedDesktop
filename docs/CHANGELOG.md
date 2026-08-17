@@ -13,7 +13,14 @@
   Wallpaper Mode, not rejected live interactive true Desktop Mode.
 - Kept version 1.0.0, normal window/autostart/single-instance behavior, Zorin's
   real icons, and the uninstall boundary unchanged.
-- Physical Wayland and X11 verification is **PENDING**.
+- Completed physical Wallpaper Mode verification on the Dell Inspiron-3147 with
+  Zorin OS 18.1 / GNOME Shell 46: **PASSED** on Wayland and **PASSED** on X11.
+  Set, sizing/readability, manual Refresh, safe Restore, and continued real-icon
+  visibility/usability passed. Wayland Light/Dark persistence also passed.
+- Confirmed that the wallpaper remains static and non-clickable by design while
+  the separate My Desktop application remains normally interactive. One Wayland
+  Refresh briefly redrew/caught up after replacing the same valid PNG; it
+  returned without intervention and a later Refresh passed normally.
 
 ## Version 1.0.0
 

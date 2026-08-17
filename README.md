@@ -137,6 +137,14 @@ The uninstaller deliberately leaves this generated user-data image and settings
 in place, so GNOME is never left pointing at an image it just deleted. Restore
 the previous wallpaper in Settings before uninstalling when desired.
 
+Wallpaper Mode passed physical testing on the Dell Inspiron-3147 running Zorin
+OS 18.1 / GNOME Shell 46 in both Wayland and X11 sessions. The static Desktop
+Website picture was correctly sized and readable, real Zorin desktop icons
+remained visible and usable, manual refresh worked, and Restore returned the
+original wallpaper. Wayland Light/Dark switching also retained the generated
+wallpaper. GNOME may briefly redraw after the same PNG is replaced during a
+refresh; the observed wallpaper returned without intervention.
+
 ## Development-checkout update
 
 This is separate from the user-local update above. Close the application, then run from a clean checkout on `main`:

@@ -2,8 +2,8 @@
 
 ## Post-1.0 checkpoint — PR #55 Wallpaper Mode foundation
 
-**Checkpoint status:** implementation prepared; physical Wayland verification
-**PENDING**; physical X11 verification **PENDING**.
+**Checkpoint status:** implementation complete; physical Wayland verification
+**PASSED**; physical X11 verification **PASSED**.
 
 - My Desktop 1.0.0 remains the stable released baseline and project version.
   This work creates no tag or release.
@@ -19,17 +19,33 @@
   deferred.
 - Wallpaper Mode is static and non-clickable. True Desktop Mode remains separate
   Future Research for a hypothetical live interactive layer.
-- Next: physical Inspiron testing, Wayland first and then essential X11 checks.
+- On the Dell Inspiron-3147 with Zorin OS 18.1 / GNOME Shell 46, the static
+  Desktop Website snapshot became the actual Zorin wallpaper, was properly
+  sized and readable, and left real Zorin desktop icons visible and usable.
+- Set, manual Refresh, and safe Restore all **PASSED** on Wayland and X11.
+  Restore returned the original wallpaper and remained available after Refresh.
+- Wayland Light/Dark switching retained the My Desktop wallpaper and usable real
+  icons. The original tested GNOME values were `ZorinBlack.svg` for both
+  `picture-uri` and `picture-uri-dark`, with `picture-options` set to `zoom`.
+- The wallpaper remained static and non-clickable by design; My Desktop remained
+  a separate normal interactive application accessible with Alt+Tab.
+- One Wayland Refresh briefly redrew/caught up after replacing the same PNG.
+  Inspection confirmed both URI keys still referenced the generated valid
+  1366×768 RGBA PNG and `picture-options` remained `zoom`; it returned without
+  intervention, and a later Refresh passed normally. This is not a blocker.
+- Version remains 1.0.0 and no GNOME Shell layering hacks are used. Next work may
+  investigate safe desktop interactivity or future wallpaper enhancements;
+  true live interactive Desktop Mode remains separate Future Research.
 
-### Small physical test sequence
+### Completed physical test sequence
 
-1. On Wayland, record the current wallpaper and open My Desktop Settings.
-2. Select **Set My Desktop as Wallpaper**, wait for success, then close/minimize
-   My Desktop. Confirm the picture remains, real Zorin icons are visible and
-   clickable, and panel/Shell behavior is normal.
-3. If safe, switch Light/Dark; then use **Refresh Wallpaper** and **Restore
-   Previous Wallpaper**, confirming the original returns.
-4. Repeat the essential Set, close/minimize, icon-use, and Restore checks on X11.
+1. On Wayland, recorded the current wallpaper and opened My Desktop Settings.
+2. Selected **Set My Desktop as Wallpaper**, then confirmed the picture remained
+   with real Zorin icons visible/clickable and normal panel/Shell behavior.
+3. Switched Light/Dark, used **Refresh Wallpaper** and **Restore Previous
+   Wallpaper**, and confirmed the original returned: **PASSED**.
+4. Repeated the essential Set, sizing, icon-use, Refresh, and Restore checks on
+   X11 using the PR #55 test branch at commit `dd79011`: **PASSED**.
 
 This log records project-level development milestones and verification notes. It is intentionally concise so future contributors can quickly understand what changed and what still needs confirmation.
 
