@@ -11,15 +11,12 @@ the technical/internal compatibility identity for the repository, Python
 package, launcher, application IDs, settings scope, data paths, logs, and
 single-instance endpoint.
 
-The current implementation-review build is **0.9.0**. The owner has approved the
-safe, normal windowed launch-page application as the supported Version 1.0
-product scope. Stable user-local installation, canonical autostart, and
-single-instance behavior are complete and physically verified on both X11 and
-Wayland. Version 1.0 has not been released: the final manual Zorin checklist in
-[`docs/RELEASE_READINESS.md`](docs/RELEASE_READINESS.md) passed on both X11 and
-Wayland, and the final release-readiness decision is **GO**. The version remains
-`0.9.0`; a separate controlled `1.0.0` version-bump/release PR is the next step
-after the GO documentation checkpoint is reviewed and merged.
+**My Desktop 1.0.0 is released.** Its supported product scope is the stable,
+normal windowed launch-page application. Stable user-local installation,
+canonical autostart, and single-instance behavior are complete and were
+physically verified on both X11 and Wayland. The final manual Zorin checklist in
+[`docs/RELEASE_READINESS.md`](docs/RELEASE_READINESS.md) passed on both sessions,
+and PR #53 recorded the final release-readiness decision as **GO**.
 True Desktop Mode is future research, not the name of the supported windowed
 experience. Windows and macOS are not supported.
 

@@ -2,17 +2,18 @@
 
 ## Unreleased
 
-- Selected **My Desktop** as the public/display name while preserving the
-  GrayHairedDesktop compatibility identity.
-- Removed the unsupported Desktop Mode control from normal Settings and forced
-  the retained legacy preference false so startup remains safely windowed.
-- Recorded the post-PR #52 clean-main final physical verification as **PASS** on
-  X11/Xorg and Wayland and the final Version 1.0 release-readiness decision as
-  **GO**, while preserving PR #51's earlier **NO-GO** history.
-- Classified configured Desktop Website CPU activity as a separate,
-  non-blocking website-performance follow-up; no GPU flag is added.
-- Kept the version at `0.9.0`; a separate controlled `1.0.0` release PR is the
-  next step after the GO checkpoint is reviewed and merged.
+## Version 1.0.0
+
+- Released **My Desktop** as a stable windowed launch-page product while
+  preserving the GrayHairedDesktop / `grayhaired-desktop` compatibility
+  identity.
+- Included Desktop Website selection, persistent Settings preferences,
+  customizable shortcuts, and external-browser handoff for ordinary links.
+- Included user-local install, update, and uninstall flows, an application-menu
+  launcher, opt-in canonical autostart, and single-instance behavior.
+- Completed physical release verification on X11/Xorg and Wayland.
+- Moved true Desktop Mode to **Future Research**; it is not part of the supported
+  Version 1.0 product.
 
 All notable project changes should be summarized here. Historical entries retain their milestone names; release packaging begins only after its own review and verification.
 

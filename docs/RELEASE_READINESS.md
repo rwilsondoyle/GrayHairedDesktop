@@ -1,5 +1,16 @@
 # Version 1.0 release-readiness checkpoints
 
+## Version 1.0.0 release status
+
+**My Desktop 1.0.0 is released.** PR #53 completed the final readiness **GO**
+checkpoint after the release candidate passed physical verification on X11/Xorg
+and Wayland. The supported Version 1.0 product is the normal windowed launch
+page. True Desktop Mode remains Future Research, and configured-website CPU
+optimization remains a separate, non-blocking future follow-up.
+
+The sections below preserve the chronology and evidence from PR #51's historical
+**NO-GO** audit through PR #53's final **GO** decision.
+
 ## Final post-PR #52 release-readiness decision — GO
 
 **GO.** The `0.9.0` release candidate is approved to proceed to a separate,

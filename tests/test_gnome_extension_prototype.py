@@ -169,10 +169,10 @@ def test_normal_python_startup_does_not_manage_shell_extensions():
     assert "grayhaired-desktop-layer@grayhaired.tech" not in python_source
 
 
-def test_project_version_remains_0_9_0():
+def test_project_version_is_1_0_0():
     pyproject = (Path(__file__).parents[1] / "pyproject.toml").read_text()
 
-    assert 'version = "0.9.0"' in pyproject
+    assert 'version = "1.0.0"' in pyproject
 
 
 def test_wayland_client_collector_is_fixed_path_and_read_only():

@@ -132,11 +132,10 @@ Status: Implementation complete; final manual Zorin verification pending.
 
 ## Version 1.0 release readiness
 
-Status: **Final release-readiness GO; controlled release bump is next.** The
-owner selected PR #44 Path B in PR #46. Version 1.0 will support
-the safe, normal windowed launch-page application; it will not present that
-experience as Desktop Mode. Version 1.0 is not released, and the version remains
-`0.9.0`.
+Status: **Version 1.0.0 released.** The owner selected PR #44 Path B in PR
+#46, and PR #53 completed the final release-readiness **GO** checkpoint. The
+supported Version 1.0 product is the safe, normal windowed launch-page
+application; it is not presented as Desktop Mode.
 
 - PR #42 completed the stable user-local installation, application-menu launch,
   update/uninstall lifecycle, and single canonical XDG autostart entry. X11 and
@@ -154,10 +153,10 @@ experience as Desktop Mode. Version 1.0 is not released, and the version remains
 - Configured Desktop Website CPU use is a separate non-blocking optimization
   follow-up; controlled testing reproduced it in plain QtWebEngine loading the
   same site, not with idle `about:blank`. Do not add `--disable-gpu`.
-- A separate controlled release PR may change `0.9.0` to `1.0.0` only after
-  this documentation checkpoint is reviewed and merged. See
-  [`RELEASE_READINESS.md`](RELEASE_READINESS.md) for the current status table,
-  exact Desktop Mode definition, and rejected-approach record.
+- Version `1.0.0` was released after the PR #53 GO checkpoint. Post-1.0 work is
+  maintenance and future-roadmap work, not release-blocker work. See
+  [`RELEASE_READINESS.md`](RELEASE_READINESS.md) for the status table, exact
+  Desktop Mode definition, and preserved rejected-approach record.
 
 ## Future research — true Desktop Mode
 
@@ -181,4 +180,4 @@ experiments. Preserve and consult PR #39 and PR #45 evidence before future work.
 - Explore release packaging only after the alpha setup scripts are consistently verified on target systems.
 - Evaluate accessibility and high-DPI behavior on the target Zorin hardware.
 - Build an equivalent Windows version only as future platform work; Windows and
-  macOS are not supported by the current release candidate.
+  macOS are not supported by the current release.
