@@ -1,5 +1,65 @@
 # Development Log
 
+## Post-1.0 checkpoint — PR #56 safe interactive desktop shortcuts
+
+**Checkpoint status:** implementation complete; physical Wayland verification
+**PASSED**; physical X11 verification **PASSED**.
+
+- My Desktop remains version 1.0.0. This checkpoint does not rewrite the
+  Version 1.0 release or PR #55 history.
+- On the Dell Inspiron-3147 running Zorin OS 18.1 / GNOME Shell 46, **Add My
+  Desktop Shortcuts to Desktop** created the seven configured Facebook,
+  FamilySearch, Gmail, News, Shopping, Weather, and YouTube launchers in
+  `/home/ron/Desktop`. Every launcher carried the
+  `X-MyDesktop-Managed=true` ownership marker.
+- Wayland launcher creation and browser-open behavior **PASSED**. All seven
+  launchers appeared alongside the working Zorin Home and Trash icons and an
+  unrelated `PR56-TEST.txt` file. Double-clicking the trusted Gmail launcher
+  opened Gmail in the normal/default browser.
+- The standard GNOME/Zorin trust flow **PASSED**. New `.desktop` launchers may
+  initially have the expected untrusted/red-X appearance; **Allow Launching**
+  was available and changed Gmail to its normal trusted appearance. My Desktop
+  does not bypass or forge this platform trust mechanism.
+- Gmail's trusted state survived **Refresh Desktop Shortcuts** and the Wayland
+  to X11 session switch. Gmail continued to open correctly in X11.
+- Configuration synchronization **PASSED**. Adding a temporary `PR56 Test`
+  shortcut did not create a launcher until Refresh; Refresh then added it while
+  retaining the original seven. Removing it from configuration and refreshing
+  removed the stale launcher automatically while retaining the original seven
+  and reporting one removal.
+- Safe removal **PASSED** in both sessions. **Remove My Desktop Shortcuts from
+  Desktop** removed only the seven managed launchers and reported seven
+  removals; Home, Trash, and the unrelated desktop file remained. On X11, Add
+  restored all seven, and trusted Gmail remained normal and operational through
+  that remove/add-back cycle.
+- PR #55 Wallpaper Mode and PR #56 launchers coexist successfully: the static
+  My Desktop wallpaper, real Zorin desktop icons, and real My Desktop
+  `.desktop` launcher icons were all visible and usable together. The wallpaper
+  remains static and non-clickable; the real launchers provide the safe
+  interactivity.
+- Next work may investigate visual alignment or placement improvements between
+  the wallpaper design and the real desktop launchers. **True Desktop Mode**
+  remains separate Future Research and is not a name for this combination.
+
+### PR #56 physical verification matrix
+
+| Check | Result |
+| --- | --- |
+| Wayland physical verification | **PASSED** |
+| X11 physical verification | **PASSED** |
+| Launcher creation | **PASSED** |
+| Launcher open behavior | **PASSED** |
+| GNOME/Zorin Allow Launching flow | **PASSED** |
+| Trusted state survives Refresh | **PASSED** |
+| Trusted state survives Wayland to X11 | **PASSED** |
+| Configuration-change synchronization | **PASSED** |
+| Stale launcher removal | **PASSED** |
+| Unrelated desktop files preserved | **PASSED** |
+| Zorin Home and Trash preserved | **PASSED** |
+| Removal limited to My Desktop-managed launchers | **PASSED** |
+| X11 remove/add-back cycle | **PASSED** |
+| Wallpaper Mode and real-shortcut coexistence | **PASSED** |
+
 ## Post-1.0 checkpoint — PR #55 Wallpaper Mode foundation
 
 **Checkpoint status:** implementation complete; physical Wayland verification

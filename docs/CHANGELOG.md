@@ -2,6 +2,23 @@
 
 ## Unreleased
 
+### Post-1.0 safe interactive desktop shortcuts
+
+- Completed physical verification of PR #56 on the Dell Inspiron-3147 with
+  Zorin OS 18.1 / GNOME Shell 46: **PASSED** on Wayland and **PASSED** on X11.
+- Verified creation, default-browser opening, refresh, configuration
+  synchronization, stale removal, X11 add-back, and removal limited to launcher
+  files marked as My Desktop-managed. Zorin Home and Trash and an unrelated
+  desktop file remained untouched.
+- Accepted GNOME/Zorin's standard **Allow Launching** flow. Newly created
+  launchers may initially appear untrusted with a red X; trusted state was
+  confirmed to survive Refresh and a Wayland-to-X11 session switch without
+  unsafe metadata workarounds.
+- Confirmed that PR #55's static, non-clickable Wallpaper Mode, real Zorin
+  desktop icons, and PR #56's real interactive desktop launchers are visible and
+  usable together. This combination is not True Desktop Mode.
+- Kept version 1.0.0; True Desktop Mode remains separate Future Research.
+
 ### Post-1.0 Desktop Wallpaper foundation
 
 - Added manual static Desktop Website snapshot generation at primary-screen

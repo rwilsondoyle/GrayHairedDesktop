@@ -178,6 +178,26 @@ Status: implementation complete; physical Wayland and X11 verification
   persistence. The next work may investigate safe desktop interactivity or
   future wallpaper enhancements without conflating them with True Desktop Mode.
 
+## Completed post-1.0 milestone — Safe interactive desktop shortcuts
+
+Status: PR #56 implementation complete; physical Wayland and X11 verification
+**PASSED** on the Dell Inspiron-3147 with Zorin OS 18.1 / GNOME Shell 46.
+
+- My Desktop-managed `.desktop` launchers coexist safely with real Zorin Home,
+  Trash, and unrelated desktop files. Removal affects only managed launchers.
+- Launcher creation, normal/default-browser opening, configuration-change
+  synchronization, stale-launcher removal, and the X11 remove/add-back cycle
+  passed physical testing.
+- The standard GNOME/Zorin **Allow Launching** trust flow is accepted. Newly
+  created launchers may initially appear untrusted; trusted state survives
+  Refresh and Wayland-to-X11 session switching.
+- PR #55's static My Desktop wallpaper, real Zorin icons, and PR #56's real My
+  Desktop launcher icons coexist visibly and usefully. The wallpaper remains
+  static/non-clickable, while real desktop launchers provide safe interactivity.
+- Version remains 1.0.0. Next work may investigate visual alignment and
+  placement between wallpaper design and real launchers. **True Desktop Mode**
+  remains separate Future Research.
+
 ## Future research — true Desktop Mode
 
 True Desktop Mode retains its exact historical requirement—an interactive
