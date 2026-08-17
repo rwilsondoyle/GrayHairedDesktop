@@ -544,19 +544,24 @@ a later explicit release decision.
   capability justifies the Future Research criteria.
 - Treat website CPU optimization as its own non-blocking future follow-up.
 
-## PR #56 Safe Interactive Desktop Shortcuts
+## PR #56 real desktop shortcuts — physical verification complete
 
-The bounded real-icon layer uses existing shortcut configuration, validates XDG Desktop containment, refuses unowned collisions, marks ownership, safely removes stale entries, and accepts only HTTP/HTTPS in a UI-free browser helper. Static Wallpaper Mode and Zorin's real icon provider are unchanged.
-
-### NEXT DEVELOPMENT CHECKPOINT
-
-- **My Desktop 1.0.0 remains the stable released baseline.**
-- PR #55 Wallpaper Mode foundation is merged and physically passed on the Dell Inspiron-3147 under Wayland and X11.
-- PR #56 adds safe interactive desktop shortcuts using standard user-level launcher files.
-- Zorin's real desktop icon provider remains untouched.
-- Only My Desktop-managed launchers may be created, updated, or removed.
-- Wallpaper remains static.
-- True Desktop Mode remains separate Future Research.
-- Physical Wayland verification: **PENDING**.
-- Physical X11 verification: **PENDING**.
-- Next step after implementation is Inspiron testing using the README's Wayland-first plan, followed by essential X11 checks.
+- The PR #56 implementation and automated tests remain intact; this checkpoint
+  records the completed physical verification rather than changing runtime
+  behavior.
+- Wayland physical verification: **PASSED**.
+- X11 physical verification: **PASSED**.
+- Launcher creation and opening: **PASSED**.
+- GNOME/Zorin **Allow Launching** flow: **PASSED**.
+- Trusted state survives **Refresh Wallpaper**: **PASSED**.
+- Trusted state survives Wayland to X11: **PASSED**.
+- Shortcut configuration synchronization: **PASSED**.
+- Stale launcher removal: **PASSED**.
+- Unrelated desktop files preserved: **PASSED**.
+- **Home** and **Trash** preserved: **PASSED**.
+- Removal limited to My Desktop-managed launchers: **PASSED**.
+- X11 remove/add-back cycle: **PASSED**.
+- PR #55 Wallpaper Mode and PR #56 real shortcuts coexist: **PASSED**.
+- Version remains `1.0.0`.
+- **True Desktop Mode** remains separate Future Research. Safe ordinary desktop
+  launchers do not change Wallpaper Mode into an interactive background layer.
