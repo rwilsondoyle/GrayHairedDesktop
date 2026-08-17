@@ -2,7 +2,11 @@
 
 from __future__ import annotations
 
-from PySide6.QtCore import Qt, QUrl
+import logging
+import shutil
+from pathlib import Path
+
+from PySide6.QtCore import QSettings, Qt, QUrl
 from PySide6.QtGui import QDesktopServices
 from PySide6.QtWidgets import (
     QComboBox,
@@ -29,6 +33,11 @@ from grayhaired_desktop.settings import (
     find_built_in_website,
     is_valid_home_page_url,
 )
+from grayhaired_desktop.wallpaper import (
+    WallpaperManager,
+    WallpaperRenderer,
+    has_previous_wallpaper,
+)
 
 INVALID_URL_MESSAGE = (
     "Please enter a complete website address beginning with http:// or https://"
@@ -54,9 +63,19 @@ class PreferencesDialog(QDialog):
         parent=None,
         *,
         autostart_available: bool = True,
+        settings: QSettings | None = None,
+        logger: logging.Logger | None = None,
     ) -> None:
         super().__init__(parent)
         self.setWindowTitle("Settings")
+        self._settings = settings
+        self._logger = logger or logging.getLogger("grayhaired_desktop.preferences")
+        self._wallpaper_manager = (
+            WallpaperManager(settings, self._logger) if settings is not None else None
+        )
+        self._wallpaper_renderer: WallpaperRenderer | None = None
+        # Wallpaper actions always use the saved URL, never unsaved form text.
+        self._wallpaper_url = preferences.home_page_url
         selected_website = find_built_in_website(preferences.home_page_url)
         custom_address = preferences.home_page_url if selected_website is None else ""
         self._home_page_url = QLineEdit(custom_address, self)
@@ -116,6 +135,31 @@ class PreferencesDialog(QDialog):
         )
         self._autostart_help.setWordWrap(True)
         self._autostart_help.setVisible(not autostart_available)
+
+        wallpaper_available = self._wallpaper_manager is not None and shutil.which(
+            "gsettings"
+        ) is not None
+        self._set_wallpaper_button = QPushButton("Set My Desktop as Wallpaper", self)
+        self._refresh_wallpaper_button = QPushButton("Refresh Wallpaper", self)
+        self._restore_wallpaper_button = QPushButton("Restore Previous Wallpaper", self)
+        for button in (
+            self._set_wallpaper_button,
+            self._refresh_wallpaper_button,
+            self._restore_wallpaper_button,
+        ):
+            button.setMinimumHeight(CONTROL_MINIMUM_HEIGHT)
+        self._set_wallpaper_button.setEnabled(wallpaper_available)
+        self._refresh_wallpaper_button.setEnabled(wallpaper_available)
+        self._restore_wallpaper_button.setEnabled(
+            wallpaper_available
+            and settings is not None
+            and has_previous_wallpaper(settings)
+        )
+        self._set_wallpaper_button.clicked.connect(self._create_wallpaper)
+        self._refresh_wallpaper_button.clicked.connect(self._create_wallpaper)
+        self._restore_wallpaper_button.clicked.connect(self._restore_wallpaper)
+        self._wallpaper_status = QLabel("", self)
+        self._wallpaper_status.setWordWrap(True)
 
         self._create_layout()
         self._update_address_field()
@@ -231,6 +275,32 @@ class PreferencesDialog(QDialog):
         content_layout.addWidget(self._autostart)
         content_layout.addWidget(self._autostart_help)
 
+        wallpaper_separator = QFrame(self)
+        wallpaper_separator.setFrameShape(QFrame.Shape.HLine)
+        wallpaper_separator.setFrameShadow(QFrame.Shadow.Sunken)
+        wallpaper_title = QLabel("Desktop Wallpaper", self)
+        wallpaper_title.setFont(section_title_font)
+        wallpaper_help = QLabel(
+            "Create a snapshot of your Desktop Website and use it as your Zorin "
+            "desktop wallpaper. Your normal desktop icons stay in place.",
+            self,
+        )
+        wallpaper_help.setWordWrap(True)
+        wallpaper_note = QLabel(
+            "The wallpaper is a picture of your Desktop Website. Open My Desktop "
+            "when you want to use its links and shortcuts.",
+            self,
+        )
+        wallpaper_note.setWordWrap(True)
+        content_layout.addWidget(wallpaper_separator)
+        content_layout.addWidget(wallpaper_title)
+        content_layout.addWidget(wallpaper_help)
+        content_layout.addWidget(wallpaper_note)
+        content_layout.addWidget(self._set_wallpaper_button)
+        content_layout.addWidget(self._refresh_wallpaper_button)
+        content_layout.addWidget(self._restore_wallpaper_button)
+        content_layout.addWidget(self._wallpaper_status)
+
         scroll_area = QScrollArea(self)
         # The container is not an interactive control. Keeping it out of the Tab
         # chain lets focus move directly among the child form controls while the
@@ -257,6 +327,60 @@ class PreferencesDialog(QDialog):
         self.setTabOrder(self._open_button, self._save_button)
         self.setTabOrder(self._save_button, self._cancel_button)
         self.setTabOrder(self._cancel_button, self._another_website)
+
+    def _set_wallpaper_busy(self, busy: bool) -> None:
+        available = self._wallpaper_manager is not None and shutil.which(
+            "gsettings"
+        ) is not None
+        self._set_wallpaper_button.setEnabled(available and not busy)
+        self._refresh_wallpaper_button.setEnabled(available and not busy)
+        self._restore_wallpaper_button.setEnabled(
+            available
+            and not busy
+            and self._settings is not None
+            and has_previous_wallpaper(self._settings)
+        )
+
+    def _create_wallpaper(self) -> None:
+        """Render the saved Desktop Website without touching the visible browser."""
+
+        if self._wallpaper_renderer is not None or self._wallpaper_manager is None:
+            return
+        self._logger.info("Manual wallpaper generation requested")
+        self._wallpaper_status.setText("Creating wallpaper...")
+        self._set_wallpaper_busy(True)
+        renderer = WallpaperRenderer(self._wallpaper_url, self._logger, self)
+        self._wallpaper_renderer = renderer
+        renderer.finished.connect(self._wallpaper_rendered)
+        renderer.start()
+
+    def _wallpaper_rendered(self, ok: bool, detail: str) -> None:
+        renderer = self._wallpaper_renderer
+        self._wallpaper_renderer = None
+        if renderer is not None:
+            renderer.deleteLater()
+        if ok and self._wallpaper_manager is not None:
+            ok = self._wallpaper_manager.apply(Path(detail))
+        self._wallpaper_status.setText(
+            "Wallpaper updated."
+            if ok
+            else "My Desktop could not create the wallpaper. Your current "
+            "wallpaper was not changed."
+        )
+        if not ok:
+            self._logger.error("Wallpaper operation failed: %s", detail)
+        self._set_wallpaper_busy(False)
+
+    def _restore_wallpaper(self) -> None:
+        if self._wallpaper_manager is None:
+            return
+        if self._wallpaper_manager.restore():
+            self._wallpaper_status.setText("Previous wallpaper restored.")
+        else:
+            self._wallpaper_status.setText(
+                "My Desktop could not restore the previous wallpaper."
+            )
+        self._set_wallpaper_busy(False)
 
     def _open_home_page(self) -> None:
         """Open the entered address externally without saving it."""

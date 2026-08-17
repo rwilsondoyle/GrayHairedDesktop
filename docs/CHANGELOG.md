@@ -2,6 +2,19 @@
 
 ## Unreleased
 
+### Post-1.0 Desktop Wallpaper foundation
+
+- Added manual static Desktop Website snapshot generation at primary-screen
+  pixel dimensions, with bounded loading and no persistent renderer.
+- Added supported GNOME/Zorin light and dark background application and
+  reversible preservation of `picture-uri`, `picture-uri-dark`, and
+  `picture-options`.
+- Added senior-friendly Set, Refresh, and Restore controls in Settings. This is
+  Wallpaper Mode, not rejected live interactive true Desktop Mode.
+- Kept version 1.0.0, normal window/autostart/single-instance behavior, Zorin's
+  real icons, and the uninstall boundary unchanged.
+- Physical Wayland and X11 verification is **PENDING**.
+
 ## Version 1.0.0
 
 - Released **My Desktop** as a stable windowed launch-page product while

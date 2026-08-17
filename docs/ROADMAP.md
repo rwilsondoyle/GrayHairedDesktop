@@ -158,6 +158,22 @@ application; it is not presented as Desktop Mode.
   [`RELEASE_READINESS.md`](RELEASE_READINESS.md) for the status table, exact
   Desktop Mode definition, and preserved rejected-approach record.
 
+## Principal post-1.0 direction — Wallpaper Mode
+
+Status: implementation complete; physical Wayland and X11 verification
+**PENDING**.
+
+- Render the configured Desktop Website as a static primary-screen PNG through
+  normal GNOME/Zorin wallpaper configuration.
+- Preserve separate light/dark wallpaper URIs and picture options, with manual
+  Set, Refresh, and Restore actions.
+- Keep real desktop icons owned and operated by Zorin. Do not change GNOME
+  Shell, Mutter layering, normal window behavior, or autostart.
+- Defer automatic refresh and mixed-DPI multi-monitor composition until after
+  physical reliability, CPU, and visual-quality testing.
+- Wallpaper Mode is a non-interactive picture; **True Desktop Mode** remains
+  separate Future Research for a hypothetical live interactive layer.
+
 ## Future research — true Desktop Mode
 
 True Desktop Mode retains its exact historical requirement—an interactive

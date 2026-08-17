@@ -56,6 +56,7 @@ appropriate project attribution.
 | `browser.py` | Embedded launch-page widget, external-link policy, and page-load logging hooks. |
 | `config.py` | Application metadata and `QSettings` factory. |
 | `logger.py` | Central logging configuration. |
+| `wallpaper.py` | One-shot rendering plus separated GNOME background capture, apply, and restore helpers. |
 | `settings.py` | Default values, built-in website configuration and matching, address validation, and persistence helpers. |
 | `desktop_mode.py` | Detects session facts and makes a conservative, testable X11/Wayland mode decision. |
 | `x11_window.py` | Configures and reverses the X11 normal-window/stays-below strategy while explicitly avoiding GNOME's obscured desktop-type layer. |
@@ -81,6 +82,31 @@ The application uses Qt `QSettings` under the current author/About attribution m
 - `mainwindow/windowState` for Qt window state.
 - `preferences/desktopMode` for the explicit Desktop Mode choice (default off).
 - `preferences/autostart` for the explicit sign-in startup choice (default off).
+
+## Post-1.0 Wallpaper Mode foundation
+
+Wallpaper Mode is a static snapshot architecture, separate from true Desktop
+Mode:
+
+```text
+saved HTTP(S) Desktop Website
+→ bounded QWebEngineView at primary-screen pixel size
+→ ~/.local/share/GrayHairedDesktop/wallpaper/my-desktop-wallpaper.png
+→ org.gnome.desktop.background picture-uri + picture-uri-dark
+→ Zorin continues to own and display its real desktop icons
+```
+
+The dedicated renderer is destroyed after each manual operation and never
+navigates the visible browser. Before first apply, read-only helpers capture
+`picture-uri`, `picture-uri-dark`, and `picture-options`. Mutation helpers invoke
+`gsettings` with fixed argument lists and no shell. Restore changes only those
+captured keys and clears the marker only after success. Manual refresh preserves
+the original record.
+
+This milestone produces one primary-screen image. It has no automatic refresh,
+persistent hidden browser, multi-monitor compositor, GNOME Shell integration,
+or clickable wallpaper. The PNG is retained by uninstall so an active GNOME
+reference cannot be broken.
 
 ## Current boundaries
 
@@ -109,6 +135,10 @@ machine. Login/autostart passed in X11 and Wayland. The installed runtime remain
 independent of its source checkout, and uninstall preserves preferences.
 
 ## Future Desktop Mode research
+
+True Desktop Mode means a hypothetical **live interactive** website layer below
+real Zorin desktop icons. It is not Wallpaper Mode, which is a normal static
+GNOME background image.
 
 The confirmed target is Zorin OS 18.1 with GNOME Shell 46.0. Its real desktop-
 icon provider is the active `zorin-desktop-icons@zorinos.com` extension, named

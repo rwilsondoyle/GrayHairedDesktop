@@ -343,6 +343,8 @@ class MainWindow(QMainWindow):
             self._preferences,
             self,
             autostart_available=self._launch_executable is not None,
+            settings=self._settings,
+            logger=self._logger,
         )
         if dialog.exec() != PreferencesDialog.DialogCode.Accepted:
             return

@@ -1,5 +1,36 @@
 # Development Log
 
+## Post-1.0 checkpoint — PR #55 Wallpaper Mode foundation
+
+**Checkpoint status:** implementation prepared; physical Wayland verification
+**PENDING**; physical X11 verification **PENDING**.
+
+- My Desktop 1.0.0 remains the stable released baseline and project version.
+  This work creates no tag or release.
+- PR #55 begins Wallpaper Mode: the saved Desktop Website is rendered once to a
+  static PNG and assigned through normal `org.gnome.desktop.background` keys.
+- No GNOME Shell layering hack, extension, Mutter actor manipulation,
+  stays-below window, root operation, or system-file change is used. Real Zorin
+  desktop icons remain owned by Zorin.
+- Original `picture-uri`, `picture-uri-dark`, and `picture-options` values are
+  preserved once and restorable; manual Refresh cannot overwrite them.
+- Automatic refresh is not implemented. The renderer is destroyed after use.
+  One primary-screen image is supported; mixed-DPI multi-monitor composition is
+  deferred.
+- Wallpaper Mode is static and non-clickable. True Desktop Mode remains separate
+  Future Research for a hypothetical live interactive layer.
+- Next: physical Inspiron testing, Wayland first and then essential X11 checks.
+
+### Small physical test sequence
+
+1. On Wayland, record the current wallpaper and open My Desktop Settings.
+2. Select **Set My Desktop as Wallpaper**, wait for success, then close/minimize
+   My Desktop. Confirm the picture remains, real Zorin icons are visible and
+   clickable, and panel/Shell behavior is normal.
+3. If safe, switch Light/Dark; then use **Refresh Wallpaper** and **Restore
+   Previous Wallpaper**, confirming the original returns.
+4. Repeat the essential Set, close/minimize, icon-use, and Restore checks on X11.
+
 This log records project-level development milestones and verification notes. It is intentionally concise so future contributors can quickly understand what changed and what still needs confirmation.
 
 ## GNOME Shell Desktop Integration Feasibility
