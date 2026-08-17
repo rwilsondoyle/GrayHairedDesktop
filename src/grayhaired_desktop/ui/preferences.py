@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import logging
 import shutil
 import sys
@@ -10,36 +11,37 @@ from pathlib import Path
 from PySide6.QtCore import QSettings, Qt, QUrl
 from PySide6.QtGui import QDesktopServices
 from PySide6.QtWidgets import (
+    QButtonGroup,
+    QCheckBox,
     QComboBox,
     QDialog,
     QDialogButtonBox,
-    QButtonGroup,
     QFrame,
     QHBoxLayout,
     QLabel,
     QLineEdit,
-    QRadioButton,
-    QCheckBox,
-    QPushButton,
     QMessageBox,
+    QPushButton,
+    QRadioButton,
     QScrollArea,
     QSizePolicy,
     QVBoxLayout,
     QWidget,
 )
 
+from grayhaired_desktop.autostart import installed_launch_executable
+from grayhaired_desktop.desktop_shortcuts import (
+    DesktopShortcutManager,
+    DesktopShortcutPlacementManager,
+    resolve_desktop_directory,
+)
+from grayhaired_desktop.favorites import load_favorites
 from grayhaired_desktop.settings import (
     BUILT_IN_WEBSITES,
     UserPreferences,
     find_built_in_website,
     is_valid_home_page_url,
 )
-from grayhaired_desktop.desktop_shortcuts import (
-    DesktopShortcutManager,
-    resolve_desktop_directory,
-)
-from grayhaired_desktop.autostart import installed_launch_executable
-from grayhaired_desktop.favorites import load_favorites
 from grayhaired_desktop.wallpaper import (
     WallpaperManager,
     WallpaperRenderer,
@@ -56,6 +58,7 @@ OPEN_WEBSITE_FAILURE_MESSAGE = (
     "The selected website could not be opened in your default browser. Check that "
     "your computer has a working default browser and try again."
 )
+SHORTCUT_POSITIONS_KEY = "desktopShortcuts/previousPositions"
 
 CONTROL_MINIMUM_HEIGHT = 40
 RADIO_MINIMUM_HEIGHT = 38
@@ -187,6 +190,29 @@ class PreferencesDialog(QDialog):
         self._remove_shortcuts_button.clicked.connect(self._remove_desktop_shortcuts)
         self._shortcuts_status = QLabel("", self)
         self._shortcuts_status.setWordWrap(True)
+
+        placement_available = settings is not None and shutil.which("gio") is not None
+        self._arrange_shortcuts_button = QPushButton(
+            "Arrange My Desktop Shortcuts", self
+        )
+        self._restore_shortcut_positions_button = QPushButton(
+            "Restore Previous Shortcut Positions", self
+        )
+        for button in (
+            self._arrange_shortcuts_button,
+            self._restore_shortcut_positions_button,
+        ):
+            button.setMinimumHeight(CONTROL_MINIMUM_HEIGHT)
+            button.setEnabled(placement_available)
+        self._restore_shortcut_positions_button.setEnabled(
+            placement_available and bool(self._load_previous_shortcut_positions())
+        )
+        self._arrange_shortcuts_button.clicked.connect(self._arrange_desktop_shortcuts)
+        self._restore_shortcut_positions_button.clicked.connect(
+            self._restore_desktop_shortcut_positions
+        )
+        self._placement_status = QLabel("", self)
+        self._placement_status.setWordWrap(True)
 
         self._create_layout()
         self._update_address_field()
@@ -347,6 +373,24 @@ class PreferencesDialog(QDialog):
         content_layout.addWidget(self._remove_shortcuts_button)
         content_layout.addWidget(self._shortcuts_status)
 
+        placement_separator = QFrame(self)
+        placement_separator.setFrameShape(QFrame.Shape.HLine)
+        placement_separator.setFrameShadow(QFrame.Shadow.Sunken)
+        placement_title = QLabel("Shortcut Placement", self)
+        placement_title.setFont(section_title_font)
+        placement_help = QLabel(
+            "Arrange your real My Desktop shortcut icons in a simple desktop "
+            "layout. Your original shortcut positions can be restored.",
+            self,
+        )
+        placement_help.setWordWrap(True)
+        content_layout.addWidget(placement_separator)
+        content_layout.addWidget(placement_title)
+        content_layout.addWidget(placement_help)
+        content_layout.addWidget(self._arrange_shortcuts_button)
+        content_layout.addWidget(self._restore_shortcut_positions_button)
+        content_layout.addWidget(self._placement_status)
+
         scroll_area = QScrollArea(self)
         # The container is not an interactive control. Keeping it out of the Tab
         # chain lets focus move directly among the child form controls while the
@@ -381,6 +425,30 @@ class PreferencesDialog(QDialog):
         command = str(installed_launch_executable(sys.argv[0]) or "grayhaired-desktop")
         return DesktopShortcutManager(desktop, self._logger, command)
 
+    def _shortcut_placement_manager(self) -> DesktopShortcutPlacementManager | None:
+        if self._settings is None:
+            return None
+        desktop = resolve_desktop_directory(Path.home(), logger=self._logger)
+        return DesktopShortcutPlacementManager(desktop, self._logger)
+
+    def _load_previous_shortcut_positions(self) -> dict[str, str]:
+        if self._settings is None:
+            return {}
+        raw = self._settings.value(SHORTCUT_POSITIONS_KEY, "", str)
+        if not raw:
+            return {}
+        try:
+            value = json.loads(raw)
+        except (TypeError, ValueError):
+            return {}
+        if not isinstance(value, dict):
+            return {}
+        return {
+            str(name): str(position)
+            for name, position in value.items()
+            if isinstance(name, str) and isinstance(position, str)
+        }
+
     def _sync_desktop_shortcuts(self) -> None:
         manager = self._desktop_shortcut_manager()
         if manager is None or self._settings is None:
@@ -389,7 +457,11 @@ class PreferencesDialog(QDialog):
         self._shortcuts_status.setText(
             f"Desktop shortcuts updated: {result.created} added, "
             f"{result.updated} changed, {result.removed} removed."
-            + (f" {result.refused + result.invalid} could not be added safely." if result.refused + result.invalid else "")
+            + (
+                f" {result.refused + result.invalid} could not be added safely."
+                if result.refused + result.invalid
+                else ""
+            )
         )
 
     def _remove_desktop_shortcuts(self) -> None:
@@ -398,6 +470,45 @@ class PreferencesDialog(QDialog):
             return
         removed = manager.remove_all()
         self._shortcuts_status.setText(f"Removed {removed} My Desktop shortcuts.")
+
+    def _arrange_desktop_shortcuts(self) -> None:
+        manager = self._shortcut_placement_manager()
+        if manager is None or self._settings is None:
+            return
+        saved = self._load_previous_shortcut_positions()
+        if not saved:
+            saved = manager.capture_positions()
+            if saved:
+                self._settings.setValue(
+                    SHORTCUT_POSITIONS_KEY,
+                    json.dumps(saved, sort_keys=True),
+                )
+                self._settings.sync()
+        geometry = self.screen().availableGeometry()
+        result = manager.arrange(geometry.width(), geometry.height())
+        self._restore_shortcut_positions_button.setEnabled(bool(saved))
+        self._placement_status.setText(
+            f"Arranged {result.moved} My Desktop shortcuts."
+            + (f" {result.failed} could not be moved safely." if result.failed else "")
+        )
+
+    def _restore_desktop_shortcut_positions(self) -> None:
+        manager = self._shortcut_placement_manager()
+        if manager is None:
+            return
+        saved = self._load_previous_shortcut_positions()
+        if not saved:
+            self._placement_status.setText("No previous shortcut positions are saved.")
+            return
+        result = manager.restore(saved)
+        self._placement_status.setText(
+            f"Restored {result.moved} previous shortcut positions."
+            + (
+                f" {result.skipped + result.failed} could not be restored safely."
+                if result.skipped + result.failed
+                else ""
+            )
+        )
 
     def _set_wallpaper_busy(self, busy: bool) -> None:
         available = self._wallpaper_manager is not None and shutil.which(
