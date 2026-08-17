@@ -2,6 +2,26 @@
 
 ## Unreleased
 
+### Post-1.0 Desktop Wallpaper foundation
+
+- Added manual static Desktop Website snapshot generation at primary-screen
+  pixel dimensions, with bounded loading and no persistent renderer.
+- Added supported GNOME/Zorin light and dark background application and
+  reversible preservation of `picture-uri`, `picture-uri-dark`, and
+  `picture-options`.
+- Added senior-friendly Set, Refresh, and Restore controls in Settings. This is
+  Wallpaper Mode, not rejected live interactive true Desktop Mode.
+- Kept version 1.0.0, normal window/autostart/single-instance behavior, Zorin's
+  real icons, and the uninstall boundary unchanged.
+- Completed physical Wallpaper Mode verification on the Dell Inspiron-3147 with
+  Zorin OS 18.1 / GNOME Shell 46: **PASSED** on Wayland and **PASSED** on X11.
+  Set, sizing/readability, manual Refresh, safe Restore, and continued real-icon
+  visibility/usability passed. Wayland Light/Dark persistence also passed.
+- Confirmed that the wallpaper remains static and non-clickable by design while
+  the separate My Desktop application remains normally interactive. One Wayland
+  Refresh briefly redrew/caught up after replacing the same valid PNG; it
+  returned without intervention and a later Refresh passed normally.
+
 ## Version 1.0.0
 
 - Released **My Desktop** as a stable windowed launch-page product while

@@ -117,6 +117,34 @@ The native interface reads Zorin's light/dark preference at startup and otherwis
 inherits system fonts, scaling, and appearance. Theme changes made while the
 application is running take effect after restart.
 
+### Desktop Wallpaper (post-1.0 development)
+
+Settings provides **Set My Desktop as Wallpaper**, **Refresh Wallpaper**, and
+**Restore Previous Wallpaper**. Wallpaper Mode creates a static PNG of the saved
+Desktop Website and sets it through GNOME's supported background settings. It
+does not capture application controls, change GNOME Shell, or replace Zorin's
+real desktop icons. The image is not clickable; open My Desktop to use links and
+native shortcuts.
+
+The image is saved at
+`~/.local/share/GrayHairedDesktop/wallpaper/my-desktop-wallpaper.png`. The first
+apply preserves the existing light URI, dark URI, and picture option; refresh
+does not replace that restore record. Rendering is bounded and uses only the
+primary screen's pixel dimensions. Mixed-DPI multi-monitor composition and
+automatic refresh are not included.
+
+The uninstaller deliberately leaves this generated user-data image and settings
+in place, so GNOME is never left pointing at an image it just deleted. Restore
+the previous wallpaper in Settings before uninstalling when desired.
+
+Wallpaper Mode passed physical testing on the Dell Inspiron-3147 running Zorin
+OS 18.1 / GNOME Shell 46 in both Wayland and X11 sessions. The static Desktop
+Website picture was correctly sized and readable, real Zorin desktop icons
+remained visible and usable, manual refresh worked, and Restore returned the
+original wallpaper. Wayland Light/Dark switching also retained the generated
+wallpaper. GNOME may briefly redraw after the same PNG is replaced during a
+refresh; the observed wallpaper returned without intervention.
+
 ## Development-checkout update
 
 This is separate from the user-local update above. Close the application, then run from a clean checkout on `main`:
