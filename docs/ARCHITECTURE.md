@@ -20,8 +20,8 @@ native Settings / shortcuts / controls
 This supported architecture provides the configured Desktop Website,
 customizable shortcuts, persistent Settings, diagnostics, safe startup, and the
 verified user-local install/update/uninstall lifecycle. It is not called Desktop
-Mode. Version 1.0 has not yet been released, and the version remains `0.9.0`
-until the final readiness pass and a separate release decision.
+Mode. My Desktop 1.0.0 is released with this windowed product scope; true
+Desktop Mode remains Future Research.
 
 ## Runtime stack
 

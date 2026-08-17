@@ -22,7 +22,7 @@ def test_packaging_and_runtime_versions_match() -> None:
         if line.startswith("version = ")
     )
 
-    assert packaging_version == __version__ == "0.9.0"
+    assert packaging_version == __version__ == "1.0.0"
 
 
 def test_desktop_menu_uses_public_name_and_stable_launcher() -> None:
@@ -70,7 +70,7 @@ def test_about_is_product_focused_without_prerelease_wording(monkeypatch) -> Non
 
     assert __app_name__ == "My Desktop"
     assert captured["title"] == "About My Desktop"
-    assert captured["message"].startswith("My Desktop 0.9.0")
+    assert captured["message"].startswith("My Desktop 1.0.0")
     assert "Desktop Website" in captured["message"]
     assert "default browser" in captured["message"]
     assert "Alpha" not in captured["message"]

@@ -471,3 +471,28 @@ a later explicit release decision.
   release/version-bump PR after this GO checkpoint is reviewed and merged.
 - This documentation checkpoint does not change runtime behavior or the
   current `0.9.0` version.
+
+
+## Version 1.0.0 Release
+
+- Final release readiness **GO** came from PR #53, after the release candidate
+  was physically verified on both X11/Xorg and Wayland.
+- The public product name is **My Desktop**. The internal GrayHairedDesktop /
+  `grayhaired-desktop` compatibility identity remains preserved.
+- The project version was bumped from `0.9.0` to `1.0.0` together across its
+  packaging, runtime, About metadata, and release-consistency assertions.
+- This controlled release PR introduces no runtime feature or architecture
+  changes.
+- True Desktop Mode remains **Future Research** and unavailable to normal users.
+- Configured-website performance work remains a separate, non-blocking future
+  follow-up.
+
+### NEXT DEVELOPMENT CHECKPOINT
+
+- **My Desktop 1.0.0 is released.**
+- Next work belongs to post-1.0 maintenance or the future roadmap, not Version
+  1.0 release-blocker work.
+- Preserve the supported windowed launch-page scope and compatibility identity.
+- Do not resume Desktop Mode work unless a materially new supported platform
+  capability justifies the Future Research criteria.
+- Treat website CPU optimization as its own non-blocking future follow-up.
