@@ -145,6 +145,27 @@ original wallpaper. Wayland Light/Dark switching also retained the generated
 wallpaper. GNOME may briefly redraw after the same PNG is replaced during a
 refresh; the observed wallpaper returned without intervention.
 
+### Real desktop shortcuts (post-1.0 development)
+
+My Desktop can also synchronize its configured shortcuts to launchers on the
+user's real desktop. These launchers are deliberately separate from Wallpaper
+Mode: Wallpaper Mode remains a static picture, while the operating system owns
+and opens the real, interactive desktop launchers. Synchronization removes only
+launchers managed by My Desktop; unrelated desktop files and Zorin's **Home**
+and **Trash** icons are preserved.
+
+Physical verification on the Dell Inspiron-3147 running Zorin OS 18.1 / GNOME
+Shell 46 **PASSED** on both Wayland and X11. Launcher creation and opening, the
+GNOME/Zorin **Allow Launching** trust flow, shortcut-configuration
+synchronization, stale managed-launcher removal, and an X11 remove/add-back
+cycle all passed. Trusted launcher state survived **Refresh Wallpaper** and a
+Wayland-to-X11 session change. PR #55 Wallpaper Mode and PR #56 real shortcuts
+also coexisted successfully.
+
+The version remains **1.0.0**. This safe use of ordinary desktop launchers does
+not implement a live web surface behind Zorin's icons; **True Desktop Mode**
+remains separate Future Research.
+
 ## Development-checkout update
 
 This is separate from the user-local update above. Close the application, then run from a clean checkout on `main`:
