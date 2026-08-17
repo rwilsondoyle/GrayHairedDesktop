@@ -166,6 +166,24 @@ The version remains **1.0.0**. This safe use of ordinary desktop launchers does
 not implement a live web surface behind Zorin's icons; **True Desktop Mode**
 remains separate Future Research.
 
+### Shortcut placement investigation (PR #59)
+
+**Outcome B** was selected: no supported, reversible position-writing mechanism
+has yet been confirmed in the installed Zorin provider, so My Desktop does not
+move desktop icons programmatically. Users can align the real launchers safely
+by setting the static wallpaper, adding the desktop shortcuts, choosing
+**Allow Launching** when Zorin requests it, and dragging each launcher near the
+matching wallpaper area. Keep launchers above the bottom panel.
+
+The read-only `scripts/inspect-desktop-icon-position.sh` diagnostic is prepared
+for before/after manual-drag and login-persistence observations on the physical
+Inspiron. Wayland and X11 placement verification remain **PENDING**. See
+[`docs/SHORTCUT_PLACEMENT_AUDIT.md`](docs/SHORTCUT_PLACEMENT_AUDIT.md) for the
+evidence boundary, exact physical workflow, and known limitations. Wallpaper
+Mode remains a static visual background; Desktop Shortcuts remain real
+clickable files; Shortcut Placement means arranging those files; and True
+Desktop Mode remains separate live-layer Future Research.
+
 ## Development-checkout update
 
 This is separate from the user-local update above. Close the application, then run from a clean checkout on `main`:
@@ -236,4 +254,6 @@ My Desktop queries `xdg-user-dir DESKTOP`, accepts only an absolute result stric
 
 GNOME/Zorin may initially show a launcher as untrusted even though its executable bit is set. If so, right-click it and choose **Allow Launching**. My Desktop deliberately does not forge GNOME trust metadata; trust remains a user decision.
 
-Physical verification on the Inspiron remains **PENDING**. On Wayland: verify PR #55 Wallpaper Mode; open Settings and add shortcuts; minimize My Desktop; confirm the new icons coexist with Home, Trash, drives, folders, and files; open one; edit its source shortcut and refresh; remove the generated shortcuts and confirm every unrelated icon remains. Repeat the essential add/open/remove checks on X11.
+Physical verification for PR #56 **PASSED** on Wayland and X11. The separate
+PR #59 manual-placement observation remains pending; follow
+[`docs/SHORTCUT_PLACEMENT_AUDIT.md`](docs/SHORTCUT_PLACEMENT_AUDIT.md).

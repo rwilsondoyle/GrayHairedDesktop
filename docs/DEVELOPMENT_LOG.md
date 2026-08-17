@@ -565,3 +565,38 @@ a later explicit release decision.
 - Version remains `1.0.0`.
 - **True Desktop Mode** remains separate Future Research. Safe ordinary desktop
   launchers do not change Wallpaper Mode into an interactive background layer.
+
+## PR #59 safe Shortcut Placement investigation
+
+- **My Desktop 1.0.0 remains the released baseline.**
+- PR #55 Wallpaper Mode is merged and physically passed.
+- PR #56 Desktop Shortcuts is merged and physically passed.
+- Static wallpaper, Zorin icons, and real My Desktop launchers coexist.
+- PR #59 investigates safe launcher positioning without assuming that
+  programmatic positioning is supported; installed Zorin provider behavior is
+  the source of truth.
+- **Decision: Outcome B.** No supported, reversible position mutation is
+  confirmed, so this checkpoint adds documentation and a read-only diagnostic,
+  not runtime positioning, Settings controls, metadata writes, or launcher
+  recreation.
+- Manual dragging is the safe initial alignment workflow. The diagnostic will
+  compare provider source and user-visible state before/after a UI drag and
+  across login.
+- Physical Wayland verification: **PENDING**.
+- Physical X11 verification: **PENDING**.
+- True Desktop Mode remains separate **Future Research**.
+
+### NEXT DEVELOPMENT CHECKPOINT
+
+- Begin from the released 1.0.0 baseline plus the physically passed PR #55 and
+  PR #56 layers.
+- Preserve the working combination: static wallpaper + Zorin icons + real My
+  Desktop launchers.
+- Keep **Outcome B** unless physical evidence from the installed Zorin provider
+  proves a documented/safe, reversible user-level mutation mechanism.
+- Capture the exact storage association, coordinate/grid/monitor semantics,
+  provider refresh behavior, and manual persistence on Wayland first and X11
+  second with `scripts/inspect-desktop-icon-position.sh`.
+- Wayland and X11 physical verification remain **PENDING**.
+- Do not conflate Shortcut Placement with static Wallpaper Mode, real Desktop
+  Shortcuts, or separate live-layer True Desktop Mode research.

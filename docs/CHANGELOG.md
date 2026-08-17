@@ -200,3 +200,15 @@ Status: complete.
 - Added Settings actions to add, refresh, and remove only My Desktop-owned launchers.
 - Preserved PR #55 static Wallpaper Mode and Zorin's desktop-icons provider.
 - Physical Wayland and X11 verification remains **PENDING**.
+
+## PR #59 — Safe Desktop Shortcut Alignment investigation (unreleased)
+
+- Selected **Outcome B** because the installed Zorin provider has not supplied
+  evidence of a supported, reversible user-level position-writing API.
+- Added a read-only physical diagnostic for GIO information, existing extended
+  attributes, relevant settings, display geometry, and installed provider
+  source; it does not move icons or modify metadata.
+- Documented manual launcher alignment and Wayland-first/X11 persistence tests.
+- Added no positioning mutation or placement controls and preserved the 1.0.0
+  Wallpaper Mode, Desktop Shortcuts, launcher trust behavior, and provider
+  ownership boundaries unchanged.

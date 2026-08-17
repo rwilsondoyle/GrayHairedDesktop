@@ -214,3 +214,20 @@ Result 3 is unchanged.
 Desktop Shortcuts are standard user-owned Desktop Entry files derived directly from `favorites/items`. Resolution calls `xdg-user-dir DESKTOP` without a shell, validates containment within home, and safely falls back to `~/Desktop`. Synchronization owns only deterministic `my-desktop-*.desktop` files containing `X-MyDesktop-Managed=true`; unmarked collisions are refused and stale removal checks ownership again.
 
 Each launcher calls the narrow `grayhaired-desktop --open-url` path, which validates HTTP/HTTPS and hands the URL to the OS browser before QApplication or single-instance setup. This real-icon layer is independent of static Wallpaper Mode and does not modify Zorin's provider. True Desktop Mode remains Future Research.
+
+## Shortcut Placement audit (PR #59)
+
+Shortcut Placement means arranging the real launcher files relative to the
+static wallpaper; it does not make the wallpaper interactive. Outcome B is the
+current decision: prior installed-source evidence establishes a Zorin
+DING-derived provider, but not a supported position-writing API. The audit
+environment has neither that installed source nor the physical user's provider
+state, so no metadata key or coordinate model is inferred and no runtime
+position mutation, UI control, launcher rewrite, extension change, or Shell
+restart is added.
+
+The read-only diagnostic and evidence gate are documented in
+[`SHORTCUT_PLACEMENT_AUDIT.md`](SHORTCUT_PLACEMENT_AUDIT.md). Manual dragging
+through Zorin's UI is the safe workflow pending Wayland-first and then X11
+observation. Wallpaper Mode, Desktop Shortcuts, Shortcut Placement, and the
+hypothetical live True Desktop Mode remain four distinct concepts.

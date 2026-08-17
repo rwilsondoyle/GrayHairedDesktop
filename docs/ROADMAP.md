@@ -229,3 +229,21 @@ experiments. Preserve and consult PR #39 and PR #45 evidence before future work.
 - Wayland physical add/open/remove check: **PENDING**.
 - X11 physical add/open/remove check: **PENDING**.
 - Live interactive True Desktop Mode remains separate **Future Research**.
+
+## Post-1.0 Shortcut Placement investigation (PR #59)
+
+Status: **Outcome B — no safe automatic mutation confirmed**; physical
+Wayland and X11 observation **PENDING**.
+
+- Treat installed Zorin Desktop Icons behavior as authoritative; do not infer a
+  writable metadata key or coordinate model from DING ancestry.
+- Use the read-only diagnostic before/after a normal UI drag and after login to
+  identify storage, persistence, monitor/grid semantics, and provider reload
+  behavior.
+- Support manual alignment now: users drag real My Desktop launchers near their
+  matching static wallpaper areas and keep them above the bottom panel.
+- Add automatic placement only in a future reviewed change if a supported,
+  reversible API and safe collision/restore behavior are physically proven on
+  Wayland and X11.
+- Do not change panels, wallpaper refresh behavior, Zorin's icons, launcher
+  trust, the provider extension, or True Desktop Mode.
