@@ -7,9 +7,9 @@ import os
 import re
 import subprocess
 import unicodedata
+from collections.abc import Callable, Iterable, Mapping
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Callable, Iterable, Mapping
 from urllib.parse import urlsplit, urlunsplit
 
 from grayhaired_desktop.favorites import Favorite
@@ -167,18 +167,24 @@ def preset_positions(count: int, width: int, height: int) -> list[tuple[int, int
     columns = min(4, count)
     rows = (count + columns - 1) // columns
     left = max(24, min(72, width // 20))
-    right = max(left, width - max(180, width // 8))
+    right = max(left, width - max(200, width // 8))
     top = max(40, min(100, height // 10))
     lower = max(top, min(height - 180, int(height * 0.55)))
     xs = (
         [left]
         if columns == 1
-        else [round(left + index * (right - left) / (columns - 1)) for index in range(columns)]
+        else [
+            round(left + index * (right - left) / (columns - 1))
+            for index in range(columns)
+        ]
     )
     ys = (
         [top]
         if rows == 1
-        else [round(top + index * (lower - top) / (rows - 1)) for index in range(rows)]
+        else [
+            round(top + index * (lower - top) / (rows - 1))
+            for index in range(rows)
+        ]
     )
     return [(xs[index % columns], ys[index // columns]) for index in range(count)]
 
@@ -186,14 +192,22 @@ def preset_positions(count: int, width: int, height: int) -> list[tuple[int, int
 class DesktopShortcutManager:
     """Synchronize only clearly marked launchers in a supplied Desktop path."""
 
-    def __init__(self, desktop: Path, logger: logging.Logger, command: str = "grayhaired-desktop") -> None:
+    def __init__(
+        self,
+        desktop: Path,
+        logger: logging.Logger,
+        command: str = "grayhaired-desktop",
+    ) -> None:
         self.desktop = desktop
         self.logger = logger
         self.command = command
 
     def sync(self, favorites: Iterable[Favorite]) -> SyncResult:
         items = list(favorites)
-        self.logger.info("Desktop shortcut synchronization requested; configured shortcuts: %d", len(items))
+        self.logger.info(
+            "Desktop shortcut synchronization requested; configured shortcuts: %d",
+            len(items),
+        )
         desired: dict[Path, str] = {}
         invalid = refused = created = updated = removed = 0
         used: set[str] = set()
@@ -210,16 +224,23 @@ class DesktopShortcutManager:
                 desired[path] = launcher_contents(favorite, self.command)
             except ValueError:
                 invalid += 1
-                self.logger.warning("Refused desktop shortcut with unsafe target: %s", sanitized_url_for_log(favorite.website_address))
+                self.logger.warning(
+                    "Refused desktop shortcut with unsafe target: %s",
+                    sanitized_url_for_log(favorite.website_address),
+                )
 
         for path, contents in desired.items():
             if path.is_symlink():
                 refused += 1
-                self.logger.warning("Refused Desktop shortcut symlink collision: %s", path.name)
+                self.logger.warning(
+                    "Refused Desktop shortcut symlink collision: %s", path.name
+                )
                 continue
             if path.exists() and not is_managed_launcher(path):
                 refused += 1
-                self.logger.warning("Refused to overwrite unowned Desktop collision: %s", path.name)
+                self.logger.warning(
+                    "Refused to overwrite unowned Desktop collision: %s", path.name
+                )
                 continue
             old = path.read_text(encoding="utf-8") if path.exists() else None
             if old == contents:
@@ -241,8 +262,13 @@ class DesktopShortcutManager:
                 self.logger.info("Removed stale managed Desktop shortcut: %s", path.name)
         result = SyncResult(created, updated, removed, refused, invalid)
         self.logger.info(
-            "Desktop shortcut synchronization complete: created=%d updated=%d removed=%d refused=%d invalid=%d",
-            created, updated, removed, refused, invalid,
+            "Desktop shortcut synchronization complete: created=%d updated=%d "
+            "removed=%d refused=%d invalid=%d",
+            created,
+            updated,
+            removed,
+            refused,
+            invalid,
         )
         return result
 
@@ -252,7 +278,9 @@ class DesktopShortcutManager:
             if is_managed_launcher(path):
                 path.unlink()
                 removed += 1
-                self.logger.info("Cleanup removed managed Desktop shortcut: %s", path.name)
+                self.logger.info(
+                    "Cleanup removed managed Desktop shortcut: %s", path.name
+                )
         self.logger.info("Desktop shortcut cleanup complete: removed=%d", removed)
         return removed
 
@@ -303,12 +331,16 @@ class DesktopShortcutPlacementManager:
                 timeout=5,
             )
         except (FileNotFoundError, OSError, subprocess.SubprocessError):
-            self.logger.warning("Could not read Desktop shortcut position: %s", path.name)
+            self.logger.warning(
+                "Could not read Desktop shortcut position: %s", path.name
+            )
             return None
+        prefix = f"{POSITION_ATTRIBUTE}:"
         for line in result.stdout.splitlines():
-            if POSITION_ATTRIBUTE not in line:
+            stripped = line.strip()
+            if not stripped.startswith(prefix):
                 continue
-            _, _, value = line.partition(":")
+            value = stripped[len(prefix) :].strip()
             return parse_icon_position(value)
         return None
 
@@ -320,7 +352,9 @@ class DesktopShortcutPlacementManager:
             position = self.read_position(path)
             if position is not None:
                 captured[path.name] = format_icon_position(position)
-        self.logger.info("Captured previous Desktop shortcut positions: %d", len(captured))
+        self.logger.info(
+            "Captured previous Desktop shortcut positions: %d", len(captured)
+        )
         return captured
 
     def _write_position(self, path: Path, position: tuple[int, int]) -> bool:
@@ -339,7 +373,9 @@ class DesktopShortcutPlacementManager:
         except (FileNotFoundError, OSError, subprocess.SubprocessError):
             self.logger.warning("Could not place Desktop shortcut: %s", path.name)
             return False
-        self.logger.info("Placed managed Desktop shortcut %s at %s", path.name, value)
+        self.logger.info(
+            "Placed managed Desktop shortcut %s at %s", path.name, value
+        )
         return True
 
     def arrange(self, width: int, height: int) -> PlacementResult:
@@ -354,7 +390,11 @@ class DesktopShortcutPlacementManager:
             else:
                 failed += 1
         result = PlacementResult(moved=moved, failed=failed)
-        self.logger.info("Desktop shortcut arrangement complete: moved=%d failed=%d", moved, failed)
+        self.logger.info(
+            "Desktop shortcut arrangement complete: moved=%d failed=%d",
+            moved,
+            failed,
+        )
         return result
 
     def restore(self, positions: Mapping[str, str]) -> PlacementResult:
