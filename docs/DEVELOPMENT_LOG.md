@@ -543,3 +543,25 @@ a later explicit release decision.
 - Do not resume Desktop Mode work unless a materially new supported platform
   capability justifies the Future Research criteria.
 - Treat website CPU optimization as its own non-blocking future follow-up.
+
+## PR #56 real desktop shortcuts — physical verification complete
+
+- The PR #56 implementation and automated tests remain intact; this checkpoint
+  records the completed physical verification rather than changing runtime
+  behavior.
+- Wayland physical verification: **PASSED**.
+- X11 physical verification: **PASSED**.
+- Launcher creation and opening: **PASSED**.
+- GNOME/Zorin **Allow Launching** flow: **PASSED**.
+- Trusted state survives **Refresh Wallpaper**: **PASSED**.
+- Trusted state survives Wayland to X11: **PASSED**.
+- Shortcut configuration synchronization: **PASSED**.
+- Stale launcher removal: **PASSED**.
+- Unrelated desktop files preserved: **PASSED**.
+- **Home** and **Trash** preserved: **PASSED**.
+- Removal limited to My Desktop-managed launchers: **PASSED**.
+- X11 remove/add-back cycle: **PASSED**.
+- PR #55 Wallpaper Mode and PR #56 real shortcuts coexist: **PASSED**.
+- Version remains `1.0.0`.
+- **True Desktop Mode** remains separate Future Research. Safe ordinary desktop
+  launchers do not change Wallpaper Mode into an interactive background layer.

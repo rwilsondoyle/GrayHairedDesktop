@@ -178,6 +178,26 @@ Status: implementation complete; physical Wayland and X11 verification
   persistence. The next work may investigate safe desktop interactivity or
   future wallpaper enhancements without conflating them with True Desktop Mode.
 
+## Post-1.0 real desktop shortcuts
+
+Status: implementation complete; physical Wayland and X11 verification
+**PASSED** on the Dell Inspiron-3147 with Zorin OS 18.1 / GNOME Shell 46.
+
+- Synchronize configured My Desktop shortcuts to safe, ordinary launchers on
+  the user's real desktop.
+- Preserve the desktop ownership boundary: remove only My Desktop-managed
+  launchers, including stale managed launchers, and preserve unrelated desktop
+  files plus Zorin's **Home** and **Trash** icons.
+- Physical verification passed for launcher creation/opening, GNOME/Zorin
+  **Allow Launching**, shortcut-configuration synchronization, and the X11
+  remove/add-back cycle.
+- Trusted launcher state survived **Refresh Wallpaper** and a Wayland-to-X11
+  session change.
+- PR #55 Wallpaper Mode and PR #56 real shortcuts coexist successfully.
+- Version remains `1.0.0`. Ordinary desktop launchers are not a live
+  interactive wallpaper, so **True Desktop Mode** remains separate Future
+  Research.
+
 ## Future research — true Desktop Mode
 
 True Desktop Mode retains its exact historical requirement—an interactive
@@ -201,3 +221,11 @@ experiments. Preserve and consult PR #39 and PR #45 evidence before future work.
 - Evaluate accessibility and high-DPI behavior on the target Zorin hardware.
 - Build an equivalent Windows version only as future platform work; Windows and
   macOS are not supported by the current release.
+
+## Post-1.0 Desktop Shortcuts milestone (PR #56)
+
+- Standard user-level launchers derived from existing shortcuts: implemented.
+- Preserve Zorin icons and manage only marked files: automated coverage complete; Inspiron verification pending.
+- Wayland physical add/open/remove check: **PENDING**.
+- X11 physical add/open/remove check: **PENDING**.
+- Live interactive True Desktop Mode remains separate **Future Research**.

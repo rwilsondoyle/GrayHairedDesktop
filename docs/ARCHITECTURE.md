@@ -208,3 +208,9 @@ Icons active, observed its external `app/ding.js` process, and found installed
 Zorin use of `Main.extensionManager.lookup(...)`. This proves runtime lookup is
 technically present, but it revealed no supported surface/composition contract;
 Result 3 is unchanged.
+
+## Desktop Shortcuts architecture (PR #56)
+
+Desktop Shortcuts are standard user-owned Desktop Entry files derived directly from `favorites/items`. Resolution calls `xdg-user-dir DESKTOP` without a shell, validates containment within home, and safely falls back to `~/Desktop`. Synchronization owns only deterministic `my-desktop-*.desktop` files containing `X-MyDesktop-Managed=true`; unmarked collisions are refused and stale removal checks ownership again.
+
+Each launcher calls the narrow `grayhaired-desktop --open-url` path, which validates HTTP/HTTPS and hands the URL to the OS browser before QApplication or single-instance setup. This real-icon layer is independent of static Wallpaper Mode and does not modify Zorin's provider. True Desktop Mode remains Future Research.

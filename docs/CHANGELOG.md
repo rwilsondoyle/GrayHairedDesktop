@@ -2,6 +2,25 @@
 
 ## Unreleased
 
+### Post-1.0 real desktop shortcuts
+
+- Added safe synchronization of My Desktop shortcuts to ordinary launchers on
+  the user's real desktop, without changing the released `1.0.0` version.
+- Limited removal to launchers managed by My Desktop. Stale managed launchers
+  are removed while unrelated desktop files and Zorin's **Home** and **Trash**
+  icons are preserved.
+- Completed physical verification on the Dell Inspiron-3147 with Zorin OS 18.1
+  / GNOME Shell 46: Wayland **PASSED** and X11 **PASSED**.
+- Verified launcher creation/opening, the GNOME/Zorin **Allow Launching** flow,
+  shortcut-configuration synchronization, stale launcher removal, and the X11
+  remove/add-back cycle: **PASSED**.
+- Verified that trusted state survives **Refresh Wallpaper** and a
+  Wayland-to-X11 session change: **PASSED**.
+- Verified that PR #55 Wallpaper Mode and PR #56 real shortcuts coexist:
+  **PASSED**.
+- Kept **True Desktop Mode** separate Future Research; real desktop launchers
+  do not make Wallpaper Mode interactive.
+
 ### Post-1.0 Desktop Wallpaper foundation
 
 - Added manual static Desktop Website snapshot generation at primary-screen
@@ -174,3 +193,10 @@ Status: complete.
 - Initial Python package structure.
 - Project metadata and dependency declarations.
 - Application entry point foundation.
+
+## PR #56 — Safe interactive Desktop Shortcuts (unreleased)
+
+- Added managed `.desktop` launchers for the existing shortcut configuration, with safe XDG Desktop resolution and HTTP/HTTPS-only opening.
+- Added Settings actions to add, refresh, and remove only My Desktop-owned launchers.
+- Preserved PR #55 static Wallpaper Mode and Zorin's desktop-icons provider.
+- Physical Wayland and X11 verification remains **PENDING**.

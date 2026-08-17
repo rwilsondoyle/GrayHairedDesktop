@@ -6,6 +6,7 @@ import logging
 import os
 import sys
 import time
+import webbrowser
 
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QApplication
@@ -24,6 +25,7 @@ from grayhaired_desktop.desktop_mode import (
     select_desktop_mode,
 )
 from grayhaired_desktop.logger import configure_logging, log_file_path
+from grayhaired_desktop.desktop_shortcuts import safe_web_url, sanitized_url_for_log
 from grayhaired_desktop.single_instance import (
     InstanceRole,
     SingleInstanceGuard,
@@ -53,12 +55,23 @@ def build_application(argv: list[str] | None = None) -> QApplication:
 def run(argv: list[str] | None = None) -> int:
     """Run the My Desktop application."""
 
+    arguments = sys.argv if argv is None else argv
+    if len(arguments) == 3 and arguments[1] == "--open-url":
+        logger = configure_logging(logging.INFO)
+        target = safe_web_url(arguments[2])
+        if target is None:
+            logger.error("Launch failure: refused unsafe desktop shortcut URL")
+            return 2
+        if not webbrowser.open(target):
+            logger.error("Launch failure for %s", sanitized_url_for_log(target))
+            return 1
+        return 0
     started_at = time.perf_counter()
     logger = configure_logging(logging.INFO)
     logger.info("Log file: %s", log_file_path())
     logger.info("Application startup began")
     metadata = AppMetadata()
-    app = build_application(argv)
+    app = build_application(arguments)
     instance_guard = SingleInstanceGuard(server_name(metadata.application_id), app)
     if instance_guard.acquire() is InstanceRole.SECONDARY:
         logger.info("Existing application instance notified; exiting")
