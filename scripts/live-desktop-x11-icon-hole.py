@@ -2,13 +2,15 @@
 """Temporary X11 Live Desktop experiment with one real-desktop icon hole.
 
 This prototype keeps the existing frameless, stays-below Live Desktop window but
-removes one rectangle from the top-level Qt window mask.  On X11, pixels and
+removes one rectangle from the top-level Qt window mask. On X11, pixels and
 pointer input outside the mask belong to windows underneath, allowing a real
 Zorin/DING desktop icon to show through and receive input without modifying the
 DING extension.
 
-The hole is intentionally hard-coded around the physically measured Gmail icon
-for the first Inspiron experiment.  This is research only, not product code.
+The hole is intentionally hard-coded around the Gmail icon's visually observed
+position on the Inspiron for this one experiment. The stored Nautilus metadata
+was shown to be stale for the current visible layout, so this prototype does not
+use that metadata. This is research only, not product code.
 """
 
 from __future__ import annotations
@@ -27,14 +29,13 @@ from grayhaired_desktop.desktop_mode import detect_session
 from grayhaired_desktop.logger import configure_logging
 from grayhaired_desktop.ui.mainwindow import MainWindow
 
-# Gmail metadata::nautilus-icon-position measured physically on the Inspiron.
-GMAIL_X = 1183
-GMAIL_Y = 104
-# Give DING's icon, label, selection highlight, and context-menu hit area room.
-HOLE_PADDING_X = 18
-HOLE_PADDING_Y = 18
-HOLE_WIDTH = 126
-HOLE_HEIGHT = 126
+# Visually observed Gmail area on the Inspiron X11 desktop. The rectangle is
+# deliberately generous so the icon, label, selection area, and context-menu
+# hit target all fall through to the untouched Zorin/DING desktop underneath.
+HOLE_ROOT_X = 0
+HOLE_ROOT_Y = 82
+HOLE_WIDTH = 118
+HOLE_HEIGHT = 140
 
 
 def copy_settings(source: QSettings, destination: QSettings) -> None:
@@ -93,9 +94,10 @@ def main() -> int:
         geometry = screen.availableGeometry()
         window.setGeometry(geometry)
 
-        # Convert the root-desktop Gmail position into this window's coordinates.
-        hole_x = GMAIL_X - geometry.x() - HOLE_PADDING_X
-        hole_y = GMAIL_Y - geometry.y() - HOLE_PADDING_Y
+        # Convert the visually measured root-desktop rectangle to window-local
+        # coordinates. This test intentionally does not trust icon metadata.
+        hole_x = HOLE_ROOT_X - geometry.x()
+        hole_y = HOLE_ROOT_Y - geometry.y()
         hole = QRect(hole_x, hole_y, HOLE_WIDTH, HOLE_HEIGHT)
 
         full_region = QRegion(window.rect())
@@ -117,9 +119,9 @@ def main() -> int:
             geometry.y(),
         )
         logger.info(
-            "Gmail hole root=%d,%d local=%d,%d size=%dx%d",
-            GMAIL_X,
-            GMAIL_Y,
+            "Gmail visual hole root=%d,%d local=%d,%d size=%dx%d",
+            HOLE_ROOT_X,
+            HOLE_ROOT_Y,
             hole.x(),
             hole.y(),
             hole.width(),
