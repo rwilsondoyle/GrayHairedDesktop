@@ -5,14 +5,6 @@ This intentionally does not enable a product feature. It copies the user's
 current My Desktop settings into a temporary INI file, disables prototype
 autostart, and shows the existing MainWindow as a frameless, stays-below
 work-area-sized window. Closing the prototype removes the temporary settings.
-
-Prototype-only keyboard experiments:
-- Ctrl+Alt+D asks the Live Desktop window to recover after Show Desktop.
-- Ctrl+Alt+Q exits the prototype.
-
-The recovery shortcut is deliberately application-local. Physical testing must
-show whether the desktop environment delivers it after Show Desktop has made
-the prototype inactive; no global desktop shortcut is installed or modified.
 """
 
 from __future__ import annotations
@@ -80,41 +72,12 @@ def main() -> int:
         geometry = screen.availableGeometry()
         window.setGeometry(geometry)
 
-        def recover_live_desktop() -> None:
-            """Request a visible, active Live Desktop after Show Desktop."""
-
-            logger.info(
-                "Prototype recovery shortcut fired; visible=%s minimized=%s active=%s",
-                window.isVisible(),
-                window.isMinimized(),
-                window.isActiveWindow(),
-            )
-            if window.isMinimized():
-                window.showNormal()
-            elif not window.isVisible():
-                window.show()
-            else:
-                # Re-showing an already-visible window asks the compositor/window
-                # manager to reconsider it after a Show Desktop transition.
-                window.hide()
-                window.show()
-            window.setGeometry(geometry)
-            window.raise_()
-            window.activateWindow()
-
-        recovery_shortcut = QShortcut(QKeySequence("Ctrl+Alt+D"), window)
-        recovery_shortcut.setContext(Qt.ShortcutContext.ApplicationShortcut)
-        recovery_shortcut.activated.connect(recover_live_desktop)
-
         # A dedicated exit shortcut avoids relying on a title bar that the
         # prototype deliberately does not have.
         exit_shortcut = QShortcut(QKeySequence("Ctrl+Alt+Q"), window)
         exit_shortcut.setContext(Qt.ShortcutContext.ApplicationShortcut)
         exit_shortcut.activated.connect(window.close)
-
-        # Keep explicit Python references for the lifetime of the prototype.
-        window._live_desktop_recovery_shortcut = recovery_shortcut
-        window._live_desktop_exit_shortcut = exit_shortcut
+        window._live_desktop_exit_shortcut = exit_shortcut  # keep Qt ownership visible
 
         logger.info(
             "Prototype session=%s Qt=%s geometry=%dx%d%+d%+d",
@@ -125,7 +88,6 @@ def main() -> int:
             geometry.x(),
             geometry.y(),
         )
-        logger.info("Prototype recovery shortcut: Ctrl+Alt+D")
         logger.info("Prototype exit shortcut: Ctrl+Alt+Q")
 
         window.show()
