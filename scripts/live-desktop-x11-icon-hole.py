@@ -1,16 +1,13 @@
 #!/usr/bin/env python3
-"""Temporary X11 Live Desktop experiment with one real-desktop icon hole.
+"""Temporary X11 Live Desktop experiment with a real desktop-icon zone.
 
 This prototype keeps the existing frameless, stays-below Live Desktop window but
-removes one rectangle from the top-level Qt window mask. On X11, pixels and
-pointer input outside the mask belong to windows underneath, allowing a real
-Zorin/DING desktop icon to show through and receive input without modifying the
-DING extension.
+removes a full-height strip from the left side of the top-level Qt window mask.
+On X11, pixels and pointer input outside the mask belong to windows underneath,
+allowing the untouched Zorin/DING desktop icons to show through and receive
+normal clicks, context menus, and drag/drop behavior.
 
-The hole is intentionally hard-coded around the Gmail icon's visually observed
-position on the Inspiron for this one experiment. The stored Nautilus metadata
-was shown to be stale for the current visible layout, so this prototype does not
-use that metadata. This is research only, not product code.
+This is research only, not product code.
 """
 
 from __future__ import annotations
@@ -29,13 +26,11 @@ from grayhaired_desktop.desktop_mode import detect_session
 from grayhaired_desktop.logger import configure_logging
 from grayhaired_desktop.ui.mainwindow import MainWindow
 
-# Visually observed Gmail area on the Inspiron X11 desktop. The rectangle is
-# deliberately generous so the icon, label, selection area, and context-menu
-# hit target all fall through to the untouched Zorin/DING desktop underneath.
-HOLE_ROOT_X = 0
-HOLE_ROOT_Y = 82
-HOLE_WIDTH = 118
-HOLE_HEIGHT = 140
+# First physical X11 experiment: reserve the left side for normal Zorin/DING
+# desktop icons.  The width is intentionally generous enough for one or two
+# icon columns and for dragging between grid positions without crossing back
+# into the Live Desktop window.
+ICON_ZONE_WIDTH = 220
 
 
 def copy_settings(source: QSettings, destination: QSettings) -> None:
@@ -50,19 +45,19 @@ def copy_settings(source: QSettings, destination: QSettings) -> None:
 
 def main() -> int:
     metadata = AppMetadata()
-    logger = configure_logging(logging.INFO).getChild("live-desktop-x11-icon-hole")
+    logger = configure_logging(logging.INFO).getChild("live-desktop-x11-icon-zone")
     app = build_application(sys.argv)
     session = detect_session(app.platformName())
 
     if session.session_type not in {"x11", "xorg"} or session.qt_platform != "xcb":
         logger.error(
-            "Icon-hole prototype requires native X11/xcb; session=%s Qt=%s",
+            "Icon-zone prototype requires native X11/xcb; session=%s Qt=%s",
             session.session_type,
             session.qt_platform,
         )
         return 2
 
-    with tempfile.TemporaryDirectory(prefix="grayhaired-live-desktop-hole-") as directory:
+    with tempfile.TemporaryDirectory(prefix="grayhaired-live-desktop-zone-") as directory:
         source_settings = create_settings(metadata)
         prototype_settings = QSettings(
             str(Path(directory) / "prototype.ini"), QSettings.Format.IniFormat
@@ -88,20 +83,17 @@ def main() -> int:
 
         screen = window.screen() or app.primaryScreen()
         if screen is None:
-            logger.error("No screen is available for the icon-hole prototype")
+            logger.error("No screen is available for the icon-zone prototype")
             return 2
 
         geometry = screen.availableGeometry()
         window.setGeometry(geometry)
 
-        # Convert the visually measured root-desktop rectangle to window-local
-        # coordinates. This test intentionally does not trust icon metadata.
-        hole_x = HOLE_ROOT_X - geometry.x()
-        hole_y = HOLE_ROOT_Y - geometry.y()
-        hole = QRect(hole_x, hole_y, HOLE_WIDTH, HOLE_HEIGHT)
-
+        # Remove the entire left-side strip from the Live Desktop window.
+        # Zorin/DING owns both pixels and pointer input in this region.
+        icon_zone = QRect(0, 0, min(ICON_ZONE_WIDTH, geometry.width()), geometry.height())
         full_region = QRegion(window.rect())
-        visible_region = full_region.subtracted(QRegion(hole))
+        visible_region = full_region.subtracted(QRegion(icon_zone))
         window.setMask(visible_region)
 
         exit_shortcut = QShortcut(QKeySequence("Ctrl+Alt+Q"), window)
@@ -110,7 +102,7 @@ def main() -> int:
         window._live_desktop_exit_shortcut = exit_shortcut
 
         logger.info(
-            "Icon-hole prototype session=%s Qt=%s geometry=%dx%d%+d%+d",
+            "Icon-zone prototype session=%s Qt=%s geometry=%dx%d%+d%+d",
             session.session_type,
             session.qt_platform,
             geometry.width(),
@@ -119,13 +111,9 @@ def main() -> int:
             geometry.y(),
         )
         logger.info(
-            "Gmail visual hole root=%d,%d local=%d,%d size=%dx%d",
-            HOLE_ROOT_X,
-            HOLE_ROOT_Y,
-            hole.x(),
-            hole.y(),
-            hole.width(),
-            hole.height(),
+            "Zorin/DING icon zone local=0,0 size=%dx%d",
+            icon_zone.width(),
+            icon_zone.height(),
         )
         logger.info("Prototype exit shortcut: Ctrl+Alt+Q")
 
