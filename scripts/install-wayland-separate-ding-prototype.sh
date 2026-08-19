@@ -28,6 +28,13 @@ if pgrep -f '/zorin-desktop-icons@zorinos.com/app/ding.js' >/dev/null 2>&1; then
     exit 2
 fi
 
+if pgrep -f '/grayhaired-live-desktop@grayhaired.tech/app/ding.js' >/dev/null 2>&1; then
+    echo "The GrayHaired Wayland prototype DING process is still running."
+    echo "Disable it first with:"
+    echo "  gnome-extensions disable $TEST_UUID"
+    exit 2
+fi
+
 mkdir -p "$USER_ROOT"
 rm -rf "$TEST_EXT"
 cp -a "$SYSTEM_EXT" "$TEST_EXT"
@@ -70,6 +77,30 @@ if old_imports not in text:
     raise SystemExit("Expected desktopGrid.js import block not found; refusing to patch")
 text = text.replace(old_imports, new_imports, 1)
 
+old_description = """        this._desktopDescription = desktopDescription;
+        this.updateWindowGeometry();
+        this.updateUnscaledHeightWidthMargins();
+"""
+new_description = """        // GrayHairedDesktop Wayland research prototype:
+        // keep the top-level desktop window at the monitor's full size, but
+        // constrain DING's usable icon grid to a 220-pixel strip on the left.
+        // updateWindowGeometry() uses desktopDescription.width, while the grid
+        // calculations below subtract marginRight, so these can be controlled
+        // independently.
+        desktopDescription = Object.assign({}, desktopDescription);
+        const liveIconStripWidth = 220;
+        desktopDescription.marginRight = Math.max(
+            desktopDescription.marginRight,
+            desktopDescription.width - desktopDescription.marginLeft - liveIconStripWidth
+        );
+        this._desktopDescription = desktopDescription;
+        this.updateWindowGeometry();
+        this.updateUnscaledHeightWidthMargins();
+"""
+if old_description not in text:
+    raise SystemExit("Expected desktop description block not found; refusing to patch")
+text = text.replace(old_description, new_description, 1)
+
 old_widgets = """        this._eventBox = new Gtk.EventBox({visible: true});
         this.sizeEventBox();
         this._window.add(this._eventBox);
@@ -81,11 +112,9 @@ old_widgets = """        this._eventBox = new Gtk.EventBox({visible: true});
 new_widgets = """        this._eventBox = new Gtk.EventBox({visible: true});
         this.sizeEventBox();
 
-        // GrayHairedDesktop Wayland research prototype:
-        // keep DING's original EventBox -> Gtk.Fixed hierarchy intact, but
-        // show it only in a dedicated left-side strip. WebKit lives beside
-        // DING rather than above or below it, so pointer events do not cross
-        // between two overlapping full-screen widgets.
+        // Keep DING's original EventBox -> Gtk.Fixed hierarchy intact in the
+        // left-side strip. WebKit lives beside it, so the two input systems do
+        // not overlap.
         this._eventBox.set_size_request(220, this._windowHeight);
         this._container = new Gtk.Fixed();
         this._eventBox.add(this._container);
@@ -108,7 +137,7 @@ if old_widgets not in text:
 text = text.replace(old_widgets, new_widgets, 1)
 
 path.write_text(text, encoding="utf-8")
-print("Patched separate-UUID desktopGrid.js for split-surface Wayland research.")
+print("Patched separate-UUID desktopGrid.js for corrected split-surface Wayland research.")
 PY
 
 cat <<EOF
@@ -126,14 +155,11 @@ UUID:
 
 The normal Zorin desktop-icons extension must remain disabled while testing.
 
-Next step: LOG OUT and log back into Wayland so GNOME discovers the new UUID.
-Do not reboot.
-
-After login run:
-  gnome-extensions list | grep -E 'grayhaired-live-desktop|zorin-desktop-icons'
-
-Then enable the prototype with:
+If this UUID has already been discovered by GNOME Shell, enable it with:
   gnome-extensions enable $TEST_UUID
+
+For a first-time installation, log out and back into Wayland before enabling it.
+A reboot is NOT required.
 
 Recovery/removal:
   bash ~/GrayHairedDesktop/scripts/remove-wayland-separate-ding-prototype.sh
