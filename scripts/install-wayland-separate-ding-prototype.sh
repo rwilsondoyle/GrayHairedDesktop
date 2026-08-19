@@ -110,12 +110,18 @@ old_widgets = """        this._eventBox = new Gtk.EventBox({visible: true});
         this.setDropDestination(this._eventBox);
 """
 new_widgets = """        this._eventBox = new Gtk.EventBox({visible: true});
+
+        // Tell sizeEventBox() that the large right margin is grid geometry
+        // only. If GTK also applies that margin to this widget inside the
+        // horizontal split, it consumes the space intended for WebKit.
+        this._liveSplitSurface = true;
         this.sizeEventBox();
 
         // Keep DING's original EventBox -> Gtk.Fixed hierarchy intact in the
         // left-side strip. WebKit lives beside it, so the two input systems do
         // not overlap.
-        this._eventBox.set_size_request(220, this._windowHeight);
+        this._eventBox.set_size_request(220, -1);
+        this._eventBox.set_vexpand(true);
         this._container = new Gtk.Fixed();
         this._eventBox.add(this._container);
 
@@ -136,8 +142,50 @@ if old_widgets not in text:
     raise SystemExit("Expected DING widget block not found; refusing to patch")
 text = text.replace(old_widgets, new_widgets, 1)
 
+old_size_event_box = """    sizeEventBox() {
+        this._eventBox.margin_top = this._marginTop;
+        this._eventBox.margin_bottom = this._marginBottom;
+        const leftToRight =
+            this._eventBox.get_direction() === Gtk.TextDirection.LTR;
+        if (leftToRight) {
+            this._eventBox.margin_start = this._marginLeft;
+            this._eventBox.margin_end = this._marginRight;
+        } else {
+            this._eventBox.margin_start = this._marginRight;
+            this._eventBox.margin_end = this._marginLeft;
+        }
+    }
+"""
+new_size_event_box = """    sizeEventBox() {
+        this._eventBox.margin_top = this._marginTop;
+        this._eventBox.margin_bottom = this._marginBottom;
+
+        // GrayHairedDesktop split-surface prototype: marginRight is still used
+        // by DING's grid calculations, but must not become a GTK widget margin
+        // or it will consume WebKit's horizontal allocation.
+        if (this._liveSplitSurface) {
+            this._eventBox.margin_start = 0;
+            this._eventBox.margin_end = 0;
+            return;
+        }
+
+        const leftToRight =
+            this._eventBox.get_direction() === Gtk.TextDirection.LTR;
+        if (leftToRight) {
+            this._eventBox.margin_start = this._marginLeft;
+            this._eventBox.margin_end = this._marginRight;
+        } else {
+            this._eventBox.margin_start = this._marginRight;
+            this._eventBox.margin_end = this._marginLeft;
+        }
+    }
+"""
+if old_size_event_box not in text:
+    raise SystemExit("Expected sizeEventBox() method not found; refusing to patch")
+text = text.replace(old_size_event_box, new_size_event_box, 1)
+
 path.write_text(text, encoding="utf-8")
-print("Patched separate-UUID desktopGrid.js for corrected split-surface Wayland research.")
+print("Patched separate-UUID desktopGrid.js for split allocation without GTK margin starvation.")
 PY
 
 cat <<EOF
