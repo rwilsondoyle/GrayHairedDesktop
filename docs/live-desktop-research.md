@@ -98,9 +98,17 @@ Verified behavior:
 - DING icon right-click context menu: PASS
 - DING icon drag within strip: PASS
 - dragged position stays: PASS
+- dragged position is written to desktop metadata: PASS
 - My Desktop normal links: PASS
 - My Desktop Folders links: PASS
 - My Desktop webpage receives right-click/input: PASS
+
+Observed metadata after moving icons during the Wayland test included:
+
+- `my-desktop-gmail.desktop`: `112,2`
+- `my-desktop-news.desktop`: `112,410`
+
+This confirms DING is persisting moved icon positions, not merely leaving them visually in place for the current session.
 
 Relevant research-branch commits leading to the milestone:
 
@@ -110,11 +118,21 @@ Relevant research-branch commits leading to the milestone:
 - `fad35ee` — preserve grid margin without starving WebKit
 - `61ec8e3` — add Wayland WebKit external link handoff
 
+## Inspiron Zorin lock/unlock issue — ENVIRONMENTAL, NOT CAUSED BY GRAYHAIRED
+
+During Wayland testing, locking the screen caused GNOME Shell's extension session transition to fail, leaving enabled extensions such as Zorin Taskbar, Zorin Menu, and GrayHaired Live Desktop in `INACTIVE` state.
+
+A controlled A/B test was performed with `grayhaired-live-desktop@grayhaired.tech` completely disabled before locking. The Zorin taskbar still disappeared after lock/unlock, proving that this failure occurs independently of GrayHairedDesktop.
+
+The journal captured failures in Zorin's own AppIndicator/Taskbar path, including errors such as `TypeError: this._indicator is null`, followed by an unhandled promise rejection from GNOME Shell's `_sessionUpdated()` during lock/unlock session-mode transitions.
+
+Treat this as a separate Inspiron/Zorin/GNOME environment issue. Do not change GrayHairedDesktop code merely to work around it without separate evidence.
+
 ## Open design questions / next work
 
 The 220-pixel left icon strip is a proven coexistence mechanism, but it is not necessarily the final UX. A future design may use page-aware icon-safe areas. The user's idea is that regions with live/clickable My Desktop content remain controlled by My Desktop, while noninteractive regions could be available to real desktop icons. Any such design must account for dynamic dropdowns/menus that can temporarily occupy otherwise empty space.
 
-Before implementing automatic zones, preserve the current working split-surface milestone and test its stability across logout/login, page reload, extension disable/enable, and both X11 and Wayland workflows.
+Before implementing automatic zones, preserve the current working split-surface milestone and test its stability across page reload and controlled extension disable/enable. Logout/login and lock/unlock results on this Inspiron are currently contaminated by the independent Zorin extension-session bug described above.
 
 ## Local `research/` directory
 
