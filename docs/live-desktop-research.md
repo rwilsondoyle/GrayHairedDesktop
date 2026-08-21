@@ -104,6 +104,7 @@ Verified behavior:
 - My Desktop webpage receives right-click/input: PASS
 - WebKit page reload preserves page, icon strip, saved icon positions, links, and Folders behavior: PASS
 - disabling and re-enabling the GrayHaired Wayland extension restores the page, icon strip, saved icon positions, webpage links/Folders, and icon click/right-click/drag behavior: PASS
+- normal logout/login on Wayland restores My Desktop automatically, restores the real desktop icons in their saved positions, restores the Zorin taskbar, and preserves links/Folders behavior without manual intervention: PASS
 
 Observed metadata after moving icons during the Wayland test included:
 
@@ -134,7 +135,7 @@ Treat this as a separate Inspiron/Zorin/GNOME environment issue. Do not change G
 
 The 220-pixel left icon strip is a proven coexistence mechanism, but it is not necessarily the final UX. A future design may use page-aware icon-safe areas. The user's idea is that regions with live/clickable My Desktop content remain controlled by My Desktop, while noninteractive regions could be available to real desktop icons. Any such design must account for dynamic dropdowns/menus that can temporarily occupy otherwise empty space.
 
-The current split-surface milestone is stable across WebKit page reload and controlled extension disable/enable. Logout/login and lock/unlock results on this Inspiron are currently contaminated by the independent Zorin extension-session bug described above.
+The current split-surface milestone is stable across WebKit page reload, controlled extension disable/enable, and normal Wayland logout/login. Lock/unlock testing on this Inspiron is still contaminated by the independent Zorin extension-session bug described above.
 
 ## Local `research/` directory
 
