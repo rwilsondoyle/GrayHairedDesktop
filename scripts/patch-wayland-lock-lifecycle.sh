@@ -99,5 +99,10 @@ Patched only the user-local research extension:
 
 The system Zorin extension was NOT modified.
 
-Next: toggle the GrayHaired extension once so GNOME Shell loads the patched code.
+This changes extension.js itself. Do NOT use a rapid disable/enable cycle just to
+load it. Prefer a normal logout/login so GNOME Shell starts a fresh extension
+module in a fresh session.
+
+For normal app/ child-code development, do not use this script at all; use:
+  bash ~/GrayHairedDesktop/scripts/reload-grayhaired.sh
 EOF
