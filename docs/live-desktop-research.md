@@ -11,6 +11,7 @@ Make **My Desktop** behave like the desktop background itself rather than like a
 - Preserve cleanup/recovery commands.
 - A logout/login is acceptable when GNOME Shell must reload. Avoid kernel reboot unless genuinely required.
 - Keep known-good X11 and Wayland prototypes intact before trying new approaches.
+- For routine child-side DING/WebKit development, do not hot-toggle the GNOME extension. Use `scripts/reload-grayhaired.sh` as documented in `docs/live-desktop-development.md`.
 
 ## X11 findings
 
@@ -80,6 +81,7 @@ Important implementation findings:
 4. The large right margin must **not** also be applied as a GTK widget margin inside the horizontal split, or it consumes WebKit's allocation.
 5. The working arrangement keeps DING's EventBox/Fixed hierarchy in a 220-pixel left strip and places WebKit beside it.
 6. WebKitGTK needs explicit navigation/new-window policy handling so page links are handed to the default browser.
+7. DING listens for keyboard events at the shared top-level desktop window. When WebKit owns focus, those bubbled events must not also be sent to DING type-to-search. The GrayHaired focus guard now preserves WebKit text entry while keeping DING keyboard behavior available when the icon side owns focus.
 
 ## Current verified Wayland milestone
 
@@ -103,8 +105,10 @@ Verified behavior:
 - My Desktop Folders links: PASS
 - My Desktop webpage receives right-click/input: PASS
 - WebKit page reload preserves page, icon strip, saved icon positions, links, and Folders behavior: PASS
-- disabling and re-enabling the GrayHaired Wayland extension restores the page, icon strip, saved icon positions, webpage links/Folders, and icon click/right-click/drag behavior: PASS
+- disabling and re-enabling the GrayHaired Wayland extension restores the page, icon strip, saved icon positions, webpage links/Folders, and icon click/right-click/drag behavior: PASS (historical test only; no longer the preferred development reload method)
 - normal logout/login on Wayland restores My Desktop automatically, restores the real desktop icons in their saved positions, restores the Zorin taskbar, and preserves links/Folders behavior without manual intervention: PASS
+- normal reboot restores My Desktop, desktop icons and saved positions, Zorin taskbar, webpage links/Folders, and icon click/right-click/drag behavior: PASS
+- WebKit text input no longer triggers DING's `Clear Current Selection before New Search` popup; both tested page text fields accept typing normally: PASS
 
 Observed metadata after moving icons during the Wayland test included:
 
@@ -113,13 +117,15 @@ Observed metadata after moving icons during the Wayland test included:
 
 This confirms DING is persisting moved icon positions, not merely leaving them visually in place for the current session.
 
-Relevant research-branch commits leading to the milestone:
+Relevant research-branch commits leading to the milestone include:
 
 - `a42c599` — add separate UUID Wayland DING installer
 - `4d172a1` — add separate UUID Wayland DING cleanup
 - `4239c82` — constrain DING grid width in Wayland split surface
 - `fad35ee` — preserve grid margin without starving WebKit
 - `61ec8e3` — add Wayland WebKit external link handoff
+- `2984250` — add child-only GrayHaired development reload script
+- `6dbbc17` — preserve WebKit keyboard focus from DING search
 
 ## Inspiron Zorin lock/unlock issue — ENVIRONMENTAL, NOT CAUSED BY GRAYHAIRED
 
@@ -131,11 +137,25 @@ The journal captured failures in Zorin's own AppIndicator/Taskbar path, includin
 
 Treat this as a separate Inspiron/Zorin/GNOME environment issue. Do not change GrayHairedDesktop code merely to work around it without separate evidence.
 
+Because whole-extension hot reload also exercises GNOME Shell's extension teardown path, routine GrayHaired app-code development now uses a child-only DING/WebKit restart instead. See `docs/live-desktop-development.md`.
+
+## Development reload architecture
+
+The GrayHaired GNOME extension owns and supervises a separate `app/ding.js` GTK/GJS child process. Most live-desktop changes are inside that child process, so the safe routine reload command is:
+
+```bash
+bash ~/GrayHairedDesktop/scripts/reload-grayhaired.sh
+```
+
+The script sends SIGTERM only to the GrayHaired child and waits for the already-active extension to relaunch exactly one replacement child. It does not disable/re-enable GNOME extensions or touch Zorin Taskbar, AppIndicator, Menu, Tiling Shell, or unrelated extensions.
+
+For website-only changes, use WebKit page Reload. For genuine `extension.js` changes, prefer a normal logout/login.
+
 ## Open design questions / next work
 
 The 220-pixel left icon strip is a proven coexistence mechanism, but it is not necessarily the final UX. A future design may use page-aware icon-safe areas. The user's idea is that regions with live/clickable My Desktop content remain controlled by My Desktop, while noninteractive regions could be available to real desktop icons. Any such design must account for dynamic dropdowns/menus that can temporarily occupy otherwise empty space.
 
-The current split-surface milestone is stable across WebKit page reload, controlled extension disable/enable, and normal Wayland logout/login. Lock/unlock testing on this Inspiron is still contaminated by the independent Zorin extension-session bug described above.
+The current split-surface milestone is stable across WebKit page reload, child-process restart, normal Wayland logout/login, and reboot. Lock/unlock testing on this Inspiron is still contaminated by the independent Zorin extension-session bug described above.
 
 ## Local `research/` directory
 
