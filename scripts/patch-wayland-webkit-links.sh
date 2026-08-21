@@ -18,21 +18,18 @@ if [[ ! -f "$GRID" ]]; then
     exit 2
 fi
 
-if pgrep -f '/grayhaired-live-desktop@grayhaired.tech/app/ding.js' >/dev/null 2>&1; then
-    echo "The GrayHaired Wayland prototype is still running."
-    echo "Disable it first with:"
-    echo "  gnome-extensions disable $TEST_UUID"
-    exit 2
-fi
-
-cp "$GRID" "$BACKUP"
-
-python3 - "$GRID" <<'PY'
+python3 - "$GRID" "$BACKUP" <<'PY'
 from pathlib import Path
+import shutil
 import sys
 
 path = Path(sys.argv[1])
+backup = Path(sys.argv[2])
 text = path.read_text(encoding="utf-8")
+
+if "[GRAYHAIRED-WEBKIT] Opening in default browser" in text:
+    print("WebKit external-link handoff is already present.")
+    raise SystemExit(0)
 
 old_imports = """const Gtk = imports.gi.Gtk;
 const Gdk = imports.gi.Gdk;
@@ -116,18 +113,21 @@ new_webview = """        this._liveWebView = new WebKit2.WebView();
 """
 if old_webview not in text:
     raise SystemExit("Expected live WebView block not found; refusing to patch")
-text = text.replace(old_webview, new_webview, 1)
 
-path.write_text(text, encoding="utf-8")
+if not backup.exists():
+    shutil.copy2(path, backup)
+
+path.write_text(text.replace(old_webview, new_webview, 1), encoding="utf-8")
 print("Added WebKit external-link handoff to the Wayland prototype.")
 PY
 
 echo
-echo "=== WAYLAND WEBKIT LINK PATCH APPLIED ==="
+echo "=== WAYLAND WEBKIT LINK PATCH READY ==="
 echo "Patched:"
 echo "  $GRID"
 echo "Backup:"
 echo "  $BACKUP"
 echo
-echo "Enable the prototype with:"
-echo "  gnome-extensions enable $TEST_UUID"
+echo "Do NOT disable/re-enable the GNOME extension for this app-code change."
+echo "Reload only the GrayHaired child process with:"
+echo "  bash ~/GrayHairedDesktop/scripts/reload-grayhaired.sh"
