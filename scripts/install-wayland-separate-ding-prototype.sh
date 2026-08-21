@@ -8,6 +8,7 @@ USER_ROOT="$HOME/.local/share/gnome-shell/extensions"
 TEST_EXT="$USER_ROOT/$TEST_UUID"
 GRID="$TEST_EXT/app/desktopGrid.js"
 META="$TEST_EXT/metadata.json"
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 
 if [[ "${XDG_SESSION_TYPE:-}" != "wayland" ]]; then
     echo "This prototype installer is intended for a Wayland login."
@@ -30,8 +31,9 @@ fi
 
 if pgrep -f '/grayhaired-live-desktop@grayhaired.tech/app/ding.js' >/dev/null 2>&1; then
     echo "The GrayHaired Wayland prototype DING process is still running."
-    echo "Disable it first with:"
-    echo "  gnome-extensions disable $TEST_UUID"
+    echo "This installer replaces the user-local extension tree, so use it only for installation/reinstallation."
+    echo "For normal development reloads use:"
+    echo "  bash $SCRIPT_DIR/reload-grayhaired.sh"
     exit 2
 fi
 
@@ -188,6 +190,12 @@ path.write_text(text, encoding="utf-8")
 print("Patched separate-UUID desktopGrid.js for split allocation without GTK margin starvation.")
 PY
 
+# Build the complete known-good child-process code during installation. These
+# patchers are also useful independently during development, but they no longer
+# require a whole GNOME extension disable/enable cycle.
+bash "$SCRIPT_DIR/patch-wayland-webkit-links.sh"
+bash "$SCRIPT_DIR/patch-wayland-webkit-keyboard-focus.sh"
+
 cat <<EOF
 
 === SEPARATE WAYLAND DING PROTOTYPE INSTALLED ===
@@ -209,6 +217,14 @@ If this UUID has already been discovered by GNOME Shell, enable it with:
 For a first-time installation, log out and back into Wayland before enabling it.
 A reboot is NOT required.
 
+IMPORTANT DEVELOPMENT WORKFLOW:
+  Do not repeatedly disable/enable the GNOME extension to reload app code.
+  For desktopGrid.js, desktopManager.js, ding.js, WebKit, or other app/ code changes use:
+    bash $SCRIPT_DIR/reload-grayhaired.sh
+
+For changes to extension.js itself, prefer a normal logout/login so GNOME Shell
+loads a fresh extension module without churning unrelated Zorin extensions.
+
 Recovery/removal:
-  bash ~/GrayHairedDesktop/scripts/remove-wayland-separate-ding-prototype.sh
+  bash $SCRIPT_DIR/remove-wayland-separate-ding-prototype.sh
 EOF
