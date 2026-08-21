@@ -25,6 +25,8 @@ changed = False
 if not backup.exists():
     shutil.copy2(path, backup)
 
+# Preserve the known-good WebKit keyboard guard: when WebKit owns focus,
+# bubbled key events must not also be processed by DING.
 keyboard_marker = "The WebKit live-desktop surface and DING icon strip share this"
 if keyboard_marker not in text:
     old = """        this.connectSignal(this._window, 'key-press-event', (actor, event) => {
@@ -67,16 +69,10 @@ if keyboard_marker not in text:
     text = text.replace(old, new, 1)
     changed = True
 
-focus_marker = "Reclaim keyboard focus for DING when the icon strip is clicked"
-if focus_marker not in text:
-    old_press = """        this.connectSignal(this._eventBox, 'button-press-event', (actor, event) => {
-            let [a, x, y] = event.get_coords();
-            [x, y] = this.coordinatesLocalToGlobal(x, y);
-            this._desktopManager.onPressButton(x, y, event, this);
-            return false;
-        });"""
-
-    new_press = """        this.connectSignal(this._eventBox, 'button-press-event', (actor, event) => {
+# Remove the experimental focus-reclaim code. Physical testing showed Escape
+# could work but arrow navigation still failed, and repeated focus switching
+# immediately preceded a full machine lockup. Do not force Gtk.EventBox focus.
+focus_block = """        this.connectSignal(this._eventBox, 'button-press-event', (actor, event) => {
             // GrayHairedDesktop: Reclaim keyboard focus for DING when the icon
             // strip is clicked. WebKit legitimately owns focus while typing in
             // the live page, but clicking back on the real desktop must restore
@@ -90,26 +86,33 @@ if focus_marker not in text:
             return false;
         });"""
 
-    if old_press not in text:
-        raise SystemExit("Expected DING button-press block not found; no changes made.")
+safe_press_block = """        this.connectSignal(this._eventBox, 'button-press-event', (actor, event) => {
+            let [a, x, y] = event.get_coords();
+            [x, y] = this.coordinatesLocalToGlobal(x, y);
+            this._desktopManager.onPressButton(x, y, event, this);
+            return false;
+        });"""
 
-    text = text.replace(old_press, new_press, 1)
+if focus_block in text:
+    text = text.replace(focus_block, safe_press_block, 1)
     changed = True
+    print("Removed experimental DING focus-reclaim code.")
 
 if changed:
     path.write_text(text, encoding="utf-8")
-    print("Applied WebKit/DING keyboard focus handoff to GrayHaired desktopGrid.js.")
+    print("Applied safe WebKit keyboard-focus guard to GrayHaired desktopGrid.js.")
 else:
-    print("WebKit/DING keyboard focus handoff is already present.")
+    print("Safe WebKit keyboard-focus guard is already present; no focus reclaim is installed.")
 PY
 
 cat <<EOF
 
-=== WEBKIT / DING KEYBOARD FOCUS PATCH READY ===
+=== SAFE WEBKIT KEYBOARD-FOCUS PATCH READY ===
 
 Patched only the GrayHaired user-local DING/WebKit child code:
   $GRID
 
+The experimental Gtk.EventBox grab_focus() behavior is intentionally removed.
 Do NOT disable/re-enable the GNOME extension for this app-code change.
 Reload only the child process with:
   bash ~/GrayHairedDesktop/scripts/reload-grayhaired.sh
