@@ -195,6 +195,7 @@ PY
 # require a whole GNOME extension disable/enable cycle.
 bash "$SCRIPT_DIR/patch-wayland-webkit-links.sh"
 bash "$SCRIPT_DIR/patch-wayland-webkit-keyboard-focus.sh"
+bash "$SCRIPT_DIR/patch-wayland-webkit-lifecycle-logging.sh"
 
 cat <<EOF
 
