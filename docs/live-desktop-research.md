@@ -12,6 +12,7 @@ Make **My Desktop** behave like the desktop background itself rather than like a
 - A logout/login is acceptable when GNOME Shell must reload. Avoid kernel reboot unless genuinely required.
 - Keep known-good X11 and Wayland prototypes intact before trying new approaches.
 - For routine child-side DING/WebKit development, do not hot-toggle the GNOME extension. Use `scripts/reload-grayhaired.sh` as documented in `docs/live-desktop-development.md`.
+- Do not force keyboard focus onto the DING icon-strip `Gtk.EventBox` on mouse click. That experiment did not restore arrow-key navigation and was followed by a full machine lockup during repeated focus switching. Preserve the safer WebKit keyboard guard instead.
 
 ## X11 findings
 
@@ -81,7 +82,8 @@ Important implementation findings:
 4. The large right margin must **not** also be applied as a GTK widget margin inside the horizontal split, or it consumes WebKit's allocation.
 5. The working arrangement keeps DING's EventBox/Fixed hierarchy in a 220-pixel left strip and places WebKit beside it.
 6. WebKitGTK needs explicit navigation/new-window policy handling so page links are handed to the default browser.
-7. DING listens for keyboard events at the shared top-level desktop window. When WebKit owns focus, those bubbled events must not also be sent to DING type-to-search. The GrayHaired focus guard now preserves WebKit text entry while keeping DING keyboard behavior available when the icon side owns focus.
+7. DING listens for keyboard events at the shared top-level desktop window. When WebKit owns focus, those bubbled events must not also be sent to DING type-to-search. The GrayHaired keyboard guard preserves WebKit text entry.
+8. Forcing the DING `Gtk.EventBox` to reclaim keyboard focus with `set_can_focus(true)` and `grab_focus()` on icon click was tested and rolled back. Escape began working, arrow-key navigation still did not, and repeated focus testing was followed by a full system lockup. Do not reintroduce that focus-reclaim method without a separately proven safer design.
 
 ## Current verified Wayland milestone
 
@@ -109,6 +111,13 @@ Verified behavior:
 - normal logout/login on Wayland restores My Desktop automatically, restores the real desktop icons in their saved positions, restores the Zorin taskbar, and preserves links/Folders behavior without manual intervention: PASS
 - normal reboot restores My Desktop, desktop icons and saved positions, Zorin taskbar, webpage links/Folders, and icon click/right-click/drag behavior: PASS
 - WebKit text input no longer triggers DING's `Clear Current Selection before New Search` popup; both tested page text fields accept typing normally: PASS
+- after rolling back forced DING focus reclaim, four regression checks passed: WebKit text boxes work, no DING search-warning popup appears, icon left-click/right-click/drag work, and links/Folders work: PASS
+
+Known intentional keyboard limitation at this milestone:
+
+- forced DING keyboard-focus reclaim is disabled
+- Escape/arrow-key desktop navigation is not considered part of the current Wayland acceptance baseline
+- mouse-driven icon behavior remains the supported path for the left DING strip
 
 Observed metadata after moving icons during the Wayland test included:
 
@@ -126,6 +135,8 @@ Relevant research-branch commits leading to the milestone include:
 - `61ec8e3` — add Wayland WebKit external link handoff
 - `2984250` — add child-only GrayHaired development reload script
 - `6dbbc17` — preserve WebKit keyboard focus from DING search
+- `985c849` — experimental DING focus reclaim; later judged unsafe and rolled back
+- `98f5b38` — remove forced DING focus reclaim after lockup evidence
 
 ## Inspiron Zorin lock/unlock issue — ENVIRONMENTAL, NOT CAUSED BY GRAYHAIRED
 
@@ -155,7 +166,7 @@ For website-only changes, use WebKit page Reload. For genuine `extension.js` cha
 
 The 220-pixel left icon strip is a proven coexistence mechanism, but it is not necessarily the final UX. A future design may use page-aware icon-safe areas. The user's idea is that regions with live/clickable My Desktop content remain controlled by My Desktop, while noninteractive regions could be available to real desktop icons. Any such design must account for dynamic dropdowns/menus that can temporarily occupy otherwise empty space.
 
-The current split-surface milestone is stable across WebKit page reload, child-process restart, normal Wayland logout/login, and reboot. Lock/unlock testing on this Inspiron is still contaminated by the independent Zorin extension-session bug described above.
+The current split-surface milestone is stable across WebKit page reload, child-process restart, normal Wayland logout/login, reboot, and the post-focus-rollback regression test. Lock/unlock testing on this Inspiron is still contaminated by the independent Zorin extension-session bug described above.
 
 ## Local `research/` directory
 
