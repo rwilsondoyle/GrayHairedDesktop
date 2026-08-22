@@ -7,6 +7,8 @@ EXT="$HOME/.local/share/gnome-shell/extensions/$UUID"
 GRID="$EXT/app/desktopGrid.js"
 APP="$EXT/app"
 DING="$APP/ding.js"
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+DEFAULTS="$SCRIPT_DIR/wayland-layout-defaults.sh"
 FILES_ONLY=false
 
 if [[ "${1:-}" == "--files-only" ]]; then
@@ -33,16 +35,24 @@ forbid_file_text() {
     pass "$description"
 }
 
+[[ -f "$DEFAULTS" ]] || fail "shared Wayland defaults are missing: $DEFAULTS"
+# shellcheck source=/dev/null
+source "$DEFAULTS"
+[[ "$GRAYHAIRED_WAYLAND_ICON_STRIP_WIDTH" =~ ^[0-9]+$ ]] || fail "Wayland icon strip width default is invalid"
+[[ "$GRAYHAIRED_WAYLAND_ICON_STRIP_WIDTH" -ge 100 ]] || fail "Wayland icon strip width default is unexpectedly small"
+[[ "$GRAYHAIRED_WAYLAND_DESKTOP_URL" == https://* ]] || fail "Wayland desktop URL default is not HTTPS"
+pass "shared Wayland layout defaults are valid"
+
 [[ -d "$EXT" ]] || fail "user-local GrayHaired extension is not installed: $EXT"
 [[ -f "$GRID" ]] || fail "desktopGrid.js is missing: $GRID"
 [[ -f "$DING" ]] || fail "ding.js is missing: $DING"
 pass "user-local GrayHaired extension files exist"
 
 require_file_text "imports.gi.versions.WebKit2 = '4.1';" "WebKit2 4.1 integration is present"
-require_file_text "const liveIconStripWidth = 220;" "220-pixel DING icon strip is configured"
+require_file_text "const liveIconStripWidth = $GRAYHAIRED_WAYLAND_ICON_STRIP_WIDTH;" "${GRAYHAIRED_WAYLAND_ICON_STRIP_WIDTH}-pixel DING icon strip is configured"
 require_file_text "this._liveSplitSurface = true;" "split-surface GTK allocation guard is present"
 require_file_text "this._liveWebView = new WebKit2.WebView();" "live WebKit view is created"
-require_file_text "https://grayhaired.tech/desktop-d" "known-good My Desktop URL is configured"
+require_file_text "$GRAYHAIRED_WAYLAND_DESKTOP_URL" "known-good My Desktop URL is configured"
 require_file_text "[GRAYHAIRED-WEBKIT] Opening in default browser:" "external-link browser handoff is present"
 require_file_text "The WebKit live-desktop surface and DING icon strip share this" "WebKit/DING keyboard-event guard is present"
 require_file_text "this._liveWebView.has_focus" "WebKit focus test is present"
