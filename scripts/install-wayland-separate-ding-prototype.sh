@@ -9,6 +9,15 @@ TEST_EXT="$USER_ROOT/$TEST_UUID"
 GRID="$TEST_EXT/app/desktopGrid.js"
 META="$TEST_EXT/metadata.json"
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+DEFAULTS="$SCRIPT_DIR/wayland-layout-defaults.sh"
+
+if [[ ! -f "$DEFAULTS" ]]; then
+    echo "Shared Wayland layout defaults are missing:"
+    echo "  $DEFAULTS"
+    exit 2
+fi
+# shellcheck source=/dev/null
+source "$DEFAULTS"
 
 if [[ "${XDG_SESSION_TYPE:-}" != "wayland" ]]; then
     echo "This prototype installer is intended for a Wayland login."
@@ -21,6 +30,11 @@ if [[ ! -d "$SYSTEM_EXT" ]]; then
     echo "  $SYSTEM_EXT"
     exit 2
 fi
+
+# Refuse to build from an unverified Zorin/DING base. This read-only preflight
+# catches structural changes from future Zorin updates before the user-local
+# GrayHaired tree is replaced.
+bash "$SCRIPT_DIR/check-wayland-zorin-base.sh"
 
 if pgrep -f '/zorin-desktop-icons@zorinos.com/app/ding.js' >/dev/null 2>&1; then
     echo "The normal Zorin DING process is still running."
@@ -58,12 +72,19 @@ data["description"] = (
 path.write_text(json.dumps(data, indent=4) + "\n", encoding="utf-8")
 PY
 
-python3 - "$GRID" <<'PY'
+python3 - "$GRID" "$GRAYHAIRED_WAYLAND_ICON_STRIP_WIDTH" "$GRAYHAIRED_WAYLAND_DESKTOP_URL" <<'PY'
 from pathlib import Path
 import sys
 
 path = Path(sys.argv[1])
+strip_width = int(sys.argv[2])
+desktop_url = sys.argv[3]
 text = path.read_text(encoding="utf-8")
+
+if strip_width < 100:
+    raise SystemExit("Wayland icon strip width is unexpectedly small; refusing to patch")
+if not desktop_url.startswith("https://"):
+    raise SystemExit("Wayland desktop URL must use HTTPS; refusing to patch")
 
 old_imports = """'use strict';
 const Gtk = imports.gi.Gtk;
@@ -83,14 +104,14 @@ old_description = """        this._desktopDescription = desktopDescription;
         this.updateWindowGeometry();
         this.updateUnscaledHeightWidthMargins();
 """
-new_description = """        // GrayHairedDesktop Wayland research prototype:
+new_description = f"""        // GrayHairedDesktop Wayland research prototype:
         // keep the top-level desktop window at the monitor's full size, but
-        // constrain DING's usable icon grid to a 220-pixel strip on the left.
+        // constrain DING's usable icon grid to a {strip_width}-pixel strip on the left.
         // updateWindowGeometry() uses desktopDescription.width, while the grid
         // calculations below subtract marginRight, so these can be controlled
         // independently.
-        desktopDescription = Object.assign({}, desktopDescription);
-        const liveIconStripWidth = 220;
+        desktopDescription = Object.assign({{}}, desktopDescription);
+        const liveIconStripWidth = {strip_width};
         desktopDescription.marginRight = Math.max(
             desktopDescription.marginRight,
             desktopDescription.width - desktopDescription.marginLeft - liveIconStripWidth
@@ -111,7 +132,7 @@ old_widgets = """        this._eventBox = new Gtk.EventBox({visible: true});
         this.gridGlobalRectangle = new Gdk.Rectangle();
         this.setDropDestination(this._eventBox);
 """
-new_widgets = """        this._eventBox = new Gtk.EventBox({visible: true});
+new_widgets = f"""        this._eventBox = new Gtk.EventBox({{visible: true}});
 
         // Tell sizeEventBox() that the large right margin is grid geometry
         // only. If GTK also applies that margin to this widget inside the
@@ -122,18 +143,18 @@ new_widgets = """        this._eventBox = new Gtk.EventBox({visible: true});
         // Keep DING's original EventBox -> Gtk.Fixed hierarchy intact in the
         // left-side strip. WebKit lives beside it, so the two input systems do
         // not overlap.
-        this._eventBox.set_size_request(220, -1);
+        this._eventBox.set_size_request({strip_width}, -1);
         this._eventBox.set_vexpand(true);
         this._container = new Gtk.Fixed();
         this._eventBox.add(this._container);
 
-        this._liveLayout = new Gtk.Box({orientation: Gtk.Orientation.HORIZONTAL});
+        this._liveLayout = new Gtk.Box({{orientation: Gtk.Orientation.HORIZONTAL}});
         this._liveLayout.pack_start(this._eventBox, false, false, 0);
 
         this._liveWebView = new WebKit2.WebView();
         this._liveWebView.set_hexpand(true);
         this._liveWebView.set_vexpand(true);
-        this._liveWebView.load_uri('https://grayhaired.tech/desktop-d');
+        this._liveWebView.load_uri('{desktop_url}');
         this._liveLayout.pack_start(this._liveWebView, true, true, 0);
 
         this._window.add(this._liveLayout);
@@ -187,7 +208,10 @@ if old_size_event_box not in text:
 text = text.replace(old_size_event_box, new_size_event_box, 1)
 
 path.write_text(text, encoding="utf-8")
-print("Patched separate-UUID desktopGrid.js for split allocation without GTK margin starvation.")
+print(
+    "Patched separate-UUID desktopGrid.js for split allocation "
+    f"(icon strip {strip_width}px, URL {desktop_url})."
+)
 PY
 
 # Build the complete known-good child-process code during installation. These
@@ -214,6 +238,10 @@ Separate user extension:
 UUID:
   $TEST_UUID
 
+Known-good Wayland layout defaults used:
+  icon strip width: $GRAYHAIRED_WAYLAND_ICON_STRIP_WIDTH px
+  My Desktop URL:   $GRAYHAIRED_WAYLAND_DESKTOP_URL
+
 The normal Zorin desktop-icons extension must remain disabled while testing.
 
 If this UUID has already been discovered by GNOME Shell, enable it with:
@@ -233,6 +261,9 @@ loads a fresh extension module without churning unrelated Zorin extensions.
 Read-only verification of an active installation:
   bash $SCRIPT_DIR/verify-wayland-known-good.sh
 
-Recovery/removal:
-  bash $SCRIPT_DIR/remove-wayland-separate-ding-prototype.sh
+Recovery/removal preflight:
+  bash $SCRIPT_DIR/check-wayland-recovery.sh
+
+Actual recovery/removal requires explicit confirmation:
+  bash $SCRIPT_DIR/remove-wayland-separate-ding-prototype.sh --apply
 EOF
