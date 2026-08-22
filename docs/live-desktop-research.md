@@ -115,6 +115,7 @@ Verified behavior:
 - `verify-wayland-known-good.sh` passes all file and runtime checks, including exactly one GrayHaired DING/WebKit child and no system Zorin DING child: PASS
 - `check-wayland-zorin-base.sh` passes all structural compatibility checks against the installed system Zorin Desktop Icons extension: PASS
 - `check-wayland-recovery.sh` passes all recovery prerequisites in read-only mode: current Wayland session, untouched system Zorin tree, GrayHaired installed and ACTIVE, exactly one GrayHaired DING/WebKit child, no system Zorin DING child, and no changes made: PASS
+- after centralizing the known-good Wayland defaults into `scripts/wayland-layout-defaults.sh`, the full runtime verifier still passes: shared defaults valid, 220-pixel icon strip unchanged, My Desktop URL unchanged, all WebKit/DING guards present, exactly one GrayHaired child running, and no system Zorin DING child: PASS
 
 Known intentional keyboard limitation at this milestone:
 
@@ -156,6 +157,7 @@ Relevant research-branch commits leading to the milestone include:
 - `5b11ae9` — add known-good runtime verifier and installer reproducibility gate
 - `1b46812` — add Zorin/DING base compatibility preflight
 - `8602345` — add two-stage recovery preflight and explicit `--apply` removal guard
+- `07bf269` — centralize Wayland icon-strip width and My Desktop URL defaults
 
 ## Inspiron Zorin lock/unlock issue — ENVIRONMENTAL, NOT CAUSED BY GRAYHAIRED
 
@@ -191,11 +193,22 @@ bash ~/GrayHairedDesktop/scripts/remove-wayland-separate-ding-prototype.sh --app
 
 Do not run the apply step merely as a routine test on a working system. The read-only recovery preflight is the normal verification path.
 
+## Wayland layout defaults
+
+The known-good layout settings are centralized in `scripts/wayland-layout-defaults.sh` so the installer and verifier use one source of truth rather than duplicating values.
+
+Current tested defaults:
+
+- DING icon-strip width: `220` pixels
+- My Desktop URL: `https://grayhaired.tech/desktop-d`
+
+Changing these defaults does not alter an already-running installation by itself; the values are used when building or verifying the user-local GrayHaired extension tree.
+
 ## Open design questions / next work
 
 The 220-pixel left icon strip is a proven coexistence mechanism, but it is not necessarily the final UX. A future design may use page-aware icon-safe areas. The user's idea is that regions with live/clickable My Desktop content remain controlled by My Desktop, while noninteractive regions could be available to real desktop icons. Any such design must account for dynamic dropdowns/menus that can temporarily occupy otherwise empty space.
 
-The current split-surface milestone is stable across WebKit page reload, child-process restart, normal Wayland logout/login, reboot, the post-focus-rollback regression test, known-good runtime verification, Zorin-base structural preflight, and recovery preflight. Lock/unlock testing on this Inspiron is still contaminated by the independent Zorin extension-session bug described above.
+The current split-surface milestone is stable across WebKit page reload, child-process restart, normal Wayland logout/login, reboot, the post-focus-rollback regression test, known-good runtime verification, Zorin-base structural preflight, recovery preflight, and centralized-default verification. Lock/unlock testing on this Inspiron is still contaminated by the independent Zorin extension-session bug described above.
 
 ## Local `research/` directory
 
