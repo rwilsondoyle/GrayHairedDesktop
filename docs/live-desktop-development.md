@@ -34,7 +34,7 @@ However, repeatedly hot-toggling the GrayHaired GNOME extension needlessly exerc
 
 ### Level 1 — Website/HTML/JavaScript only
 
-Use the embedded WebKit page's Reload command. No process restart is required.
+Use the embedded WebKit page's right-click Reload command. No process restart is required.
 
 ### Level 2 — DING/WebKit child code under `app/`
 
@@ -68,7 +68,9 @@ Do not assume a disable/enable toggle reloads changed `extension.js` reliably: G
 
 The WebKit view is a GTK child of the DING desktop window. Signal connections added by GrayHaired use DING's existing `SignalManager` path, and `DesktopGrid.destroy()` disconnects registered signals before destroying the top-level window. Destroying the GTK window destroys its child widget hierarchy, including the WebKit view.
 
-The GrayHaired code should not manually double-destroy WebKit children. New asynchronous handlers should always either:
+The lifecycle logging patch adds concise create/destroy markers and clears the GrayHaired `_liveWebView` / `_liveLayout` references after window destruction. It does not manually double-destroy WebKit children.
+
+New asynchronous handlers should always either:
 
 - be connected through the existing signal manager, or
 - have an explicit cancellation/disconnect path before the desktop window is destroyed.
@@ -77,25 +79,59 @@ The external-link policy handler is synchronous and does not leave a pending pro
 
 ## Keyboard/input ownership
 
-DING connects key events at the top-level desktop window. Because WebKit is inside that same window, WebKit key events can bubble to DING. The GrayHaired keyboard-focus guard therefore checks whether `_liveWebView` owns focus before invoking DING's `onKeyPress()` or `onKeyRelease()` handlers.
+DING connects key events at the top-level desktop window. Because WebKit is inside that same window, WebKit key events can bubble to DING. The GrayHaired keyboard-focus guard checks whether `_liveWebView` owns focus before invoking DING's `onKeyPress()` or `onKeyRelease()` handlers.
 
-This preserves both behaviors:
+Known-good behavior:
 
-- WebKit focused: typing belongs to webpage text fields.
-- DING/icon area focused: DING keyboard navigation/type-to-search remains available.
+- WebKit focused: typing belongs to webpage text fields and does not trigger DING type-to-search.
+- Mouse-driven DING icon behavior remains supported: left click, right-click menu, drag/drop, and saved positions.
 
-Do not remove this guard or replace it by globally disabling DING keyboard handling.
+Intentional current limitation:
+
+- Do not force focus onto the DING `Gtk.EventBox` with `set_can_focus(true)` / `grab_focus()`.
+- That experiment made Escape partially work, did not restore arrow-key navigation, and repeated focus switching immediately preceded a hard machine lockup.
+- Escape/arrow-key DING desktop navigation is therefore not part of the current Wayland acceptance baseline.
+
+Do not remove the WebKit guard, globally disable DING keyboard handling, or reintroduce forced EventBox focus without a separately proven safer design.
 
 ## Installer behavior
 
-`scripts/install-wayland-separate-ding-prototype.sh` creates the separate user-local extension from the installed Zorin DING extension and now applies the complete known-good split-surface patches, including:
+`scripts/install-wayland-separate-ding-prototype.sh` creates the separate user-local extension from the installed Zorin DING extension and applies the complete known-good split-surface patches, including:
 
 - 220-pixel DING icon strip geometry
 - WebKit live surface
 - external-link handoff to the default browser
-- WebKit keyboard-focus guard
+- safe WebKit keyboard-focus guard
+- concise WebKit lifecycle logging
 
 The installer is for installation/reinstallation, not routine code reloads.
+
+## Read-only known-good verification
+
+Use:
+
+```bash
+bash ~/GrayHairedDesktop/scripts/verify-wayland-known-good.sh
+```
+
+This verifier does not edit files, stop processes, reload WebKit, or toggle extensions. It checks that:
+
+- the separate user-local extension exists
+- WebKit2 integration and the 220-pixel split are present
+- external-link handoff is present
+- the safe WebKit keyboard guard is present
+- lifecycle logging is present
+- the experimental EventBox `grab_focus()` / forced-focus code is absent
+- the current session is Wayland
+- the GrayHaired extension is ACTIVE
+- exactly one GrayHaired DING/WebKit child is running
+- the normal system Zorin DING child is not simultaneously running
+
+For an installed tree that is not currently active, the file-only checks can be run with:
+
+```bash
+bash ~/GrayHairedDesktop/scripts/verify-wayland-known-good.sh --files-only
+```
 
 ## Logging
 
@@ -103,7 +139,7 @@ The reload script logs concise lifecycle markers with the prefix:
 
 `[GRAYHAIRED-RELOAD]`
 
-WebKit external navigation uses:
+WebKit creation, destruction, and external navigation use:
 
 `[GRAYHAIRED-WEBKIT]`
 
@@ -119,4 +155,4 @@ sleep 2
 gnome-extensions enable grayhaired-live-desktop@grayhaired.tech
 ```
 
-Use child-only reload for `app/` changes and logout/login only for genuine GNOME extension-side changes.
+Use WebKit page Reload for website changes, child-only reload for `app/` changes, and logout/login only for genuine GNOME extension-side changes.
