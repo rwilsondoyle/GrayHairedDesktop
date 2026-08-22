@@ -197,6 +197,10 @@ bash "$SCRIPT_DIR/patch-wayland-webkit-links.sh"
 bash "$SCRIPT_DIR/patch-wayland-webkit-keyboard-focus.sh"
 bash "$SCRIPT_DIR/patch-wayland-webkit-lifecycle-logging.sh"
 
+# Reproducibility gate: verify the generated user-local tree before declaring
+# installation complete. This is read-only and does not start/stop anything.
+bash "$SCRIPT_DIR/verify-wayland-known-good.sh" --files-only
+
 cat <<EOF
 
 === SEPARATE WAYLAND DING PROTOTYPE INSTALLED ===
@@ -225,6 +229,9 @@ IMPORTANT DEVELOPMENT WORKFLOW:
 
 For changes to extension.js itself, prefer a normal logout/login so GNOME Shell
 loads a fresh extension module without churning unrelated Zorin extensions.
+
+Read-only verification of an active installation:
+  bash $SCRIPT_DIR/verify-wayland-known-good.sh
 
 Recovery/removal:
   bash $SCRIPT_DIR/remove-wayland-separate-ding-prototype.sh
