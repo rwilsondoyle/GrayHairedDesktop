@@ -112,12 +112,27 @@ Verified behavior:
 - normal reboot restores My Desktop, desktop icons and saved positions, Zorin taskbar, webpage links/Folders, and icon click/right-click/drag behavior: PASS
 - WebKit text input no longer triggers DING's `Clear Current Selection before New Search` popup; both tested page text fields accept typing normally: PASS
 - after rolling back forced DING focus reclaim, four regression checks passed: WebKit text boxes work, no DING search-warning popup appears, icon left-click/right-click/drag work, and links/Folders work: PASS
+- `verify-wayland-known-good.sh` passes all file and runtime checks, including exactly one GrayHaired DING/WebKit child and no system Zorin DING child: PASS
+- `check-wayland-zorin-base.sh` passes all structural compatibility checks against the installed system Zorin Desktop Icons extension: PASS
 
 Known intentional keyboard limitation at this milestone:
 
 - forced DING keyboard-focus reclaim is disabled
 - Escape/arrow-key desktop navigation is not considered part of the current Wayland acceptance baseline
 - mouse-driven icon behavior remains the supported path for the left DING strip
+
+### Tested Zorin Desktop Icons compatibility baseline
+
+The system Zorin Desktop Icons extension used for the known-good Wayland milestone reported:
+
+- name: `Zorin Desktop Icons`
+- metadata version: not present / reported as `unknown`
+- supported shell versions in metadata: `46`, `47`, `48`, `49`, `50`
+- extension UUID: `zorin-desktop-icons@zorinos.com`
+- system `desktopGrid.js`: no GrayHaired markers present
+- all installer structural anchors used by `install-wayland-separate-ding-prototype.sh`: PASS
+
+The preflight script `scripts/check-wayland-zorin-base.sh` should be run before any future install/reinstall. If a Zorin update changes one of the required DING structures, installation should stop rather than patching an unverified base.
 
 Observed metadata after moving icons during the Wayland test included:
 
@@ -137,6 +152,8 @@ Relevant research-branch commits leading to the milestone include:
 - `6dbbc17` — preserve WebKit keyboard focus from DING search
 - `985c849` — experimental DING focus reclaim; later judged unsafe and rolled back
 - `98f5b38` — remove forced DING focus reclaim after lockup evidence
+- `5b11ae9` — add known-good runtime verifier and installer reproducibility gate
+- `1b46812` — add Zorin/DING base compatibility preflight
 
 ## Inspiron Zorin lock/unlock issue — ENVIRONMENTAL, NOT CAUSED BY GRAYHAIRED
 
@@ -166,7 +183,7 @@ For website-only changes, use WebKit page Reload. For genuine `extension.js` cha
 
 The 220-pixel left icon strip is a proven coexistence mechanism, but it is not necessarily the final UX. A future design may use page-aware icon-safe areas. The user's idea is that regions with live/clickable My Desktop content remain controlled by My Desktop, while noninteractive regions could be available to real desktop icons. Any such design must account for dynamic dropdowns/menus that can temporarily occupy otherwise empty space.
 
-The current split-surface milestone is stable across WebKit page reload, child-process restart, normal Wayland logout/login, reboot, and the post-focus-rollback regression test. Lock/unlock testing on this Inspiron is still contaminated by the independent Zorin extension-session bug described above.
+The current split-surface milestone is stable across WebKit page reload, child-process restart, normal Wayland logout/login, reboot, the post-focus-rollback regression test, known-good runtime verification, and Zorin-base structural preflight. Lock/unlock testing on this Inspiron is still contaminated by the independent Zorin extension-session bug described above.
 
 ## Local `research/` directory
 
