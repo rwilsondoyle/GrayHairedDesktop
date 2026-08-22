@@ -114,6 +114,7 @@ Verified behavior:
 - after rolling back forced DING focus reclaim, four regression checks passed: WebKit text boxes work, no DING search-warning popup appears, icon left-click/right-click/drag work, and links/Folders work: PASS
 - `verify-wayland-known-good.sh` passes all file and runtime checks, including exactly one GrayHaired DING/WebKit child and no system Zorin DING child: PASS
 - `check-wayland-zorin-base.sh` passes all structural compatibility checks against the installed system Zorin Desktop Icons extension: PASS
+- `check-wayland-recovery.sh` passes all recovery prerequisites in read-only mode: current Wayland session, untouched system Zorin tree, GrayHaired installed and ACTIVE, exactly one GrayHaired DING/WebKit child, no system Zorin DING child, and no changes made: PASS
 
 Known intentional keyboard limitation at this milestone:
 
@@ -154,6 +155,7 @@ Relevant research-branch commits leading to the milestone include:
 - `98f5b38` — remove forced DING focus reclaim after lockup evidence
 - `5b11ae9` — add known-good runtime verifier and installer reproducibility gate
 - `1b46812` — add Zorin/DING base compatibility preflight
+- `8602345` — add two-stage recovery preflight and explicit `--apply` removal guard
 
 ## Inspiron Zorin lock/unlock issue — ENVIRONMENTAL, NOT CAUSED BY GRAYHAIRED
 
@@ -179,11 +181,21 @@ The script sends SIGTERM only to the GrayHaired child and waits for the already-
 
 For website-only changes, use WebKit page Reload. For genuine `extension.js` changes, prefer a normal logout/login.
 
+## Recovery architecture
+
+Recovery/removal is deliberately two-stage. `scripts/check-wayland-recovery.sh` is read-only and verifies that the system Zorin extension is intact, GrayHaired is installed, the expected child-process state is present, and no conflicting system Zorin DING child is running. The actual remover does nothing unless explicitly invoked with:
+
+```bash
+bash ~/GrayHairedDesktop/scripts/remove-wayland-separate-ding-prototype.sh --apply
+```
+
+Do not run the apply step merely as a routine test on a working system. The read-only recovery preflight is the normal verification path.
+
 ## Open design questions / next work
 
 The 220-pixel left icon strip is a proven coexistence mechanism, but it is not necessarily the final UX. A future design may use page-aware icon-safe areas. The user's idea is that regions with live/clickable My Desktop content remain controlled by My Desktop, while noninteractive regions could be available to real desktop icons. Any such design must account for dynamic dropdowns/menus that can temporarily occupy otherwise empty space.
 
-The current split-surface milestone is stable across WebKit page reload, child-process restart, normal Wayland logout/login, reboot, the post-focus-rollback regression test, known-good runtime verification, and Zorin-base structural preflight. Lock/unlock testing on this Inspiron is still contaminated by the independent Zorin extension-session bug described above.
+The current split-surface milestone is stable across WebKit page reload, child-process restart, normal Wayland logout/login, reboot, the post-focus-rollback regression test, known-good runtime verification, Zorin-base structural preflight, and recovery preflight. Lock/unlock testing on this Inspiron is still contaminated by the independent Zorin extension-session bug described above.
 
 ## Local `research/` directory
 
