@@ -87,7 +87,7 @@ Important implementation findings:
 
 ## Current verified Wayland milestone
 
-Test system: Dell Inspiron 3147, Zorin/GNOME Wayland.
+Original test system: Dell Inspiron 3147, Zorin/GNOME Wayland.
 
 Extension state at the milestone:
 
@@ -116,6 +116,45 @@ Verified behavior:
 - `check-wayland-zorin-base.sh` passes all structural compatibility checks against the installed system Zorin Desktop Icons extension: PASS
 - `check-wayland-recovery.sh` passes all recovery prerequisites in read-only mode: current Wayland session, untouched system Zorin tree, GrayHaired installed and ACTIVE, exactly one GrayHaired DING/WebKit child, no system Zorin DING child, and no changes made: PASS
 - after centralizing the known-good Wayland defaults into `scripts/wayland-layout-defaults.sh`, the full runtime verifier still passes: shared defaults valid, 220-pixel icon strip unchanged, My Desktop URL unchanged, all WebKit/DING guards present, exactly one GrayHaired child running, and no system Zorin DING child: PASS
+
+### Inspiron 3502 fresh-install checkpoint — PASS
+
+A second physical Wayland test machine is now available and has successfully installed the same research branch:
+
+- hardware: Dell Inspiron 3502
+- OS: Zorin OS 18.1
+- GNOME Shell: 46.0
+- session: Wayland
+- kernel at install: `7.0.0-30-generic`
+- graphics: Intel UHD Graphics 600 / Gemini Lake using `i915`
+- RAM: 16 GB DDR4
+- display: 1366x768
+- BIOS: 1.24.0 dated 2025-06-06
+
+Fresh installation on the 3502 passed the full known-good verifier:
+
+- GrayHaired extension Enabled: Yes / State: ACTIVE
+- system Zorin Desktop Icons Enabled: No
+- exactly one GrayHaired `ding.js` child running
+- no system Zorin DING child running
+- WebKit integration, keyboard guard, lifecycle logging, link handoff, and shared defaults all PASS
+
+This makes the 3502 the preferred primary development/test machine, while the 3147 remains a useful older-hardware compatibility machine.
+
+### Adaptive icon-strip requirement identified on 3502
+
+The 3502 exposed an important portability issue with the current fixed `220`-pixel strip. With standard-size Zorin desktop icons, labels and icon cells visually consume more of the strip than expected, so the fixed width is not a good final assumption across machines.
+
+Next planned Wayland task:
+
+- preserve the known-good split-surface architecture
+- replace the fixed strip width with a width derived from actual DING icon/cell geometry or the active icon-size setting
+- include label width/padding and a small safety margin
+- clamp the result to sensible minimum/maximum values
+- calculate at startup/session initialization rather than continuously resizing during normal use
+- keep `220` pixels as a known-good fallback if geometry cannot be determined safely
+
+Do not begin page-aware/dynamic click-through regions before this simpler adaptive-strip work is completed and physically verified.
 
 Known intentional keyboard limitation at this milestone:
 
@@ -206,10 +245,10 @@ Changing these defaults does not alter an already-running installation by itself
 
 ## Open design questions / next work
 
-The 220-pixel left icon strip is a proven coexistence mechanism, but it is not necessarily the final UX. A future design may use page-aware icon-safe areas. The user's idea is that regions with live/clickable My Desktop content remain controlled by My Desktop, while noninteractive regions could be available to real desktop icons. Any such design must account for dynamic dropdowns/menus that can temporarily occupy otherwise empty space.
+The immediate next Wayland product task is adaptive icon-strip sizing based on actual DING icon/cell geometry, with 220 pixels retained only as a safe fallback. Do not move to page-aware icon-safe areas until the adaptive strip is implemented and physically verified on the 3502.
 
-The current split-surface milestone is stable across WebKit page reload, child-process restart, normal Wayland logout/login, reboot, the post-focus-rollback regression test, known-good runtime verification, Zorin-base structural preflight, recovery preflight, and centralized-default verification. Lock/unlock testing on this Inspiron is still contaminated by the independent Zorin extension-session bug described above.
+The current split-surface milestone is stable across WebKit page reload, child-process restart, normal Wayland logout/login, reboot, the post-focus-rollback regression test, known-good runtime verification, Zorin-base structural preflight, recovery preflight, centralized-default verification, and a clean fresh installation on the Inspiron 3502. Lock/unlock testing on the older Inspiron 3147 remains contaminated by the independent Zorin extension-session bug described above.
 
 ## Local `research/` directory
 
-The test machine currently has an untracked `research/` directory created from safe local copies of Zorin DING files used during earlier experiments. Do not assume it belongs in Git. Review its contents before committing anything from it.
+The original 3147 test machine has an untracked `research/` directory created from safe local copies of Zorin DING files used during earlier experiments. Do not assume it belongs in Git. Review its contents before committing anything from it.
