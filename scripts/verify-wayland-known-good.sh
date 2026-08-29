@@ -38,10 +38,8 @@ forbid_file_text() {
 [[ -f "$DEFAULTS" ]] || fail "shared Wayland defaults are missing: $DEFAULTS"
 # shellcheck source=/dev/null
 source "$DEFAULTS"
-[[ "$GRAYHAIRED_WAYLAND_ICON_STRIP_WIDTH" =~ ^[0-9]+$ ]] || fail "Wayland icon strip width default is invalid"
-[[ "$GRAYHAIRED_WAYLAND_ICON_STRIP_WIDTH" -ge 100 ]] || fail "Wayland icon strip width default is unexpectedly small"
-[[ "$GRAYHAIRED_WAYLAND_DESKTOP_URL" == https://* ]] || fail "Wayland desktop URL default is not HTTPS"
-pass "shared Wayland layout defaults are valid"
+[[ "${GRAYHAIRED_WAYLAND_DESKTOP_URL:-}" == https://* ]] || fail "Wayland desktop URL default is not HTTPS"
+pass "shared Wayland layout defaults are present"
 
 [[ -d "$EXT" ]] || fail "user-local GrayHaired extension is not installed: $EXT"
 [[ -f "$GRID" ]] || fail "desktopGrid.js is missing: $GRID"
@@ -60,12 +58,23 @@ if grep -Fq 'GRAYHAIRED-ADAPTIVE-ICON-STRIP' "$GRID"; then
         value="${!value_name:-}"
         [[ "$value" =~ ^[0-9]+$ ]] || fail "$value_name is invalid: ${value:-unset}"
     done
+    [[ "$GRAYHAIRED_WAYLAND_ICON_COLUMNS" -ge 1 ]] || fail "adaptive icon column count is unexpectedly small"
+    [[ "$GRAYHAIRED_WAYLAND_ICON_STRIP_MIN" -ge 100 ]] || fail "adaptive icon strip minimum is unexpectedly small"
+    [[ "$GRAYHAIRED_WAYLAND_ICON_STRIP_MAX" -gt "$GRAYHAIRED_WAYLAND_ICON_STRIP_MIN" ]] || fail "adaptive icon strip maximum must exceed minimum"
+    [[ "$GRAYHAIRED_WAYLAND_ICON_STRIP_FALLBACK" -ge "$GRAYHAIRED_WAYLAND_ICON_STRIP_MIN" && "$GRAYHAIRED_WAYLAND_ICON_STRIP_FALLBACK" -le "$GRAYHAIRED_WAYLAND_ICON_STRIP_MAX" ]] || fail "adaptive icon strip fallback is outside min/max range"
+    pass "adaptive Wayland layout defaults are valid"
+
     require_file_text "Prefs.get_desired_width() + 4 * elementSpacing" "adaptive strip uses DING cell geometry"
     require_file_text "this._eventBox.set_size_request(liveIconStripWidth, -1);" "adaptive EventBox width is configured"
     require_file_text "[GRAYHAIRED-LAYOUT] icon cell=" "adaptive layout startup logging is present"
     pass "adaptive DING icon strip is configured"
 else
-    require_file_text "const liveIconStripWidth = $GRAYHAIRED_WAYLAND_ICON_STRIP_WIDTH;" "${GRAYHAIRED_WAYLAND_ICON_STRIP_WIDTH}-pixel DING icon strip is configured"
+    # Compatibility check for an older fixed-width installed tree. The current
+    # shared defaults no longer expose a fixed-width variable, so verify the
+    # physically tested 220px marker directly instead of referencing an unset
+    # shell variable.
+    require_file_text "const liveIconStripWidth = 220;" "legacy 220-pixel DING icon strip is configured"
+    require_file_text "this._eventBox.set_size_request(220, -1);" "legacy fixed EventBox width is configured"
 fi
 
 require_file_text "this._liveSplitSurface = true;" "split-surface GTK allocation guard is present"
