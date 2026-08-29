@@ -19,6 +19,19 @@ fi
 # shellcheck source=/dev/null
 source "$DEFAULTS"
 
+for value_name in \
+    GRAYHAIRED_WAYLAND_ICON_COLUMNS \
+    GRAYHAIRED_WAYLAND_ICON_STRIP_PADDING \
+    GRAYHAIRED_WAYLAND_ICON_STRIP_MIN \
+    GRAYHAIRED_WAYLAND_ICON_STRIP_MAX \
+    GRAYHAIRED_WAYLAND_ICON_STRIP_FALLBACK; do
+    value="${!value_name:-}"
+    if [[ ! "$value" =~ ^[0-9]+$ ]]; then
+        echo "Invalid adaptive Wayland layout default: $value_name=${value:-unset}"
+        exit 2
+    fi
+done
+
 if [[ "${XDG_SESSION_TYPE:-}" != "wayland" ]]; then
     echo "This prototype installer is intended for a Wayland login."
     echo "Current session: ${XDG_SESSION_TYPE:-unknown}"
@@ -67,12 +80,16 @@ data["uuid"] = uuid
 data["name"] = "GrayHaired Live Desktop Wayland Prototype"
 data["description"] = (
     "Research-only GrayHairedDesktop copy of Zorin Desktop Icons with a "
-    "dedicated DING icon strip and live My Desktop WebKit surface."
+    "dedicated adaptive DING icon strip and live My Desktop WebKit surface."
 )
 path.write_text(json.dumps(data, indent=4) + "\n", encoding="utf-8")
 PY
 
-python3 - "$GRID" "$GRAYHAIRED_WAYLAND_ICON_STRIP_WIDTH" "$GRAYHAIRED_WAYLAND_DESKTOP_URL" <<'PY'
+# First construct the physically proven split surface using the safe fallback
+# width. The adaptive patch immediately below then replaces the fixed width
+# with DING-derived startup geometry. Keeping these steps separate preserves
+# the well-tested structural patch and gives the adaptive patch a known input.
+python3 - "$GRID" "$GRAYHAIRED_WAYLAND_ICON_STRIP_FALLBACK" "$GRAYHAIRED_WAYLAND_DESKTOP_URL" <<'PY'
 from pathlib import Path
 import sys
 
@@ -82,7 +99,7 @@ desktop_url = sys.argv[3]
 text = path.read_text(encoding="utf-8")
 
 if strip_width < 100:
-    raise SystemExit("Wayland icon strip width is unexpectedly small; refusing to patch")
+    raise SystemExit("Wayland fallback icon strip width is unexpectedly small; refusing to patch")
 if not desktop_url.startswith("https://"):
     raise SystemExit("Wayland desktop URL must use HTTPS; refusing to patch")
 
@@ -106,10 +123,9 @@ old_description = """        this._desktopDescription = desktopDescription;
 """
 new_description = f"""        // GrayHairedDesktop Wayland research prototype:
         // keep the top-level desktop window at the monitor's full size, but
-        // constrain DING's usable icon grid to a {strip_width}-pixel strip on the left.
-        // updateWindowGeometry() uses desktopDescription.width, while the grid
-        // calculations below subtract marginRight, so these can be controlled
-        // independently.
+        // constrain DING's usable icon grid to a {strip_width}-pixel fallback
+        // strip on the left. The adaptive installer step replaces this fixed
+        // width with DING-derived geometry before verification completes.
         desktopDescription = Object.assign({{}}, desktopDescription);
         const liveIconStripWidth = {strip_width};
         desktopDescription.marginRight = Math.max(
@@ -210,9 +226,14 @@ text = text.replace(old_size_event_box, new_size_event_box, 1)
 path.write_text(text, encoding="utf-8")
 print(
     "Patched separate-UUID desktopGrid.js for split allocation "
-    f"(icon strip {strip_width}px, URL {desktop_url})."
+    f"(fallback strip {strip_width}px, URL {desktop_url})."
 )
 PY
+
+# Adaptive sizing is now part of the normal install path. It derives the strip
+# width from DING's own desired grid-cell geometry at child startup and retains
+# the proven fallback only if that geometry is unavailable.
+bash "$SCRIPT_DIR/patch-wayland-adaptive-icon-strip.sh"
 
 # Build the complete known-good child-process code during installation. These
 # patchers are also useful independently during development, but they no longer
@@ -238,9 +259,13 @@ Separate user extension:
 UUID:
   $TEST_UUID
 
-Known-good Wayland layout defaults used:
-  icon strip width: $GRAYHAIRED_WAYLAND_ICON_STRIP_WIDTH px
-  My Desktop URL:   $GRAYHAIRED_WAYLAND_DESKTOP_URL
+Adaptive Wayland layout defaults used:
+  DING columns:      $GRAYHAIRED_WAYLAND_ICON_COLUMNS
+  strip padding:     $GRAYHAIRED_WAYLAND_ICON_STRIP_PADDING px
+  strip minimum:     $GRAYHAIRED_WAYLAND_ICON_STRIP_MIN px
+  strip maximum:     $GRAYHAIRED_WAYLAND_ICON_STRIP_MAX px
+  fallback width:    $GRAYHAIRED_WAYLAND_ICON_STRIP_FALLBACK px
+  My Desktop URL:    $GRAYHAIRED_WAYLAND_DESKTOP_URL
 
 The normal Zorin desktop-icons extension must remain disabled while testing.
 
