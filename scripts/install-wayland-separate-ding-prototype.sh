@@ -230,14 +230,17 @@ print(
 )
 PY
 
-# Adaptive sizing is now part of the normal install path. It derives the strip
-# width from DING's own desired grid-cell geometry at child startup and retains
-# the proven fallback only if that geometry is unavailable.
+# Build the physically verified two-column geometry in the same order used by
+# the successful Wayland experiments. The result supports startup adaptation,
+# a hard two-column GTK boundary, automatic icon-size following, and DING's
+# own safe remove/resize/update/re-place sequence on live size changes.
 bash "$SCRIPT_DIR/patch-wayland-adaptive-icon-strip.sh"
+bash "$SCRIPT_DIR/patch-wayland-fixed-two-column-boundary.sh"
+bash "$SCRIPT_DIR/patch-wayland-live-icon-size-tracking.sh"
+bash "$SCRIPT_DIR/patch-wayland-live-size-manager-reflow.sh"
 
-# Build the complete known-good child-process code during installation. These
-# patchers are also useful independently during development, but they no longer
-# require a whole GNOME extension disable/enable cycle.
+# Build the complete known-good WebKit child-process code during installation.
+# These patchers remain useful independently during development.
 bash "$SCRIPT_DIR/patch-wayland-webkit-links.sh"
 bash "$SCRIPT_DIR/patch-wayland-webkit-keyboard-focus.sh"
 bash "$SCRIPT_DIR/patch-wayland-webkit-lifecycle-logging.sh"
@@ -266,6 +269,9 @@ Adaptive Wayland layout defaults used:
   strip maximum:     $GRAYHAIRED_WAYLAND_ICON_STRIP_MAX px
   fallback width:    $GRAYHAIRED_WAYLAND_ICON_STRIP_FALLBACK px
   My Desktop URL:    $GRAYHAIRED_WAYLAND_DESKTOP_URL
+
+The installed Wayland layout now includes the physically verified fixed
+adaptive two-column boundary and automatic Tiny/Small/Standard/Large reflow.
 
 The normal Zorin desktop-icons extension must remain disabled while testing.
 
