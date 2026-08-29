@@ -49,7 +49,25 @@ pass "shared Wayland layout defaults are valid"
 pass "user-local GrayHaired extension files exist"
 
 require_file_text "imports.gi.versions.WebKit2 = '4.1';" "WebKit2 4.1 integration is present"
-require_file_text "const liveIconStripWidth = $GRAYHAIRED_WAYLAND_ICON_STRIP_WIDTH;" "${GRAYHAIRED_WAYLAND_ICON_STRIP_WIDTH}-pixel DING icon strip is configured"
+
+if grep -Fq 'GRAYHAIRED-ADAPTIVE-ICON-STRIP' "$GRID"; then
+    for value_name in \
+        GRAYHAIRED_WAYLAND_ICON_COLUMNS \
+        GRAYHAIRED_WAYLAND_ICON_STRIP_PADDING \
+        GRAYHAIRED_WAYLAND_ICON_STRIP_MIN \
+        GRAYHAIRED_WAYLAND_ICON_STRIP_MAX \
+        GRAYHAIRED_WAYLAND_ICON_STRIP_FALLBACK; do
+        value="${!value_name:-}"
+        [[ "$value" =~ ^[0-9]+$ ]] || fail "$value_name is invalid: ${value:-unset}"
+    done
+    require_file_text "Prefs.get_desired_width() + 4 * elementSpacing" "adaptive strip uses DING cell geometry"
+    require_file_text "this._eventBox.set_size_request(liveIconStripWidth, -1);" "adaptive EventBox width is configured"
+    require_file_text "[GRAYHAIRED-LAYOUT] icon cell=" "adaptive layout startup logging is present"
+    pass "adaptive DING icon strip is configured"
+else
+    require_file_text "const liveIconStripWidth = $GRAYHAIRED_WAYLAND_ICON_STRIP_WIDTH;" "${GRAYHAIRED_WAYLAND_ICON_STRIP_WIDTH}-pixel DING icon strip is configured"
+fi
+
 require_file_text "this._liveSplitSurface = true;" "split-surface GTK allocation guard is present"
 require_file_text "this._liveWebView = new WebKit2.WebView();" "live WebKit view is created"
 require_file_text "$GRAYHAIRED_WAYLAND_DESKTOP_URL" "known-good My Desktop URL is configured"
