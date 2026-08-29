@@ -80,7 +80,7 @@ Important implementation findings:
 2. `updateWindowGeometry()` keeps the top-level desktop window full monitor width.
 3. The usable DING grid width can be constrained by `marginRight`.
 4. The large right margin must **not** also be applied as a GTK widget margin inside the horizontal split, or it consumes WebKit's allocation.
-5. The working arrangement keeps DING's EventBox/Fixed hierarchy in a 220-pixel left strip and places WebKit beside it.
+5. The working arrangement keeps DING's EventBox/Fixed hierarchy in a dedicated left strip and places WebKit beside it.
 6. WebKitGTK needs explicit navigation/new-window policy handling so page links are handed to the default browser.
 7. DING listens for keyboard events at the shared top-level desktop window. When WebKit owns focus, those bubbled events must not also be sent to DING type-to-search. The GrayHaired keyboard guard preserves WebKit text entry.
 8. Forcing the DING `Gtk.EventBox` to reclaim keyboard focus with `set_can_focus(true)` and `grab_focus()` on icon click was tested and rolled back. Escape began working, arrow-key navigation still did not, and repeated focus testing was followed by a full system lockup. Do not reintroduce that focus-reclaim method without a separately proven safer design.
@@ -115,7 +115,7 @@ Verified behavior:
 - `verify-wayland-known-good.sh` passes all file and runtime checks, including exactly one GrayHaired DING/WebKit child and no system Zorin DING child: PASS
 - `check-wayland-zorin-base.sh` passes all structural compatibility checks against the installed system Zorin Desktop Icons extension: PASS
 - `check-wayland-recovery.sh` passes all recovery prerequisites in read-only mode: current Wayland session, untouched system Zorin tree, GrayHaired installed and ACTIVE, exactly one GrayHaired DING/WebKit child, no system Zorin DING child, and no changes made: PASS
-- after centralizing the known-good Wayland defaults into `scripts/wayland-layout-defaults.sh`, the full runtime verifier still passes: shared defaults valid, 220-pixel icon strip unchanged, My Desktop URL unchanged, all WebKit/DING guards present, exactly one GrayHaired child running, and no system Zorin DING child: PASS
+- after centralizing the known-good Wayland defaults into `scripts/wayland-layout-defaults.sh`, the full runtime verifier still passes: shared defaults valid, My Desktop URL unchanged, all WebKit/DING guards present, exactly one GrayHaired child running, and no system Zorin DING child: PASS
 
 ### Inspiron 3502 fresh-install checkpoint — PASS
 
@@ -141,20 +141,41 @@ Fresh installation on the 3502 passed the full known-good verifier:
 
 This makes the 3502 the preferred primary development/test machine, while the 3147 remains a useful older-hardware compatibility machine.
 
-### Adaptive icon-strip requirement identified on 3502
+### Adaptive icon-strip checkpoint on Inspiron 3502 — PASS
 
-The 3502 exposed an important portability issue with the current fixed `220`-pixel strip. With standard-size Zorin desktop icons, labels and icon cells visually consume more of the strip than expected, so the fixed width is not a good final assumption across machines.
+The fixed `220`-pixel strip has now been replaced experimentally on the 3502 with a startup-time adaptive width derived from DING's own grid geometry.
 
-Next planned Wayland task:
+DING source values on this Zorin 18.1 build:
 
-- preserve the known-good split-surface architecture
-- replace the fixed strip width with a width derived from actual DING icon/cell geometry or the active icon-size setting
-- include label width/padding and a small safety margin
-- clamp the result to sensible minimum/maximum values
-- calculate at startup/session initialization rather than continuously resizing during normal use
-- keep `220` pixels as a known-good fallback if geometry cannot be determined safely
+- `elementSpacing = 2`
+- desired cell widths from `Prefs.get_desired_width()`: tiny 70, small 90, standard 120, large 130
+- DING column formula: `desired width + 4 * elementSpacing`
 
-Do not begin page-aware/dynamic click-through regions before this simpler adaptive-strip work is completed and physically verified.
+GrayHaired adaptive defaults currently use:
+
+- two DING columns
+- 8 pixels of strip padding
+- minimum width 160
+- maximum width 320
+- fallback width 220 if geometry cannot be determined safely
+
+With the active Zorin desktop icon setting `tiny`, the runtime log reported:
+
+`[GRAYHAIRED-LAYOUT] icon cell=78px columns=2 strip=164px`
+
+Physical result on the 1366x768 Inspiron 3502:
+
+- left icon strip visibly reduced from the old 220px width: PASS
+- icons/labels remain usable and visually proportionate: PASS
+- My Desktop receives the reclaimed horizontal space: PASS
+- GrayHaired extension remains ACTIVE: PASS
+- exactly one GrayHaired DING/WebKit child is running: PASS
+- system Zorin DING child is absent: PASS
+- WebKit integration, adaptive geometry marker, keyboard guard, lifecycle logging, external-link handoff, and forbidden focus-reclaim checks all PASS in `verify-wayland-known-good.sh`
+
+The verifier was updated to understand both the adaptive layout and the previous fixed-width layout during the transition. A one-time rollback copy of the pre-adaptive `desktopGrid.js` was saved as `desktopGrid.js.pre-adaptive` on the 3502.
+
+Current conclusion: adaptive strip sizing is a successful Wayland direction and should become the permanent installer behavior after additional physical checks with at least one larger DING icon-size setting.
 
 Known intentional keyboard limitation at this milestone:
 
@@ -197,6 +218,8 @@ Relevant research-branch commits leading to the milestone include:
 - `1b46812` — add Zorin/DING base compatibility preflight
 - `8602345` — add two-stage recovery preflight and explicit `--apply` removal guard
 - `07bf269` — centralize Wayland icon-strip width and My Desktop URL defaults
+- `9aadafb` — add adaptive icon-strip experiment based on DING cell geometry
+- `4fa78cf` — update verifier for adaptive layout defaults
 
 ## Inspiron Zorin lock/unlock issue — ENVIRONMENTAL, NOT CAUSED BY GRAYHAIRED
 
@@ -234,20 +257,26 @@ Do not run the apply step merely as a routine test on a working system. The read
 
 ## Wayland layout defaults
 
-The known-good layout settings are centralized in `scripts/wayland-layout-defaults.sh` so the installer and verifier use one source of truth rather than duplicating values.
+The Wayland layout settings are centralized in `scripts/wayland-layout-defaults.sh` so the adaptive patch and verifier use one source of truth rather than duplicating values.
 
-Current tested defaults:
+Current adaptive defaults:
 
-- DING icon-strip width: `220` pixels
+- DING icon columns: `2`
+- strip padding: `8` pixels
+- minimum strip width: `160` pixels
+- maximum strip width: `320` pixels
+- fallback strip width: `220` pixels
 - My Desktop URL: `https://grayhaired.tech/desktop-d`
 
-Changing these defaults does not alter an already-running installation by itself; the values are used when building or verifying the user-local GrayHaired extension tree.
+The adaptive runtime width is calculated from DING's own desired grid-cell width at child startup. Changing these defaults does not alter an already-running installation by itself.
 
 ## Open design questions / next work
 
-The immediate next Wayland product task is adaptive icon-strip sizing based on actual DING icon/cell geometry, with 220 pixels retained only as a safe fallback. Do not move to page-aware icon-safe areas until the adaptive strip is implemented and physically verified on the 3502.
+The adaptive icon strip is now physically verified on the Inspiron 3502 with the `tiny` DING icon-size setting. The next useful validation is to test one or more larger DING icon-size settings and confirm the strip expands to the expected width while preserving icon click/right-click/drag behavior and My Desktop usability.
 
-The current split-surface milestone is stable across WebKit page reload, child-process restart, normal Wayland logout/login, reboot, the post-focus-rollback regression test, known-good runtime verification, Zorin-base structural preflight, recovery preflight, centralized-default verification, and a clean fresh installation on the Inspiron 3502. Lock/unlock testing on the older Inspiron 3147 remains contaminated by the independent Zorin extension-session bug described above.
+Do not move to page-aware icon-safe areas until the adaptive strip has been verified across more than one DING icon-size setting.
+
+The current split-surface milestone is stable across WebKit page reload, child-process restart, normal Wayland logout/login, reboot, the post-focus-rollback regression test, known-good runtime verification, Zorin-base structural preflight, recovery preflight, centralized-default verification, a clean fresh installation on the Inspiron 3502, and the first adaptive-width physical test. Lock/unlock testing on the older Inspiron 3147 remains contaminated by the independent Zorin extension-session bug described above.
 
 ## Local `research/` directory
 
