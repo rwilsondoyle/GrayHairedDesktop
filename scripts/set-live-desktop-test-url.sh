@@ -11,6 +11,7 @@ Usage:
   bash scripts/set-live-desktop-test-url.sh desktop-c
   bash scripts/set-live-desktop-test-url.sh desktop-d
   bash scripts/set-live-desktop-test-url.sh https://grayhaired.tech/desktop-c
+  bash scripts/set-live-desktop-test-url.sh https://www.msn.com/
 EOF
 }
 
@@ -35,8 +36,11 @@ case "$value" in
     https://grayhaired.tech/desktop-d|https://grayhaired.tech/desktop-d/)
         target="https://grayhaired.tech/desktop-d"
         ;;
+    https://www.msn.com|https://www.msn.com/|https://msn.com|https://msn.com/)
+        target="https://www.msn.com/"
+        ;;
     *)
-        echo "For this controlled test, use desktop-c or desktop-d only." >&2
+        echo "For this controlled test, use desktop-c, desktop-d, or https://www.msn.com/." >&2
         usage
         exit 2
         ;;
@@ -51,10 +55,10 @@ path = Path(sys.argv[1])
 target = sys.argv[2]
 text = path.read_text(encoding="utf-8")
 
-pattern = re.compile(r"https://grayhaired\.tech/desktop-[cd]/?")
+pattern = re.compile(r"https://(?:grayhaired\.tech/desktop-[cd]/?|(?:www\.)?msn\.com/?)")
 matches = pattern.findall(text)
 if not matches:
-    raise SystemExit("No desktop-c/desktop-d URL references found; refusing to edit unknown file")
+    raise SystemExit("No supported test URL references found; refusing to edit unknown file")
 
 updated = pattern.sub(target, text)
 path.write_text(updated, encoding="utf-8")
