@@ -26,8 +26,8 @@ pass "GNOME wallpaper restore helper is present"
 # Promoted Automatic Blend combines the exact physically tested solid-page and
 # photographic-page paths. A solid page uses sampled CSS color. A page with a
 # BODY background image uses the currently active image, caches it locally,
-# paints it behind DING, and synchronizes GNOME wallpaper for translucent shell
-# surfaces such as the Zorin taskbar.
+# paints it behind DING, synchronizes GNOME wallpaper for translucent shell
+# surfaces, and reflows the photo whenever live icon-strip geometry changes.
 require_grid_text "GRAYHAIRED-AUTOMATIC-BLEND-SAMPLER" "Automatic Blend edge sampler is present"
 require_grid_text "GRAYHAIRED-AUTOMATIC-BLEND-STAGE2" "solid-page sampled-color blend is present"
 require_grid_text "confidence < 0.60" "solid-page blend confidence fallback is present"
@@ -38,5 +38,8 @@ require_grid_text "GRAYHAIRED-PHOTO-URL-CLEANUP-STAGE5C" "photographic URL clean
 require_grid_text "[GRAYHAIRED-PHOTO5] cached/applied" "photographic cache/apply logging is present"
 require_grid_text "GRAYHAIRED-GNOME-WALLPAPER-SYNC-STAGE6" "GNOME wallpaper synchronization is present"
 require_grid_text "[GRAYHAIRED-WALLPAPER6] synced" "GNOME wallpaper synchronization logging is present"
+require_grid_text "GRAYHAIRED-PHOTO-LIVE-REFLOW-STAGE7" "live photographic geometry reflow is present"
+require_grid_text "size-allocate" "live photographic reflow allocation hook is present"
+require_grid_text "[GRAYHAIRED-PHOTO7] reflow" "live photographic reflow logging is present"
 
-pass "promoted Automatic Blend is configured for solid and photographic pages"
+pass "promoted Automatic Blend is configured for solid and photographic pages with live icon-size reflow"
