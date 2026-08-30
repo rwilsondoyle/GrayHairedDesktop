@@ -40,10 +40,22 @@ import sys
 path = Path(sys.argv[1])
 text = path.read_text(encoding="utf-8")
 
-old = r'''                            // For this visual experiment use one shared full-desktop image
+old_variants = [
+r'''                            // For this visual experiment use one shared full-desktop image
                             // coordinate system. That guarantees continuity at the seam.
                             const panelCss = `.grayhaired-photo-continuation { ` +
-                                `background-image: url("${safeUrl}"); ` +
+                                `background-image: url(\"${safeUrl}\"); ` +
+                                `background-repeat: no-repeat; ` +
+                                `background-size: ${fullWidth}px ${fullHeight}px; ` +
+                                `background-position: 0px 0px; }`;
+                            this._livePhotoCssProvider.load_from_data(panelCss);
+
+                            const webPhotoScript = `(() => {
+''',
+r'''                            // For photographic pages use one shared full-desktop image
+                            // coordinate system. That guarantees continuity at the seam.
+                            const panelCss = `.grayhaired-photo-continuation { ` +
+                                `background-image: url(\"${safeUrl}\"); ` +
                                 `background-repeat: no-repeat; ` +
                                 `background-size: ${fullWidth}px ${fullHeight}px; ` +
                                 `background-position: 0px 0px; }`;
@@ -51,6 +63,7 @@ old = r'''                            // For this visual experiment use one shar
 
                             const webPhotoScript = `(() => {
 '''
+]
 
 new = r'''                            // GRAYHAIRED-PHOTO-LOCAL-CACHE-STAGE4
                             // GTK's CSS provider does not reliably paint remote https://
@@ -80,7 +93,7 @@ new = r'''                            // GRAYHAIRED-PHOTO-LOCAL-CACHE-STAGE4
 
                                         const localUri = localPhoto.get_uri();
                                         const panelCss = `.grayhaired-photo-continuation { ` +
-                                            `background-image: url("${localUri}"); ` +
+                                            `background-image: url(\"${localUri}\"); ` +
                                             `background-repeat: no-repeat; ` +
                                             `background-size: ${fullWidth}px ${fullHeight}px; ` +
                                             `background-position: 0px 0px; }`;
@@ -101,10 +114,12 @@ new = r'''                            // GRAYHAIRED-PHOTO-LOCAL-CACHE-STAGE4
                             const webPhotoScript = `(() => {
 '''
 
-if old not in text:
+for old in old_variants:
+    if old in text:
+        path.write_text(text.replace(old, new, 1), encoding="utf-8")
+        break
+else:
     raise SystemExit("expected Stage 3 remote GTK panel CSS block not found; refusing to patch")
-
-path.write_text(text.replace(old, new, 1), encoding="utf-8")
 PY
 
 grep -Fq 'GRAYHAIRED-PHOTO-LOCAL-CACHE-STAGE4' "$GRID" || \
@@ -114,4 +129,4 @@ grep -Fq '[GRAYHAIRED-PHOTO4] cached url=' "$GRID" || \
 
 pass "photographic local-cache Stage 4 installed"
 printf '[GRAYHAIRED-PHOTO4] INFO: %s\n' \
-    "reload only the GrayHaired child; GTK should now paint a local copy of whichever photo desktop-c selected"
+    "reload only the GrayHaired child; GTK should now paint a local copy of whichever photo the live page selected"
