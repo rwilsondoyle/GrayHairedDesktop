@@ -12,13 +12,16 @@ SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 DEFAULTS="$SCRIPT_DIR/wayland-layout-defaults.sh"
 
 if [[ ! -f "$DEFAULTS" ]]; then
-    echo "Shared Wayland layout defaults are missing:"
+    echo "Shared live-desktop layout defaults are missing:"
     echo "  $DEFAULTS"
     exit 2
 fi
 # shellcheck source=/dev/null
 source "$DEFAULTS"
 
+# The GRAYHAIRED_WAYLAND_* variable names are retained for compatibility with
+# the already-tested research patch chain. Their values are now shared by the
+# proven GNOME X11 and Wayland implementations.
 for value_name in \
     GRAYHAIRED_WAYLAND_ICON_COLUMNS \
     GRAYHAIRED_WAYLAND_ICON_STRIP_PADDING \
@@ -27,16 +30,20 @@ for value_name in \
     GRAYHAIRED_WAYLAND_ICON_STRIP_FALLBACK; do
     value="${!value_name:-}"
     if [[ ! "$value" =~ ^[0-9]+$ ]]; then
-        echo "Invalid adaptive Wayland layout default: $value_name=${value:-unset}"
+        echo "Invalid adaptive live-desktop layout default: $value_name=${value:-unset}"
         exit 2
     fi
 done
 
-if [[ "${XDG_SESSION_TYPE:-}" != "wayland" ]]; then
-    echo "This prototype installer is intended for a Wayland login."
-    echo "Current session: ${XDG_SESSION_TYPE:-unknown}"
-    exit 2
-fi
+case "${XDG_SESSION_TYPE:-}" in
+    wayland|x11|xorg)
+        ;;
+    *)
+        echo "This installer requires a GNOME X11/Xorg or Wayland login."
+        echo "Current session: ${XDG_SESSION_TYPE:-unknown}"
+        exit 2
+        ;;
+esac
 
 if [[ ! -d "$SYSTEM_EXT" ]]; then
     echo "System Zorin desktop-icons extension not found:"
@@ -46,7 +53,8 @@ fi
 
 # Refuse to build from an unverified Zorin/DING base. This read-only preflight
 # catches structural changes from future Zorin updates before the user-local
-# GrayHaired tree is replaced.
+# GrayHaired tree is replaced. The historical script name is retained because
+# it verifies the same Zorin DING source used by both supported session types.
 bash "$SCRIPT_DIR/check-wayland-zorin-base.sh"
 
 if pgrep -f '/zorin-desktop-icons@zorinos.com/app/ding.js' >/dev/null 2>&1; then
@@ -57,7 +65,7 @@ if pgrep -f '/zorin-desktop-icons@zorinos.com/app/ding.js' >/dev/null 2>&1; then
 fi
 
 if pgrep -f '/grayhaired-live-desktop@grayhaired.tech/app/ding.js' >/dev/null 2>&1; then
-    echo "The GrayHaired Wayland prototype DING process is still running."
+    echo "The GrayHaired Live Desktop DING process is still running."
     echo "This installer replaces the user-local extension tree, so use it only for installation/reinstallation."
     echo "For normal development reloads use:"
     echo "  bash $SCRIPT_DIR/reload-grayhaired.sh"
@@ -77,10 +85,11 @@ path = Path(sys.argv[1])
 uuid = sys.argv[2]
 data = json.loads(path.read_text(encoding="utf-8"))
 data["uuid"] = uuid
-data["name"] = "GrayHaired Live Desktop Wayland Prototype"
+data["name"] = "GrayHaired Live Desktop"
 data["description"] = (
-    "Research-only GrayHairedDesktop copy of Zorin Desktop Icons with a "
-    "dedicated adaptive DING icon strip and live My Desktop WebKit surface."
+    "GrayHairedDesktop integration of Zorin Desktop Icons with an adaptive "
+    "two-column DING icon area and live My Desktop WebKit surface for GNOME "
+    "X11 and Wayland sessions."
 )
 path.write_text(json.dumps(data, indent=4) + "\n", encoding="utf-8")
 PY
@@ -99,9 +108,9 @@ desktop_url = sys.argv[3]
 text = path.read_text(encoding="utf-8")
 
 if strip_width < 100:
-    raise SystemExit("Wayland fallback icon strip width is unexpectedly small; refusing to patch")
+    raise SystemExit("Live Desktop fallback icon strip width is unexpectedly small; refusing to patch")
 if not desktop_url.startswith("https://"):
-    raise SystemExit("Wayland desktop URL must use HTTPS; refusing to patch")
+    raise SystemExit("Live Desktop URL must use HTTPS; refusing to patch")
 
 old_imports = """'use strict';
 const Gtk = imports.gi.Gtk;
@@ -121,7 +130,7 @@ old_description = """        this._desktopDescription = desktopDescription;
         this.updateWindowGeometry();
         this.updateUnscaledHeightWidthMargins();
 """
-new_description = f"""        // GrayHairedDesktop Wayland research prototype:
+new_description = f"""        // GrayHairedDesktop GNOME live desktop:
         // keep the top-level desktop window at the monitor's full size, but
         // constrain DING's usable icon grid to a {strip_width}-pixel fallback
         // strip on the left. The adaptive installer step replaces this fixed
@@ -199,9 +208,9 @@ new_size_event_box = """    sizeEventBox() {
         this._eventBox.margin_top = this._marginTop;
         this._eventBox.margin_bottom = this._marginBottom;
 
-        // GrayHairedDesktop split-surface prototype: marginRight is still used
-        // by DING's grid calculations, but must not become a GTK widget margin
-        // or it will consume WebKit's horizontal allocation.
+        // GrayHairedDesktop split surface: marginRight is still used by DING's
+        // grid calculations, but must not become a GTK widget margin or it
+        // will consume WebKit's horizontal allocation.
         if (this._liveSplitSurface) {
             this._eventBox.margin_start = 0;
             this._eventBox.margin_end = 0;
@@ -231,9 +240,9 @@ print(
 PY
 
 # Build the physically verified two-column geometry in the same order used by
-# the successful Wayland experiments. The result supports startup adaptation,
-# a hard two-column GTK boundary, automatic icon-size following, and DING's
-# own safe remove/resize/update/re-place sequence on live size changes.
+# the successful GNOME experiments. The result supports startup adaptation, a
+# hard two-column GTK boundary, automatic icon-size following, and DING's own
+# safe remove/resize/update/re-place sequence on live size changes.
 bash "$SCRIPT_DIR/patch-wayland-adaptive-icon-strip.sh"
 bash "$SCRIPT_DIR/patch-wayland-fixed-two-column-boundary.sh"
 bash "$SCRIPT_DIR/patch-wayland-live-icon-size-tracking.sh"
@@ -251,18 +260,18 @@ bash "$SCRIPT_DIR/verify-wayland-known-good.sh" --files-only
 
 cat <<EOF
 
-=== SEPARATE WAYLAND DING PROTOTYPE INSTALLED ===
+=== GRAYHAIRED LIVE DESKTOP INSTALLED ===
 
 System extension remains untouched:
   $SYSTEM_EXT
 
-Separate user extension:
+GrayHaired user extension:
   $TEST_EXT
 
 UUID:
   $TEST_UUID
 
-Adaptive Wayland layout defaults used:
+Adaptive live-desktop layout defaults used:
   DING columns:      $GRAYHAIRED_WAYLAND_ICON_COLUMNS
   strip padding:     $GRAYHAIRED_WAYLAND_ICON_STRIP_PADDING px
   strip minimum:     $GRAYHAIRED_WAYLAND_ICON_STRIP_MIN px
@@ -270,16 +279,17 @@ Adaptive Wayland layout defaults used:
   fallback width:    $GRAYHAIRED_WAYLAND_ICON_STRIP_FALLBACK px
   My Desktop URL:    $GRAYHAIRED_WAYLAND_DESKTOP_URL
 
-The installed Wayland layout now includes the physically verified fixed
-adaptive two-column boundary and automatic Tiny/Small/Standard/Large reflow.
+The installed layout includes the physically verified fixed adaptive two-column
+boundary and automatic Tiny/Small/Standard/Large reflow on GNOME X11 and Wayland.
 
-The normal Zorin desktop-icons extension must remain disabled while testing.
+The normal Zorin desktop-icons extension must remain disabled while GrayHaired
+Live Desktop is active.
 
 If this UUID has already been discovered by GNOME Shell, enable it with:
   gnome-extensions enable $TEST_UUID
 
-For a first-time installation, log out and back into Wayland before enabling it.
-A reboot is NOT required.
+For a first-time installation, log out and back into your GNOME session before
+enabling it. A reboot is NOT required.
 
 IMPORTANT DEVELOPMENT WORKFLOW:
   Do not repeatedly disable/enable the GNOME extension to reload app code.
@@ -290,7 +300,7 @@ For changes to extension.js itself, prefer a normal logout/login so GNOME Shell
 loads a fresh extension module without churning unrelated Zorin extensions.
 
 Read-only verification of an active installation:
-  bash $SCRIPT_DIR/verify-wayland-known-good.sh
+  bash $SCRIPT_DIR/verify-live-desktop-known-good.sh
 
 Recovery/removal preflight:
   bash $SCRIPT_DIR/check-wayland-recovery.sh
