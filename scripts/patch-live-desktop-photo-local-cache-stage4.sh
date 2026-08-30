@@ -35,35 +35,24 @@ fi
 
 python3 - "$GRID" <<'PY'
 from pathlib import Path
+import re
 import sys
 
 path = Path(sys.argv[1])
 text = path.read_text(encoding="utf-8")
 
-old_variants = [
-r'''                            // For this visual experiment use one shared full-desktop image
-                            // coordinate system. That guarantees continuity at the seam.
-                            const panelCss = `.grayhaired-photo-continuation { ` +
-                                `background-image: url(\"${safeUrl}\"); ` +
-                                `background-repeat: no-repeat; ` +
-                                `background-size: ${fullWidth}px ${fullHeight}px; ` +
-                                `background-position: 0px 0px; }`;
-                            this._livePhotoCssProvider.load_from_data(panelCss);
-
-                            const webPhotoScript = `(() => {
-''',
-r'''                            // For photographic pages use one shared full-desktop image
-                            // coordinate system. That guarantees continuity at the seam.
-                            const panelCss = `.grayhaired-photo-continuation { ` +
-                                `background-image: url(\"${safeUrl}\"); ` +
-                                `background-repeat: no-repeat; ` +
-                                `background-size: ${fullWidth}px ${fullHeight}px; ` +
-                                `background-position: 0px 0px; }`;
-                            this._livePhotoCssProvider.load_from_data(panelCss);
-
-                            const webPhotoScript = `(() => {
-'''
-]
+# Match the Stage 3 remote GTK panel structurally rather than depending on
+# exact prose or quote escaping. The boundaries are stable parts of the
+# promoted Stage 3 implementation: its shared-coordinate comment and the
+# WebKit-side photo script that follows the GTK panel setup.
+pattern = re.compile(
+    r'''                            // For (?:this visual experiment|photographic pages) use one shared full-desktop image\n'''
+    r'''                            // coordinate system\. That guarantees continuity at the seam\.\n'''
+    r'''                            const panelCss = .*?\n'''
+    r'''                            this\._livePhotoCssProvider\.load_from_data\(panelCss\);\n\n'''
+    r'''                            const webPhotoScript = `\(\(\) => \{\n''',
+    re.DOTALL,
+)
 
 new = r'''                            // GRAYHAIRED-PHOTO-LOCAL-CACHE-STAGE4
                             // GTK's CSS provider does not reliably paint remote https://
@@ -114,12 +103,13 @@ new = r'''                            // GRAYHAIRED-PHOTO-LOCAL-CACHE-STAGE4
                             const webPhotoScript = `(() => {
 '''
 
-for old in old_variants:
-    if old in text:
-        path.write_text(text.replace(old, new, 1), encoding="utf-8")
-        break
-else:
-    raise SystemExit("expected Stage 3 remote GTK panel CSS block not found; refusing to patch")
+text2, count = pattern.subn(lambda _m: new, text, count=1)
+if count != 1:
+    raise SystemExit(
+        f"expected exactly one Stage 3 remote GTK panel CSS block, found {count}; refusing to patch"
+    )
+
+path.write_text(text2, encoding="utf-8")
 PY
 
 grep -Fq 'GRAYHAIRED-PHOTO-LOCAL-CACHE-STAGE4' "$GRID" || \
