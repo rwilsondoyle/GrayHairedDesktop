@@ -5,7 +5,6 @@ UUID="grayhaired-live-desktop@grayhaired.tech"
 EXT="$HOME/.local/share/gnome-shell/extensions/$UUID"
 GRID="$EXT/app/desktopGrid.js"
 BACKUP="$GRID.pre-photo-continuation-stage3"
-PHOTO_URL="https://grayhaired.tech/desktop-c/images/FL-VA.png"
 
 fail() {
     printf '[GRAYHAIRED-PHOTO3] FAIL: %s\n' "$*" >&2
@@ -36,26 +35,132 @@ else
     pass "rollback copy already exists: $BACKUP"
 fi
 
-python3 - "$GRID" "$PHOTO_URL" <<'PY'
+python3 - "$GRID" <<'PY'
 from pathlib import Path
 import sys
 
 path = Path(sys.argv[1])
-photo_url = sys.argv[2]
 text = path.read_text(encoding="utf-8")
 
 anchor = """        // GRAYHAIRED-PHOTO-BACKGROUND-DIAGNOSTIC\n"""
 if anchor not in text:
     raise SystemExit("photo diagnostic anchor not found")
 
-setup = f"""        // GRAYHAIRED-PHOTO-CONTINUATION-STAGE3\n        // Reversible photographic continuation experiment for desktop-c.\n        // Render the same photo across the full GTK desktop width, then shift\n        // the WebKit body background left by the live DING icon-pane width.\n        // This changes appearance only; DING geometry and input are untouched.\n        this._livePhotoCssProvider = new Gtk.CssProvider();\n        this._livePhotoStyleContext = this._eventBox.get_style_context();\n        this._livePhotoStyleContext.add_class('grayhaired-photo-continuation');\n        this._livePhotoStyleContext.add_provider(\n            this._livePhotoCssProvider,\n            Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION\n        );\n\n"""
+setup = """        // GRAYHAIRED-PHOTO-CONTINUATION-STAGE3
+        // Reversible photographic continuation experiment for desktop-c.
+        // Detect the currently active BODY background image on every page load
+        // so rotating photographic backgrounds are followed automatically.
+        // Appearance only: DING geometry, placement, focus, and input are untouched.
+        this._livePhotoCssProvider = new Gtk.CssProvider();
+        this._livePhotoStyleContext = this._eventBox.get_style_context();
+        this._livePhotoStyleContext.add_class('grayhaired-photo-continuation');
+        this._livePhotoStyleContext.add_provider(
+            this._livePhotoCssProvider,
+            Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
+        );
+
+"""
 text = text.replace(anchor, setup + anchor, 1)
 
-callback_anchor = """            if (loadEvent !== WebKit2.LoadEvent.FINISHED)\n                return;\n\n            const photoDiagnosticScript = `(() => {\n"""
+callback_anchor = """            if (loadEvent !== WebKit2.LoadEvent.FINISHED)
+                return;
+
+            const photoDiagnosticScript = `(() => {
+"""
 if callback_anchor not in text:
     raise SystemExit("photo load callback anchor not found")
 
-callback_replacement = f"""            if (loadEvent !== WebKit2.LoadEvent.FINISHED)\n                return;\n\n            try {{\n                const fullWidth = Math.max(1, this._liveLayout.get_allocated_width());\n                const fullHeight = Math.max(1, this._liveLayout.get_allocated_height());\n                const iconWidth = this._liveIconBoundary\n                    ? Math.max(1, this._liveIconBoundary.get_allocated_width())\n                    : Math.max(1, this._eventBox.get_allocated_width());\n\n                const panelCss = `.grayhaired-photo-continuation {{ ` +\n                    `background-image: url(\\\"{photo_url}\\\"); ` +\n                    `background-repeat: no-repeat; ` +\n                    `background-size: ${{fullWidth}}px ${{fullHeight}}px; ` +\n                    `background-position: 0px 0px; }}`;\n                this._livePhotoCssProvider.load_from_data(panelCss);\n\n                const webPhotoScript = `(() => {{\n                    if (!document.body) return 'no-body';\n                    document.body.style.backgroundImage = 'url(\\\"{photo_url}\\\")';\n                    document.body.style.backgroundRepeat = 'no-repeat';\n                    document.body.style.backgroundAttachment = 'fixed';\n                    document.body.style.backgroundSize = '${{fullWidth}}px ${{fullHeight}}px';\n                    document.body.style.backgroundPosition = '-${{iconWidth}}px 0px';\n                    return JSON.stringify({{fullWidth:${{fullWidth}}, fullHeight:${{fullHeight}}, iconWidth:${{iconWidth}}}});\n                }})()`;\n\n                webView.evaluate_javascript(\n                    webPhotoScript, -1, null, null, null,\n                    (source, result) => {{\n                        try {{\n                            const value = source.evaluate_javascript_finish(result);\n                            print(`[GRAYHAIRED-PHOTO3] applied ${{value.to_string()}}`);\n                        }} catch (e) {{\n                            printerr(`[GRAYHAIRED-PHOTO3] WebKit apply failed: ${{e.message}}`);\n                        }}\n                    }}\n                );\n            }} catch (e) {{\n                printerr(`[GRAYHAIRED-PHOTO3] setup failed: ${{e.message}}`);\n            }}\n\n            const photoDiagnosticScript = `(() => {{\n"""
+callback_replacement = r'''            if (loadEvent !== WebKit2.LoadEvent.FINISHED)
+                return;
+
+            // First discover whichever photographic BODY background this load chose.
+            const livePhotoDiscoveryScript = `(() => {
+                if (!document.body)
+                    return JSON.stringify({ok:false, reason:'no-body'});
+                const style = getComputedStyle(document.body);
+                const image = String(style.backgroundImage || 'none');
+                const match = image.match(/^url\(["']?(.*?)["']?\)$/i);
+                if (!match || !match[1])
+                    return JSON.stringify({ok:false, reason:'no-url', backgroundImage:image});
+                return JSON.stringify({
+                    ok: true,
+                    url: match[1],
+                    size: String(style.backgroundSize || ''),
+                    position: String(style.backgroundPosition || ''),
+                    repeat: String(style.backgroundRepeat || ''),
+                    attachment: String(style.backgroundAttachment || '')
+                });
+            })()`;
+
+            try {
+                webView.evaluate_javascript(
+                    livePhotoDiscoveryScript,
+                    -1,
+                    null,
+                    null,
+                    null,
+                    (source, result) => {
+                        try {
+                            const value = source.evaluate_javascript_finish(result);
+                            const payload = JSON.parse(value.to_string());
+                            if (!payload.ok || !payload.url) {
+                                print(`[GRAYHAIRED-PHOTO3] no-photo ${value.to_string()}`);
+                                return;
+                            }
+
+                            const fullWidth = Math.max(1, this._liveLayout.get_allocated_width());
+                            const fullHeight = Math.max(1, this._liveLayout.get_allocated_height());
+                            const iconWidth = this._liveIconBoundary
+                                ? Math.max(1, this._liveIconBoundary.get_allocated_width())
+                                : Math.max(1, this._eventBox.get_allocated_width());
+                            const safeUrl = String(payload.url).replace(/"/g, '\\"');
+
+                            // For this visual experiment use one shared full-desktop image
+                            // coordinate system. That guarantees continuity at the seam.
+                            const panelCss = `.grayhaired-photo-continuation { ` +
+                                `background-image: url("${safeUrl}"); ` +
+                                `background-repeat: no-repeat; ` +
+                                `background-size: ${fullWidth}px ${fullHeight}px; ` +
+                                `background-position: 0px 0px; }`;
+                            this._livePhotoCssProvider.load_from_data(panelCss);
+
+                            const webPhotoScript = `(() => {
+                                if (!document.body) return 'no-body';
+                                document.body.style.backgroundImage = 'url("${safeUrl}")';
+                                document.body.style.backgroundRepeat = 'no-repeat';
+                                document.body.style.backgroundAttachment = 'fixed';
+                                document.body.style.backgroundSize = '${fullWidth}px ${fullHeight}px';
+                                document.body.style.backgroundPosition = '-${iconWidth}px 0px';
+                                return JSON.stringify({
+                                    photo: '${safeUrl}',
+                                    fullWidth:${fullWidth},
+                                    fullHeight:${fullHeight},
+                                    iconWidth:${iconWidth}
+                                });
+                            })()`;
+
+                            webView.evaluate_javascript(
+                                webPhotoScript, -1, null, null, null,
+                                (webSource, webResult) => {
+                                    try {
+                                        const applied = webSource.evaluate_javascript_finish(webResult);
+                                        print(`[GRAYHAIRED-PHOTO3] applied ${applied.to_string()}`);
+                                    } catch (e) {
+                                        printerr(`[GRAYHAIRED-PHOTO3] WebKit apply failed: ${e.message}`);
+                                    }
+                                }
+                            );
+                        } catch (e) {
+                            printerr(`[GRAYHAIRED-PHOTO3] discovery/apply failed: ${e.message}`);
+                        }
+                    }
+                );
+            } catch (e) {
+                printerr(`[GRAYHAIRED-PHOTO3] discovery launch failed: ${e.message}`);
+            }
+
+            const photoDiagnosticScript = `(() => {
+'''
 text = text.replace(callback_anchor, callback_replacement, 1)
 
 path.write_text(text, encoding="utf-8")
@@ -63,9 +168,11 @@ PY
 
 grep -Fq 'GRAYHAIRED-PHOTO-CONTINUATION-STAGE3' "$GRID" || \
     fail "Stage 3 marker missing after patch"
+grep -Fq 'livePhotoDiscoveryScript' "$GRID" || \
+    fail "dynamic photo discovery code missing after patch"
 grep -Fq '[GRAYHAIRED-PHOTO3] applied' "$GRID" || \
     fail "Stage 3 apply log missing after patch"
 
-pass "photographic continuation Stage 3 installed"
+pass "dynamic photographic continuation Stage 3 installed"
 printf '[GRAYHAIRED-PHOTO3] INFO: %s\n' \
-    "reload only the GrayHaired child; the beach photo should continue behind the icon pane"
+    "reload only the GrayHaired child; whichever photo desktop-c selected should continue behind the icon pane"
