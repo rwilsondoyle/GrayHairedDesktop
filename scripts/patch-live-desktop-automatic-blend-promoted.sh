@@ -17,7 +17,9 @@ bash "$SCRIPT_DIR/patch-live-desktop-photo-local-cache-stage4.sh"
 bash "$SCRIPT_DIR/patch-live-desktop-photo-curl-cache-stage5.sh"
 bash "$SCRIPT_DIR/patch-live-desktop-photo-url-cleanup-stage5c.sh"
 bash "$SCRIPT_DIR/patch-live-desktop-wallpaper-sync-stage6.sh"
+bash "$SCRIPT_DIR/patch-live-desktop-photo-live-reflow-stage7.sh"
 
 printf '[GRAYHAIRED-BLEND] PASS: promoted Automatic Blend chain installed.\n'
 printf '[GRAYHAIRED-BLEND] INFO: solid pages keep the sampled-color panel; photographic pages follow static or rotating BODY backgrounds.\n'
+printf '[GRAYHAIRED-BLEND] INFO: photographic alignment follows live Tiny/Small/Standard/Large icon-strip reflow without reloads.\n'
 printf '[GRAYHAIRED-BLEND] INFO: original GNOME wallpaper can be restored with scripts/restore-live-desktop-wallpaper-stage6.sh\n'
