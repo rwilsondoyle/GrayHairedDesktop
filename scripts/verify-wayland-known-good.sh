@@ -42,11 +42,11 @@ forbid_grid_text() {
     pass "$description"
 }
 
-[[ -f "$DEFAULTS" ]] || fail "shared Wayland defaults are missing: $DEFAULTS"
+[[ -f "$DEFAULTS" ]] || fail "shared live-desktop defaults are missing: $DEFAULTS"
 # shellcheck source=/dev/null
 source "$DEFAULTS"
-[[ "${GRAYHAIRED_WAYLAND_DESKTOP_URL:-}" == https://* ]] || fail "Wayland desktop URL default is not HTTPS"
-pass "shared Wayland layout defaults are present"
+[[ "${GRAYHAIRED_WAYLAND_DESKTOP_URL:-}" == https://* ]] || fail "live-desktop URL default is not HTTPS"
+pass "shared live-desktop layout defaults are present"
 
 [[ -d "$EXT" ]] || fail "user-local GrayHaired extension is not installed: $EXT"
 [[ -f "$GRID" ]] || fail "desktopGrid.js is missing: $GRID"
@@ -70,7 +70,7 @@ if grep -Fq 'GRAYHAIRED-ADAPTIVE-ICON-STRIP' "$GRID"; then
     [[ "$GRAYHAIRED_WAYLAND_ICON_STRIP_MIN" -ge 100 ]] || fail "adaptive icon strip minimum is unexpectedly small"
     [[ "$GRAYHAIRED_WAYLAND_ICON_STRIP_MAX" -gt "$GRAYHAIRED_WAYLAND_ICON_STRIP_MIN" ]] || fail "adaptive icon strip maximum must exceed minimum"
     [[ "$GRAYHAIRED_WAYLAND_ICON_STRIP_FALLBACK" -ge "$GRAYHAIRED_WAYLAND_ICON_STRIP_MIN" && "$GRAYHAIRED_WAYLAND_ICON_STRIP_FALLBACK" -le "$GRAYHAIRED_WAYLAND_ICON_STRIP_MAX" ]] || fail "adaptive icon strip fallback is outside min/max range"
-    pass "adaptive Wayland layout defaults are valid"
+    pass "adaptive live-desktop layout defaults are valid"
 
     require_grid_text "Prefs.get_desired_width() + 4 * elementSpacing" "adaptive strip uses DING cell geometry"
     require_grid_text "this._eventBox.set_size_request(liveIconStripWidth, -1);" "adaptive EventBox width is configured"
@@ -81,9 +81,10 @@ else
     require_grid_text "this._eventBox.set_size_request(220, -1);" "legacy fixed EventBox width is configured"
 fi
 
-# Permanent Wayland geometry now includes the exact physically tested chain:
-# fixed two-column boundary, live icon-size following, and manager-synchronized
-# DING reflow using DING's own remove/resize/update/re-place sequence.
+# Permanent GNOME live-desktop geometry includes the exact physically tested
+# chain on both Wayland and X11: fixed two-column boundary, live icon-size
+# following, and manager-synchronized DING reflow using DING's own
+# remove/resize/update/re-place sequence.
 require_grid_text "GRAYHAIRED-FIXED-TWO-COLUMN-BOUNDARY" "fixed two-column boundary marker is present"
 require_grid_text "set_max_content_width(liveIconStripWidth)" "fixed boundary maximum-width clamp is present"
 require_grid_text "pack_start(this._liveIconBoundary, false, false, 0)" "fixed icon boundary is packed into live layout"
@@ -119,8 +120,14 @@ if $FILES_ONLY; then
     exit 0
 fi
 
-[[ "${XDG_SESSION_TYPE:-}" == "wayland" ]] || fail "current session is not Wayland (found: ${XDG_SESSION_TYPE:-unknown})"
-pass "current session is Wayland"
+case "${XDG_SESSION_TYPE:-}" in
+    wayland|x11|xorg)
+        pass "current GNOME session type is supported (${XDG_SESSION_TYPE})"
+        ;;
+    *)
+        fail "current session type is unsupported (found: ${XDG_SESSION_TYPE:-unknown})"
+        ;;
+esac
 
 state="$(gnome-extensions info "$UUID" 2>/dev/null | awk -F': ' '/State:/ {print $2; exit}')"
 [[ "$state" == "ACTIVE" ]] || fail "GrayHaired extension is not ACTIVE (state: ${state:-unknown})"
@@ -135,4 +142,4 @@ if pgrep -f "/$SYSTEM_UUID/app/ding.js" >/dev/null 2>&1; then
 fi
 pass "system Zorin DING child is not running"
 
-pass "known-good Wayland runtime verification complete"
+pass "known-good GrayHaired Live Desktop runtime verification complete on ${XDG_SESSION_TYPE:-unknown}"
