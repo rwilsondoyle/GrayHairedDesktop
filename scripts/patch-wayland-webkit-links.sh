@@ -6,14 +6,18 @@ TEST_EXT="$HOME/.local/share/gnome-shell/extensions/$TEST_UUID"
 GRID="$TEST_EXT/app/desktopGrid.js"
 BACKUP="$GRID.before-webkit-link-handoff"
 
-if [[ "${XDG_SESSION_TYPE:-}" != "wayland" ]]; then
-    echo "This patch is intended for the Wayland prototype."
-    echo "Current session: ${XDG_SESSION_TYPE:-unknown}"
-    exit 2
-fi
+case "${XDG_SESSION_TYPE:-}" in
+    wayland|x11|xorg)
+        ;;
+    *)
+        echo "This patch requires a GNOME X11/Xorg or Wayland login."
+        echo "Current session: ${XDG_SESSION_TYPE:-unknown}"
+        exit 2
+        ;;
+esac
 
 if [[ ! -f "$GRID" ]]; then
-    echo "GrayHaired Wayland prototype desktopGrid.js not found:"
+    echo "GrayHaired Live Desktop desktopGrid.js not found:"
     echo "  $GRID"
     exit 2
 fi
@@ -54,10 +58,10 @@ new_webview = """        this._liveWebView = new WebKit2.WebView();
         this._liveWebView.set_hexpand(true);
         this._liveWebView.set_vexpand(true);
 
-        // GrayHairedDesktop Wayland research: the desktop page contains many
-        // links that request a new browser window/tab. A bare WebKitWebView has
-        // no visible browser chrome, so hand user-initiated external
-        // navigations to the user's default browser instead.
+        // GrayHairedDesktop: the desktop page contains many links that request
+        // a new browser window/tab. A bare WebKitWebView has no visible browser
+        // chrome, so hand user-initiated external navigations to the user's
+        // default browser instead. This behavior is shared by X11 and Wayland.
         this.connectSignal(this._liveWebView, 'decide-policy',
             (webView, decision, decisionType) => {
                 if (decisionType !== WebKit2.PolicyDecisionType.NAVIGATION_ACTION &&
@@ -118,11 +122,11 @@ if not backup.exists():
     shutil.copy2(path, backup)
 
 path.write_text(text.replace(old_webview, new_webview, 1), encoding="utf-8")
-print("Added WebKit external-link handoff to the Wayland prototype.")
+print("Added WebKit external-link handoff to GrayHaired Live Desktop.")
 PY
 
 echo
-echo "=== WAYLAND WEBKIT LINK PATCH READY ==="
+echo "=== WEBKIT LINK PATCH READY ==="
 echo "Patched:"
 echo "  $GRID"
 echo "Backup:"
