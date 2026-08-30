@@ -106,7 +106,7 @@ replacement = rf'''        // GRAYHAIRED-PHOTO-BACKGROUND-DIAGNOSTIC
                     let node = document.elementFromPoint(x, y);
                     let depth = 0;
                     while (node && node.nodeType === 1 && depth < 12) {{
-                        pushNode(node, `point${{index}}-ancestor${{depth}}`);
+                        pushNode(node, 'point' + index + '-ancestor' + depth);
                         node = node.parentElement;
                         depth++;
                     }}
