@@ -20,8 +20,8 @@ grep -Fq 'GRAYHAIRED-AUTOMATIC-BLEND-STAGE2' "$GRID" || \
     fail "Automatic Blend Stage 2 is not installed"
 grep -Fq 'GRAYHAIRED-PHOTO-BACKGROUND-DIAGNOSTIC' "$GRID" || \
     fail "photo diagnostic marker not found"
-grep -Fq "https://grayhaired.tech/desktop-c" "$GRID" || \
-    fail "installed live URL is not desktop-c"
+grep -Fq 'this._liveWebView.load_uri' "$GRID" || \
+    fail "installed live WebKit URL marker is missing"
 
 if grep -Fq 'GRAYHAIRED-PHOTO-CONTINUATION-STAGE3' "$GRID"; then
     pass "photo continuation Stage 3 is already installed"
@@ -47,9 +47,10 @@ if anchor not in text:
     raise SystemExit("photo diagnostic anchor not found")
 
 setup = """        // GRAYHAIRED-PHOTO-CONTINUATION-STAGE3
-        // Reversible photographic continuation experiment for desktop-c.
+        // Reversible photographic continuation experiment for any live page.
         // Detect the currently active BODY background image on every page load
-        // so rotating photographic backgrounds are followed automatically.
+        // so static or rotating photographic backgrounds are followed automatically.
+        // Pages without a BODY background image simply keep the Stage 2 solid blend.
         // Appearance only: DING geometry, placement, focus, and input are untouched.
         this._livePhotoCssProvider = new Gtk.CssProvider();
         this._livePhotoStyleContext = this._eventBox.get_style_context();
@@ -115,7 +116,7 @@ callback_replacement = r'''            if (loadEvent !== WebKit2.LoadEvent.FINIS
                                 : Math.max(1, this._eventBox.get_allocated_width());
                             const safeUrl = String(payload.url).replace(/"/g, '\\"');
 
-                            // For this visual experiment use one shared full-desktop image
+                            // For photographic pages use one shared full-desktop image
                             // coordinate system. That guarantees continuity at the seam.
                             const panelCss = `.grayhaired-photo-continuation { ` +
                                 `background-image: url("${safeUrl}"); ` +
@@ -173,6 +174,6 @@ grep -Fq 'livePhotoDiscoveryScript' "$GRID" || \
 grep -Fq '[GRAYHAIRED-PHOTO3] applied' "$GRID" || \
     fail "Stage 3 apply log missing after patch"
 
-pass "dynamic photographic continuation Stage 3 installed"
+pass "page-neutral dynamic photographic continuation Stage 3 installed"
 printf '[GRAYHAIRED-PHOTO3] INFO: %s\n' \
-    "reload only the GrayHaired child; whichever photo desktop-c selected should continue behind the icon pane"
+    "reload only the GrayHaired child; photographic pages will continue behind the icon pane and solid pages keep Stage 2"
