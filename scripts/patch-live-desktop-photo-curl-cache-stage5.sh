@@ -41,52 +41,15 @@ import sys
 path = Path(sys.argv[1])
 text = path.read_text(encoding="utf-8")
 
-old = r'''                            // GRAYHAIRED-PHOTO-LOCAL-CACHE-STAGE4
-                            // GTK's CSS provider does not reliably paint remote https://
-                            // background-image URLs. Cache the currently selected page
-                            // photograph locally first, then use a file:// URL for only
-                            // the real DING icon pane. The main WebKit surface continues
-                            // to use the page-selected remote image.
-                            try {
-                                const remotePhoto = Gio.File.new_for_uri(payload.url);
-                                remotePhoto.load_contents_async(null, (remoteFile, loadResult) => {
-                                    try {
-                                        const [ok, contents] = remoteFile.load_contents_finish(loadResult);
-                                        if (!ok || !contents || contents.length === 0) {
-                                            print(`[GRAYHAIRED-PHOTO4] download-empty url=${payload.url}`);
-                                            return;
-                                        }
+start_marker = '                            // GRAYHAIRED-PHOTO-LOCAL-CACHE-STAGE4\n'
+end_marker = '                            const webPhotoScript = `(() => {\n'
 
-                                        const localPath = `/tmp/grayhaired-live-photo-${Date.now()}.img`;
-                                        const localPhoto = Gio.File.new_for_path(localPath);
-                                        localPhoto.replace_contents(
-                                            contents,
-                                            null,
-                                            false,
-                                            Gio.FileCreateFlags.REPLACE_DESTINATION,
-                                            null
-                                        );
-
-                                        const localUri = localPhoto.get_uri();
-                                        const panelCss = `.grayhaired-photo-continuation { ` +
-                                            `background-image: url("${localUri}"); ` +
-                                            `background-repeat: no-repeat; ` +
-                                            `background-size: ${fullWidth}px ${fullHeight}px; ` +
-                                            `background-position: 0px 0px; }`;
-                                        this._livePhotoCssProvider.load_from_data(panelCss);
-                                        print(
-                                            `[GRAYHAIRED-PHOTO4] cached url=${payload.url} ` +
-                                            `bytes=${contents.length} local=${localUri} ` +
-                                            `full=${fullWidth}x${fullHeight} icon=${iconWidth}`
-                                        );
-                                    } catch (e) {
-                                        printerr(`[GRAYHAIRED-PHOTO4] cache/apply failed: ${e.message}`);
-                                    }
-                                });
-                            } catch (e) {
-                                printerr(`[GRAYHAIRED-PHOTO4] cache launch failed: ${e.message}`);
-                            }
-'''
+start = text.find(start_marker)
+if start < 0:
+    raise SystemExit("Stage 4 marker not found; refusing to patch")
+end = text.find(end_marker, start)
+if end < 0:
+    raise SystemExit("Stage 4 end anchor not found; refusing to patch")
 
 new = r'''                            // GRAYHAIRED-PHOTO-CURL-CACHE-STAGE5
                             // GIO cannot fetch the page's https:// photo on this system.
@@ -142,12 +105,10 @@ new = r'''                            // GRAYHAIRED-PHOTO-CURL-CACHE-STAGE5
                             } catch (e) {
                                 printerr(`[GRAYHAIRED-PHOTO5] launch failed: ${e.message}`);
                             }
+
 '''
 
-if old not in text:
-    raise SystemExit("expected Stage 4 GIO cache block not found; refusing to patch")
-
-path.write_text(text.replace(old, new, 1), encoding="utf-8")
+path.write_text(text[:start] + new + text[end:], encoding="utf-8")
 PY
 
 grep -Fq 'GRAYHAIRED-PHOTO-CURL-CACHE-STAGE5' "$GRID" || \
