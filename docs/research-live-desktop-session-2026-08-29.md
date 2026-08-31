@@ -2,7 +2,7 @@
 
 ## Official status
 
-The original live-desktop research branch was promoted to `main` in PR #60. Follow-up work on `codex/manual-background-color` has now physically verified three additional production features for promotion: Stage 17 Manual Background, Stage 18 compact 204 px icon-pane geometry, and Stage 19 local-file drop protection.
+The original live-desktop research branch was promoted to `main` in PR #60. Follow-up production work has now physically verified Stages 17 through 20: Manual Background, compact 204 px icon-pane geometry, local-file drop protection, and modern-site browser handoff.
 
 ### Confirmed working
 
@@ -24,7 +24,10 @@ The original live-desktop research branch was promoted to `main` in PR #60. Foll
 - The GTK 4 `My Desktop Background` settings window is physically verified with five simple presets, a direct `Choose Color…` picker, live preview, Apply, and Automatic mode.
 - A normal Zorin application-menu entry named `My Desktop Background` provides user access without terminal commands.
 - Stage 18 changes the Stage-11 minimum icon-pane width from 240 px to 204 px. Physical testing confirmed Tiny, Small, Standard, and Large all look correct; Tiny no longer expands to an unintended three-column grid.
-- Stage 19 rejects `file://` WebKit navigation. Physical testing confirmed that repeatedly dropping a local `.txt` file onto the webpage side no longer replaces the configured desktop website.
+- Stage 19 rejects `file://` WebKit navigation. Physical testing confirmed that repeatedly dropping a local text file onto the webpage side no longer replaces the configured desktop website.
+- Stage 20 handles JavaScript-heavy modern-site links through WebKit's `create` signal. User-gesture HTTP(S) card/article requests open in the default browser while the live desktop page remains in place.
+- Stage 20 also handles the explicit MSN/Microsoft sign-in flow narrowly. Silent `prompt=none` account probes stay embedded; the interactive `prompt=select_account` OAuth request opens in the default browser. Physical testing confirmed successful MSN sign-in end-to-end.
+- DuckDuckGo remains a strong compatibility example: searches/navigation stay embedded and external results open in the default browser.
 - Safe WebKit keyboard handling remains in place; forced EventBox focus/grab_focus experiments remain absent.
 
 ## Promoted installation chain
@@ -38,29 +41,23 @@ The supported installation path now consists of:
 5. Stage 17 Manual Background override and GTK 4 settings UI
 6. Stage 18 compact 204 px minimum icon-pane width
 7. Stage 19 local-file WebKit navigation/drop protection
-8. Zorin application-menu launcher for `My Desktop Background`
+8. Stage 20 modern-site browser handoff and narrow Microsoft sign-in handoff
+9. Zorin application-menu launcher for `My Desktop Background`
 
-`install-gnome-live-desktop.sh` installs the supported combination. `verify-live-desktop-known-good.sh` requires the corresponding Stage 15, 16, 17, 18, and 19 markers and implementation details.
+`install-gnome-live-desktop.sh` installs the supported combination. `verify-live-desktop-known-good.sh` requires the corresponding Stage 15, 16, 17, 18, 19, and 20 markers and implementation details.
 
 ## Failed / retired experiments
 
 The following experiments are intentionally excluded from known-good and should not be reintroduced without a new design and physical testing:
 
-- Stage 8 broad arbitrary-link handoff: worsened modern-site link behavior.
+- Stage 8 broad arbitrary-link handoff: worsened modern-site link behavior and is superseded by the narrower Stage 20 design.
 - Stage 10 fixed scroll pane: broke layout and could kill the child process.
 - Stage 12 Large row-density change: gained too little and was superseded.
 - Stage 13 custom overflow drawer/helper approaches: functional in parts, but intrusive or unstable; native scrolling is preferred.
 - Stage 13E DING overlay: hard failure/blank desktop.
 - Stage 14 scrollbar-only change: no usable overflow because the DING canvas did not grow.
 - Forced EventBox focus / `grab_focus()`: caused a hard lock and must remain absent.
-
-## Remaining known issue
-
-### Arbitrary modern-site link handling
-
-`msn.com` still exposes unreliable JavaScript/card navigation: some links open the default browser while others appear to click without a useful result. Stage 8 is not the answer and remains retired.
-
-DuckDuckGo remains a strong compatibility example: searches/navigation stay embedded and external results open in the default browser.
+- Stage 20/20B diagnostic-only create/navigation logging remains test scaffolding and is intentionally excluded from clean promoted installs.
 
 ## Operational notes
 
@@ -73,4 +70,4 @@ DuckDuckGo remains a strong compatibility example: searches/navigation stay embe
 
 ## Promotion decision
 
-Stage 17 Manual Background, Stage 18 compact 204 px icon geometry, and Stage 19 local-file drop protection have all passed physical testing on the Dell Inspiron 3502 running Zorin OS 18.1 / GNOME Shell 46 Wayland. They are approved for the regular installer/verifier and for promotion to `main` while the unrelated MSN-style modern-site navigation limitation remains documented as follow-up work rather than a release blocker.
+Stages 17 through 20 have passed physical testing on the Dell Inspiron 3502 running Zorin OS 18.1 / GNOME Shell 46 Wayland. Stage 20 specifically passed with MSN article/card links opening in the default browser, MSN remaining on the live desktop, and Microsoft sign-in completing successfully in the normal browser. These features are approved for the regular installer/verifier and promotion to `main`.
