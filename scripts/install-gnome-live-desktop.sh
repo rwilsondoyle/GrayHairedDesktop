@@ -13,13 +13,23 @@ bash "$SCRIPT_DIR/patch-live-desktop-automatic-blend-promoted.sh"
 # Keep the physically verified Stage 15 adaptive vertical icon scrolling.
 bash "$SCRIPT_DIR/patch-live-desktop-virtual-scroll-canvas-stage15.sh"
 
-# Stage 17 adds the user-selectable Manual Background override while preserving
-# Automatic Blend as the default/fallback behavior.
+# Stage 17 adds the physically verified user-selectable Manual Background
+# override while preserving Automatic Blend as the default/fallback behavior.
 bash "$SCRIPT_DIR/patch-live-desktop-manual-background-stage17.sh"
+
+# Stage 18 is the physically verified tighter icon-pane geometry. Tiny and
+# Small use a 204px minimum, avoiding the accidental three-column Tiny grid
+# while returning more horizontal space to the live webpage.
+bash "$SCRIPT_DIR/patch-live-desktop-tight-width-stage18.sh"
+
+# Stage 19 prevents an accidental local file drop from navigating WebKit away
+# from the configured desktop website. Normal HTTP/HTTPS navigation and DING
+# desktop-icon dragging remain unchanged.
+bash "$SCRIPT_DIR/patch-live-desktop-block-local-file-drop-stage19.sh"
 
 # Publish a normal Zorin application-menu entry for the friendly GTK 4 settings
 # window so users do not need to know or run helper commands.
 bash "$SCRIPT_DIR/install-live-desktop-background-launcher.sh"
 
-printf '\n[GRAYHAIRED-INSTALL] PASS: GrayHaired Live Desktop with Automatic Blend, Manual Background, and adaptive vertical icon scrolling installed.\n'
+printf '\n[GRAYHAIRED-INSTALL] PASS: GrayHaired Live Desktop with Automatic Blend, Manual Background, 204px compact icon geometry, adaptive vertical scrolling, and local-file drop protection installed.\n'
 printf '[GRAYHAIRED-INSTALL] INFO: run scripts/verify-live-desktop-known-good.sh after enabling the extension.\n'
