@@ -65,6 +65,14 @@ require_grid_text "_grayhairedScrollableItemCount()" "Stage 15 desktop and speci
 require_grid_text "this._container.set_size_request(-1, this._height);" "Stage 15 virtual canvas height request is present"
 require_grid_text "[GRAYHAIRED-SCROLL15] items=" "Stage 15 scrolling diagnostics are present"
 
+# Stage 16 extends the active photographic continuation across the taller
+# Stage-15 icon canvas. It keeps the visible crop aligned with WebKit while
+# vertically repeating that same crop only in the off-screen overflow region.
+require_grid_text "GRAYHAIRED-PHOTO-SCROLL-CANVAS-STAGE16" "photo continuation across scroll canvas Stage 16 is present"
+require_grid_text "_livePhotoCanvasStyleContext" "Stage 16 photo style is applied to the virtual icon canvas"
+require_grid_text "background-repeat: repeat-y" "Stage 16 vertical photo continuation rule is present"
+require_grid_text "[GRAYHAIRED-PHOTO16] canvas=" "Stage 16 photo-scroll diagnostics are present"
+
 # Failed/superseded experiments do not belong in known-good.
 forbid_grid_text "GRAYHAIRED-ARBITRARY-LINK-HANDOFF-STAGE8" "failed Stage 8 arbitrary-link experiment is absent"
 forbid_grid_text "GRAYHAIRED-FIXED-SCROLL-PANE-STAGE10" "failed Stage 10 scrolling-pane experiment is absent"
@@ -72,4 +80,4 @@ forbid_grid_text "GRAYHAIRED-LARGE-ROW-DENSITY-STAGE12" "superseded Stage 12 row
 forbid_grid_text "GRAYHAIRED-OVERFLOW-OVERLAY-STAGE13E" "failed Stage 13E overlay experiment is absent"
 forbid_grid_text "GRAYHAIRED-VERTICAL-SCROLL-STAGE14" "superseded Stage 14 scrollbar-only experiment is absent"
 
-pass "promoted Automatic Blend is configured with Stage 11 compressed width and Stage 15 adaptive vertical icon scrolling"
+pass "promoted Automatic Blend is configured with Stage 11 compressed width, Stage 15 adaptive vertical scrolling, and Stage 16 photographic scroll continuation"
