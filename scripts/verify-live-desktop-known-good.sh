@@ -52,9 +52,12 @@ require_grid_text "[GRAYHAIRED-WALLPAPER6] synced" "GNOME wallpaper synchronizat
 require_grid_text "GRAYHAIRED-PHOTO-LIVE-REFLOW-STAGE7" "live photographic geometry reflow is present"
 require_grid_text "size-allocate" "live photographic reflow allocation hook is present"
 require_grid_text "[GRAYHAIRED-PHOTO7] reflow" "live photographic reflow logging is present"
+require_grid_text "GRAYHAIRED-COMPRESSED-WIDTH-STAGE11" "compressed icon-pane width Stage 11 is present"
+require_grid_text "const liveIconStripMin = 240;" "compressed icon-pane minimum width is present"
 
 # Stage 8 made navigation on a complex arbitrary site less reliable in physical
-# testing and must not be part of the promoted known-good installation.
+# testing and Stage 10 broke the split surface. Neither belongs in known-good.
 forbid_grid_text "GRAYHAIRED-ARBITRARY-LINK-HANDOFF-STAGE8" "failed Stage 8 arbitrary-link experiment is absent"
+forbid_grid_text "GRAYHAIRED-FIXED-SCROLL-PANE-STAGE10" "failed Stage 10 scrolling-pane experiment is absent"
 
-pass "promoted Automatic Blend is configured for solid and photographic pages with live icon-size reflow"
+pass "promoted Automatic Blend is configured for solid and photographic pages with compressed live icon-size reflow"
