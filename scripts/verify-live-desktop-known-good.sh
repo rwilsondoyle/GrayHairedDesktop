@@ -49,8 +49,7 @@ require_grid_text "[GRAYHAIRED-WALLPAPER6] synced" "GNOME wallpaper synchronizat
 require_grid_text "GRAYHAIRED-PHOTO-LIVE-REFLOW-STAGE7" "live photographic geometry reflow is present"
 require_grid_text "size-allocate" "live photographic reflow allocation hook is present"
 require_grid_text "[GRAYHAIRED-PHOTO7] reflow" "live photographic reflow logging is present"
-require_grid_text "GRAYHAIRED-COMPRESSED-WIDTH-STAGE11" "compressed icon-pane width Stage 11 is present"
-require_grid_text "const liveIconStripMin = 240;" "compressed icon-pane minimum width is present"
+require_grid_text "GRAYHAIRED-COMPRESSED-WIDTH-STAGE11" "compressed icon-pane width Stage 11 foundation is present"
 
 # Stage 15 adaptive vertical icon scrolling.
 require_grid_text "GRAYHAIRED-VIRTUAL-SCROLL-CANVAS-STAGE15" "virtual scrolling icon canvas Stage 15 is present"
@@ -79,6 +78,21 @@ pass "background settings launcher helper is present"
 grep -Fq 'Name=My Desktop Background' "$BG_LAUNCHER" || fail "background app-menu launcher name is incorrect"
 pass "Zorin application-menu entry for My Desktop Background is present"
 
+# Stage 18 replaces the old 240px Stage-11 floor with the physically verified
+# 204px minimum. Tiny/Small stay at two columns and the WebKit page receives
+# more horizontal room.
+require_grid_text "GRAYHAIRED-TIGHT-WIDTH-STAGE18" "tight icon-pane width Stage 18 is present"
+[[ "$(grep -Fc 'const liveIconStripMin = 204;' "$GRID")" -ge 2 ]] || fail "204px minimum is not present in both startup and live-reflow geometry"
+pass "204px minimum is present in startup and live-reflow geometry"
+require_grid_text "min=204px" "Stage 18 204px geometry diagnostics are present"
+forbid_grid_text "const liveIconStripMin = 240;" "obsolete 240px minimum is absent"
+
+# Stage 19 rejects file:// navigation requests so an accidental local-file drop
+# cannot replace the configured desktop website inside WebKit.
+require_grid_text "GRAYHAIRED-BLOCK-LOCAL-FILE-DROP-STAGE19" "local-file drop/navigation guard Stage 19 is present"
+require_grid_text "uri.startsWith('file://')" "Stage 19 file URI rejection is present"
+require_grid_text "[GRAYHAIRED-DROP19] blocked local file navigation:" "Stage 19 blocked-drop diagnostics are present"
+
 # Failed/superseded experiments do not belong in known-good.
 forbid_grid_text "GRAYHAIRED-ARBITRARY-LINK-HANDOFF-STAGE8" "failed Stage 8 arbitrary-link experiment is absent"
 forbid_grid_text "GRAYHAIRED-FIXED-SCROLL-PANE-STAGE10" "failed Stage 10 scrolling-pane experiment is absent"
@@ -86,4 +100,4 @@ forbid_grid_text "GRAYHAIRED-LARGE-ROW-DENSITY-STAGE12" "superseded Stage 12 row
 forbid_grid_text "GRAYHAIRED-OVERFLOW-OVERLAY-STAGE13E" "failed Stage 13E overlay experiment is absent"
 forbid_grid_text "GRAYHAIRED-VERTICAL-SCROLL-STAGE14" "superseded Stage 14 scrollbar-only experiment is absent"
 
-pass "promoted live desktop is configured with Stage 11 compressed width, Stage 15 scrolling, Stage 16 photo continuation, and Stage 17 background controls"
+pass "promoted live desktop is configured with Stage 15 scrolling, Stage 16 photo continuation, Stage 17 background controls, Stage 18 compact 204px width, and Stage 19 local-file drop protection"
