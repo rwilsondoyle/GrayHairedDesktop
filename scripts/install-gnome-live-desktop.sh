@@ -2,6 +2,7 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+APPLICATIONS_DIR="$HOME/.local/share/applications"
 
 # Build the proven GNOME X11/Wayland live-desktop geometry and WebKit surface.
 bash "$SCRIPT_DIR/install-wayland-separate-ding-prototype.sh" "$@"
@@ -37,11 +38,20 @@ bash "$SCRIPT_DIR/patch-live-desktop-modern-site-links-stage20.sh"
 # The GTK 4 selector supports presets plus arbitrary HTTP(S) websites and keeps
 # the choice under ~/.config/grayhaired-live-desktop/site.json.
 bash "$SCRIPT_DIR/patch-live-desktop-website-config-stage21.sh"
-bash "$SCRIPT_DIR/install-live-desktop-website-launcher.sh"
 
-# Publish the proven background settings entry and the Stage 22 control center.
-bash "$SCRIPT_DIR/install-live-desktop-background-launcher.sh"
+# Stage 22 publishes one simple control-center entry in the application menu.
+# Website and Background remain available inside My Desktop Settings, so the
+# older stand-alone menu entries are removed to avoid three nearly identical
+# choices for the user.
+mkdir -p "$APPLICATIONS_DIR"
+rm -f \
+    "$APPLICATIONS_DIR/grayhaired-live-desktop-website.desktop" \
+    "$APPLICATIONS_DIR/grayhaired-live-desktop-background.desktop"
 bash "$SCRIPT_DIR/install-live-desktop-settings-launcher.sh"
 
-printf '\n[GRAYHAIRED-INSTALL] PASS: GrayHaired Live Desktop with Automatic Blend, Manual Background, 204px compact icon geometry, adaptive vertical scrolling, local-file drop protection, modern-site browser handoff, persistent website selection, and My Desktop Settings installed.\n'
+if command -v update-desktop-database >/dev/null 2>&1; then
+    update-desktop-database "$APPLICATIONS_DIR" >/dev/null 2>&1 || true
+fi
+
+printf '\n[GRAYHAIRED-INSTALL] PASS: GrayHaired Live Desktop with Automatic Blend, Manual Background, 204px compact icon geometry, adaptive vertical scrolling, local-file drop protection, modern-site browser handoff, persistent website selection, and the consolidated My Desktop Settings control center installed.\n'
 printf '[GRAYHAIRED-INSTALL] INFO: run scripts/verify-live-desktop-known-good.sh after enabling the extension.\n'
