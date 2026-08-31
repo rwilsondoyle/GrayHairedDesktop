@@ -6,6 +6,7 @@ UUID="grayhaired-live-desktop@grayhaired.tech"
 EXT="$HOME/.local/share/gnome-shell/extensions/$UUID"
 GRID="$EXT/app/desktopGrid.js"
 RESTORE="$SCRIPT_DIR/restore-live-desktop-wallpaper-stage6.sh"
+BG_LAUNCHER="$HOME/.local/share/applications/grayhaired-live-desktop-background.desktop"
 
 # First run the proven geometry/WebKit/runtime verifier.
 bash "$SCRIPT_DIR/verify-wayland-known-good.sh" "$@"
@@ -32,11 +33,7 @@ forbid_grid_text() {
 pass "GNOME wallpaper restore helper is present"
 
 # Promoted Automatic Blend combines the exact physically tested solid-page and
-# photographic-page paths. A solid page uses sampled CSS color for both the
-# icon pane and the real GNOME background beneath translucent shell surfaces.
-# A page with a BODY background image uses the currently active image, caches
-# it locally, paints it behind DING, synchronizes GNOME wallpaper, and reflows
-# the photo whenever live icon-strip geometry changes.
+# photographic-page paths.
 require_grid_text "GRAYHAIRED-AUTOMATIC-BLEND-SAMPLER" "Automatic Blend edge sampler is present"
 require_grid_text "GRAYHAIRED-AUTOMATIC-BLEND-STAGE2" "solid-page sampled-color blend is present"
 require_grid_text "confidence < 0.60" "solid-page blend confidence fallback is present"
@@ -52,26 +49,49 @@ require_grid_text "[GRAYHAIRED-WALLPAPER6] synced" "GNOME wallpaper synchronizat
 require_grid_text "GRAYHAIRED-PHOTO-LIVE-REFLOW-STAGE7" "live photographic geometry reflow is present"
 require_grid_text "size-allocate" "live photographic reflow allocation hook is present"
 require_grid_text "[GRAYHAIRED-PHOTO7] reflow" "live photographic reflow logging is present"
-require_grid_text "GRAYHAIRED-COMPRESSED-WIDTH-STAGE11" "compressed icon-pane width Stage 11 is present"
-require_grid_text "const liveIconStripMin = 240;" "compressed icon-pane minimum width is present"
+require_grid_text "GRAYHAIRED-COMPRESSED-WIDTH-STAGE11" "compressed icon-pane width Stage 11 foundation is present"
 
-# Stage 15 is the physically verified vertical-overflow design. It preserves
-# the Stage 11 horizontal split and grows only the internal DING icon canvas,
-# allowing the existing ScrolledWindow to expose a normal vertical scrollbar
-# when required. Physical testing passed Tiny, Small, Standard, and Large.
+# Stage 15 adaptive vertical icon scrolling.
 require_grid_text "GRAYHAIRED-VIRTUAL-SCROLL-CANVAS-STAGE15" "virtual scrolling icon canvas Stage 15 is present"
 require_grid_text "vscrollbar_policy: Gtk.PolicyType.AUTOMATIC" "automatic vertical scrollbar policy is present"
 require_grid_text "_grayhairedScrollableItemCount()" "Stage 15 desktop and special-icon counter is present"
 require_grid_text "this._container.set_size_request(-1, this._height);" "Stage 15 virtual canvas height request is present"
 require_grid_text "[GRAYHAIRED-SCROLL15] items=" "Stage 15 scrolling diagnostics are present"
 
-# Stage 16 extends the active photographic continuation across the taller
-# Stage-15 icon canvas. It keeps the visible crop aligned with WebKit while
-# vertically repeating that same crop only in the off-screen overflow region.
+# Stage 16 photographic continuation across the taller Stage-15 icon canvas.
 require_grid_text "GRAYHAIRED-PHOTO-SCROLL-CANVAS-STAGE16" "photo continuation across scroll canvas Stage 16 is present"
 require_grid_text "_livePhotoCanvasStyleContext" "Stage 16 photo style is applied to the virtual icon canvas"
 require_grid_text "background-repeat: repeat-y" "Stage 16 vertical photo continuation rule is present"
 require_grid_text "[GRAYHAIRED-PHOTO16] canvas=" "Stage 16 photo-scroll diagnostics are present"
+
+# Stage 17 user-selectable manual background. Automatic Blend remains the
+# default when the user config file is absent, invalid, or set to automatic.
+require_grid_text "GRAYHAIRED-MANUAL-BACKGROUND-STAGE17" "manual background override Stage 17 is present"
+require_grid_text "_grayhairedBackgroundPreference" "Stage 17 preference reader is present"
+require_grid_text "[GRAYHAIRED-MANUAL17] applied color=" "Stage 17 manual-color logging is present"
+require_grid_text "[GRAYHAIRED-MANUAL17] photo override color=" "Stage 17 photographic override logging is present"
+[[ -f "$SCRIPT_DIR/live-desktop-background-settings.py" ]] || fail "GTK background settings UI is missing"
+pass "GTK background settings UI is present"
+[[ -f "$SCRIPT_DIR/open-live-desktop-background-settings.sh" ]] || fail "background settings launcher helper is missing"
+pass "background settings launcher helper is present"
+[[ -f "$BG_LAUNCHER" ]] || fail "Zorin application-menu background launcher is missing"
+grep -Fq 'Name=My Desktop Background' "$BG_LAUNCHER" || fail "background app-menu launcher name is incorrect"
+pass "Zorin application-menu entry for My Desktop Background is present"
+
+# Stage 18 replaces the old 240px Stage-11 floor with the physically verified
+# 204px minimum. Tiny/Small stay at two columns and the WebKit page receives
+# more horizontal room.
+require_grid_text "GRAYHAIRED-TIGHT-WIDTH-STAGE18" "tight icon-pane width Stage 18 is present"
+[[ "$(grep -Fc 'const liveIconStripMin = 204;' "$GRID")" -ge 2 ]] || fail "204px minimum is not present in both startup and live-reflow geometry"
+pass "204px minimum is present in startup and live-reflow geometry"
+require_grid_text "min=204px" "Stage 18 204px geometry diagnostics are present"
+forbid_grid_text "const liveIconStripMin = 240;" "obsolete 240px minimum is absent"
+
+# Stage 19 rejects file:// navigation requests so an accidental local-file drop
+# cannot replace the configured desktop website inside WebKit.
+require_grid_text "GRAYHAIRED-BLOCK-LOCAL-FILE-DROP-STAGE19" "local-file drop/navigation guard Stage 19 is present"
+require_grid_text "uri.startsWith('file://')" "Stage 19 file URI rejection is present"
+require_grid_text "[GRAYHAIRED-DROP19] blocked local file navigation:" "Stage 19 blocked-drop diagnostics are present"
 
 # Failed/superseded experiments do not belong in known-good.
 forbid_grid_text "GRAYHAIRED-ARBITRARY-LINK-HANDOFF-STAGE8" "failed Stage 8 arbitrary-link experiment is absent"
@@ -80,4 +100,4 @@ forbid_grid_text "GRAYHAIRED-LARGE-ROW-DENSITY-STAGE12" "superseded Stage 12 row
 forbid_grid_text "GRAYHAIRED-OVERFLOW-OVERLAY-STAGE13E" "failed Stage 13E overlay experiment is absent"
 forbid_grid_text "GRAYHAIRED-VERTICAL-SCROLL-STAGE14" "superseded Stage 14 scrollbar-only experiment is absent"
 
-pass "promoted Automatic Blend is configured with Stage 11 compressed width, Stage 15 adaptive vertical scrolling, and Stage 16 photographic scroll continuation"
+pass "promoted live desktop is configured with Stage 15 scrolling, Stage 16 photo continuation, Stage 17 background controls, Stage 18 compact 204px width, and Stage 19 local-file drop protection"
