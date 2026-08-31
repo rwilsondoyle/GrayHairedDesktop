@@ -39,9 +39,9 @@ bash "$SCRIPT_DIR/patch-live-desktop-modern-site-links-stage20.sh"
 bash "$SCRIPT_DIR/patch-live-desktop-website-config-stage21.sh"
 bash "$SCRIPT_DIR/install-live-desktop-website-launcher.sh"
 
-# Publish a normal Zorin application-menu entry for the friendly GTK 4
-# background settings window too.
+# Publish the proven background settings entry and the Stage 22 control center.
 bash "$SCRIPT_DIR/install-live-desktop-background-launcher.sh"
+bash "$SCRIPT_DIR/install-live-desktop-settings-launcher.sh"
 
-printf '\n[GRAYHAIRED-INSTALL] PASS: GrayHaired Live Desktop with Automatic Blend, Manual Background, 204px compact icon geometry, adaptive vertical scrolling, local-file drop protection, modern-site browser handoff, and persistent website selection installed.\n'
+printf '\n[GRAYHAIRED-INSTALL] PASS: GrayHaired Live Desktop with Automatic Blend, Manual Background, 204px compact icon geometry, adaptive vertical scrolling, local-file drop protection, modern-site browser handoff, persistent website selection, and My Desktop Settings installed.\n'
 printf '[GRAYHAIRED-INSTALL] INFO: run scripts/verify-live-desktop-known-good.sh after enabling the extension.\n'
