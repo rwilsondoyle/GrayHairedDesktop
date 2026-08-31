@@ -20,10 +20,14 @@ bash "$SCRIPT_DIR/patch-live-desktop-wallpaper-sync-stage6.sh"
 bash "$SCRIPT_DIR/patch-live-desktop-photo-live-reflow-stage7.sh"
 bash "$SCRIPT_DIR/patch-live-desktop-solid-wallpaper-sync-stage9.sh"
 bash "$SCRIPT_DIR/patch-live-desktop-compressed-width-stage11.sh"
+bash "$SCRIPT_DIR/patch-live-desktop-virtual-scroll-canvas-stage15.sh"
+bash "$SCRIPT_DIR/patch-live-desktop-photo-scroll-canvas-stage16.sh"
 
 printf '[GRAYHAIRED-BLEND] PASS: promoted Automatic Blend chain installed.\n'
 printf '[GRAYHAIRED-BLEND] INFO: solid pages use sampled color for both icon pane and translucent-shell backing.\n'
 printf '[GRAYHAIRED-BLEND] INFO: photographic pages follow static or rotating BODY backgrounds.\n'
 printf '[GRAYHAIRED-BLEND] INFO: icon-pane width uses the physically tested compressed range: Tiny/Small=240px, Standard=264px, Large=284px.\n'
+printf '[GRAYHAIRED-BLEND] INFO: Stage 15 provides normal vertical scrolling when desktop items exceed visible rows.\n'
+printf '[GRAYHAIRED-BLEND] INFO: Stage 16 continues photographic backgrounds through the full scrollable icon canvas.\n'
 printf '[GRAYHAIRED-BLEND] INFO: photographic alignment follows live Tiny/Small/Standard/Large icon-strip reflow without reloads.\n'
 printf '[GRAYHAIRED-BLEND] INFO: original GNOME wallpaper can be restored with scripts/restore-live-desktop-wallpaper-stage6.sh\n'
