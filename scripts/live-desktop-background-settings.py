@@ -69,8 +69,6 @@ class BackgroundSettingsDialog(QDialog):
         self.setMinimumWidth(500)
 
         mode, color = load_config()
-        self._saved_mode = mode
-        self._saved_color = color
 
         title = QLabel("Desktop Background", self)
         font = title.font()
@@ -101,9 +99,11 @@ class BackgroundSettingsDialog(QDialog):
         self.preview = QFrame(self)
         self.preview.setFixedHeight(86)
         self.preview.setFrameShape(QFrame.Shape.StyledPanel)
-        self.preview_label = QLabel(self.preview)
+        self.preview_label = QLabel("", self.preview)
         self.preview_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.preview_label.setStyleSheet("font-weight: 700; font-size: 16px;")
+        preview_layout = QVBoxLayout(self.preview)
+        preview_layout.setContentsMargins(8, 8, 8, 8)
+        preview_layout.addWidget(self.preview_label)
 
         self.status = QLabel("", self)
         self.status.setWordWrap(True)
@@ -168,10 +168,11 @@ class BackgroundSettingsDialog(QDialog):
         self.preset.setEnabled(manual)
         custom_selected = self.preset.currentIndex() == len(PRESETS) - 1
         self.custom.setEnabled(manual and custom_selected)
-        self.preview.setEnabled(manual)
+        self.preview.setEnabled(True)
         self.apply_button.setText(
             "Apply Automatic Blend" if self.automatic.isChecked() else "Apply Background"
         )
+        self._update_preview()
 
     def _current_color(self) -> str | None:
         text = self.custom.text().strip().upper()
@@ -185,7 +186,7 @@ class BackgroundSettingsDialog(QDialog):
                 "QFrame { background: palette(window); border: 2px dashed palette(mid); "
                 "border-radius: 8px; }"
             )
-            self.preview_label.setText("Automatic Blend")
+            self.preview_label.setText("Automatic Blend\nWebsite colors will be used")
             self.preview_label.setStyleSheet("font-weight: 700; font-size: 16px;")
             return
 
@@ -196,6 +197,7 @@ class BackgroundSettingsDialog(QDialog):
                 "border-radius: 8px; }"
             )
             self.preview_label.setText("Enter a color like #41464C")
+            self.preview_label.setStyleSheet("font-weight: 700; font-size: 16px;")
             return
 
         qcolor = QColor(color)
@@ -250,7 +252,6 @@ class BackgroundSettingsDialog(QDialog):
         else:
             mode = "Automatic Blend" if value == "automatic" else "Manual Background"
             self.status.setText(f"Applied: {mode}")
-            self._saved_mode, self._saved_color = load_config()
         finally:
             self.apply_button.setEnabled(True)
 
