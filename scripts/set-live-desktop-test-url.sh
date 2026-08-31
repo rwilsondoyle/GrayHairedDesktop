@@ -12,6 +12,7 @@ Usage:
   bash scripts/set-live-desktop-test-url.sh desktop-d
   bash scripts/set-live-desktop-test-url.sh https://grayhaired.tech/desktop-c
   bash scripts/set-live-desktop-test-url.sh https://www.msn.com/
+  bash scripts/set-live-desktop-test-url.sh https://duckduckgo.com/
 EOF
 }
 
@@ -39,8 +40,11 @@ case "$value" in
     https://www.msn.com|https://www.msn.com/|https://msn.com|https://msn.com/)
         target="https://www.msn.com/"
         ;;
+    https://duckduckgo.com|https://duckduckgo.com/|https://www.duckduckgo.com|https://www.duckduckgo.com/)
+        target="https://duckduckgo.com/"
+        ;;
     *)
-        echo "For this controlled test, use desktop-c, desktop-d, or https://www.msn.com/." >&2
+        echo "For this controlled test, use desktop-c, desktop-d, https://www.msn.com/, or https://duckduckgo.com/." >&2
         usage
         exit 2
         ;;
@@ -55,7 +59,9 @@ path = Path(sys.argv[1])
 target = sys.argv[2]
 text = path.read_text(encoding="utf-8")
 
-pattern = re.compile(r"https://(?:grayhaired\.tech/desktop-[cd]/?|(?:www\.)?msn\.com/?)")
+pattern = re.compile(
+    r"https://(?:grayhaired\.tech/desktop-[cd]/?|(?:www\.)?msn\.com/?|(?:www\.)?duckduckgo\.com/?)"
+)
 matches = pattern.findall(text)
 if not matches:
     raise SystemExit("No supported test URL references found; refusing to edit unknown file")
