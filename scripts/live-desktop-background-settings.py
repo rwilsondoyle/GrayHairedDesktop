@@ -26,15 +26,14 @@ SETTER = REPO_DIR / "scripts" / "set-live-desktop-background.sh"
 RELOADER = REPO_DIR / "scripts" / "reload-grayhaired.sh"
 HEX_RE = re.compile(r"^#[0-9A-Fa-f]{6}$")
 
-# Keep the quick-pick list deliberately short. Most users who want something
-# beyond these basics can use Custom Color and the full GTK color chooser.
+# Keep the quick-pick list deliberately short. The Choose Color button opens
+# the full GTK color chooser immediately for any other color.
 PRESETS = (
-    ("Gray", "#808080", None),
-    ("White", "#FFFFFF", None),
-    ("Green", "#2E7D32", None),
-    ("Red", "#C62828", None),
-    ("Blue", "#3155A6", None),
-    ("Custom Color…", None, None),
+    ("Gray", "#808080"),
+    ("White", "#FFFFFF"),
+    ("Green", "#2E7D32"),
+    ("Red", "#C62828"),
+    ("Blue", "#3155A6"),
 )
 
 
@@ -69,9 +68,10 @@ def hex_from_rgba(rgba: Gdk.RGBA) -> str:
 class BackgroundSettingsWindow(Gtk.ApplicationWindow):
     def __init__(self, app: Gtk.Application) -> None:
         super().__init__(application=app, title="My Desktop Background")
-        self.set_default_size(540, 560)
+        self.set_default_size(540, 530)
         self.set_resizable(False)
         self._syncing_color_controls = False
+        self._chooser_dialog = None
 
         mode, color = load_config()
 
@@ -106,16 +106,16 @@ class BackgroundSettingsWindow(Gtk.ApplicationWindow):
         outer.append(self.manual)
 
         row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
-        row.append(Gtk.Label(label="Color choice:"))
+        row.append(Gtk.Label(label="Quick color:"))
         self.preset = Gtk.ComboBoxText()
         self.preset.set_hexpand(True)
-        for label, _hex_color, _setter in PRESETS:
+        for label, _hex_color in PRESETS:
             self.preset.append_text(label)
         row.append(self.preset)
         outer.append(row)
 
         custom_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
-        custom_row.append(Gtk.Label(label="Custom color:"))
+        custom_row.append(Gtk.Label(label="Chosen color:"))
         self.custom = Gtk.Entry()
         self.custom.set_hexpand(True)
         self.custom.set_text(color)
@@ -123,18 +123,17 @@ class BackgroundSettingsWindow(Gtk.ApplicationWindow):
         self.custom.set_max_length(7)
         custom_row.append(self.custom)
 
-        self.color_picker = Gtk.ColorButton()
-        self.color_picker.set_rgba(rgba_from_hex(color))
-        self.color_picker.set_tooltip_text(
-            "Open the color picker and choose virtually any screen color."
+        self.choose_color_button = Gtk.Button(label="Choose Color…")
+        self.choose_color_button.set_tooltip_text(
+            "Open the full color picker and choose virtually any screen color."
         )
-        custom_row.append(self.color_picker)
+        custom_row.append(self.choose_color_button)
         outer.append(custom_row)
 
         picker_help = Gtk.Label(
             label=(
-                "Choose Custom Color to type a hex code or click the color square "
-                "to choose your own color."
+                "Use a quick color above, type a hex color, or click Choose Color… "
+                "to open the full color picker immediately."
             )
         )
         picker_help.set_wrap(True)
@@ -185,24 +184,23 @@ class BackgroundSettingsWindow(Gtk.ApplicationWindow):
         self.manual.connect("toggled", self._update_controls)
         self.preset.connect("changed", self._preset_changed)
         self.custom.connect("changed", self._custom_changed)
-        self.color_picker.connect("color-set", self._color_picker_changed)
+        self.choose_color_button.connect("clicked", self._open_color_chooser)
         self.apply_button.connect("clicked", self._apply)
 
         self._select_initial_preset(color)
         self._update_controls()
 
     def _select_initial_preset(self, color: str) -> None:
-        for index, (_label, hex_color, _setter) in enumerate(PRESETS):
-            if hex_color and hex_color.upper() == color.upper():
+        for index, (_label, hex_color) in enumerate(PRESETS):
+            if hex_color.upper() == color.upper():
                 self.preset.set_active(index)
                 return
-        self.preset.set_active(len(PRESETS) - 1)
+        self.preset.set_active(0)
 
-    def _set_color_controls(self, color: str) -> None:
+    def _set_color(self, color: str) -> None:
         self._syncing_color_controls = True
         try:
-            self.custom.set_text(color)
-            self.color_picker.set_rgba(rgba_from_hex(color))
+            self.custom.set_text(color.upper())
         finally:
             self._syncing_color_controls = False
         self._update_preview()
@@ -210,40 +208,58 @@ class BackgroundSettingsWindow(Gtk.ApplicationWindow):
     def _preset_changed(self, *_args) -> None:
         index = self.preset.get_active()
         if 0 <= index < len(PRESETS):
-            _label, hex_color, _setter = PRESETS[index]
-            if hex_color:
-                self._set_color_controls(hex_color)
-        self._update_controls()
+            _label, hex_color = PRESETS[index]
+            self._set_color(hex_color)
+        self._update_preview()
 
     def _custom_changed(self, *_args) -> None:
         if self._syncing_color_controls:
             return
-        color = self._current_color()
-        if color is not None:
-            self._syncing_color_controls = True
-            try:
-                self.color_picker.set_rgba(rgba_from_hex(color))
-            finally:
-                self._syncing_color_controls = False
         self._update_preview()
 
-    def _color_picker_changed(self, *_args) -> None:
-        if self._syncing_color_controls:
+    def _open_color_chooser(self, *_args) -> None:
+        if not self.manual.get_active():
+            self.manual.set_active(True)
+
+        current = self._current_color() or "#41464C"
+
+        # Gtk.ColorChooserDialog gives the full system chooser: saturation/value
+        # area, hue controls, preview, and numeric/hex entry where supported.
+        if hasattr(Gtk, "ColorChooserDialog"):
+            dialog = Gtk.ColorChooserDialog(title="Choose Color", transient_for=self)
+            dialog.set_modal(True)
+            dialog.set_rgba(rgba_from_hex(current))
+            dialog.connect("response", self._color_chooser_response)
+            self._chooser_dialog = dialog
+            dialog.present()
             return
-        color = hex_from_rgba(self.color_picker.get_rgba())
-        self._syncing_color_controls = True
+
+        # Fallback for newer GTK builds that remove ColorChooserDialog. A
+        # temporary ColorButton still launches the platform's color chooser.
+        hidden_picker = Gtk.ColorButton()
+        hidden_picker.set_rgba(rgba_from_hex(current))
+        hidden_picker.connect("color-set", self._fallback_picker_changed)
+        self._fallback_picker = hidden_picker
+        hidden_picker.activate()
+
+    def _color_chooser_response(self, dialog, response_id) -> None:
         try:
-            self.custom.set_text(color)
+            if response_id in {Gtk.ResponseType.OK, Gtk.ResponseType.ACCEPT}:
+                self._set_color(hex_from_rgba(dialog.get_rgba()))
         finally:
-            self._syncing_color_controls = False
-        self._update_preview()
+            dialog.close()
+            if self._chooser_dialog is dialog:
+                self._chooser_dialog = None
+
+    def _fallback_picker_changed(self, picker) -> None:
+        self._set_color(hex_from_rgba(picker.get_rgba()))
+        self._fallback_picker = None
 
     def _update_controls(self, *_args) -> None:
         manual = self.manual.get_active()
         self.preset.set_sensitive(manual)
-        custom_selected = self.preset.get_active() == len(PRESETS) - 1
-        self.custom.set_sensitive(manual and custom_selected)
-        self.color_picker.set_sensitive(manual and custom_selected)
+        self.custom.set_sensitive(manual)
+        self.choose_color_button.set_sensitive(manual)
         self.apply_button.set_label(
             "Apply Background" if manual else "Apply Automatic Blend"
         )
@@ -303,12 +319,7 @@ class BackgroundSettingsWindow(Gtk.ApplicationWindow):
             if color is None:
                 self._show_error("Enter a six-digit hex color such as #41464C.")
                 return
-            index = self.preset.get_active()
-            if not (0 <= index < len(PRESETS)):
-                self._show_error("Choose a background color first.")
-                return
-            _label, preset_hex, setter_value = PRESETS[index]
-            value = setter_value if preset_hex and color == preset_hex.upper() else color
+            value = color
 
         self.apply_button.set_sensitive(False)
         self.status.set_text("Applying background…")
