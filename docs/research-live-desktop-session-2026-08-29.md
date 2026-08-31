@@ -1,89 +1,90 @@
-# GrayHaired Live Desktop research checkpoint — 2026-08-29
+# GrayHaired Live Desktop — finalized research checkpoint
 
-## Status at end of session
+## Official status
 
 Branch: `codex/research-live-desktop-mode`
 
-The live desktop implementation is in a strong research checkpoint on both GNOME X11 and Wayland.
+Physical testing on Zorin OS 18.1 / GNOME 46 has reached the point where the live-desktop implementation is considered ready for promotion out of research. The normal installer and verifier now reproduce the working Stage 11 + Stage 15 + Stage 16 configuration.
 
 ### Confirmed working
 
-- Clean Wayland install completes from both extensions stopped/INITIALIZED.
-- Exactly one GrayHaired DING/WebKit child runs after enabling GrayHaired.
-- Stock Zorin DING child is absent while GrayHaired is active.
-- Default live page remains `https://grayhaired.tech/desktop-d`.
-- Real DING desktop icons remain usable on the left side.
-- WebKit live page remains clickable on the right side.
-- Adaptive icon strip preserves two DING columns.
-- Live icon-size reflow works without reload for:
-  - Tiny: 164 px
-  - Small: 204 px
-  - Standard: 264 px
-  - Large: 284 px
+- Same GrayHaired user-local DING/WebKit extension works on GNOME X11 and Wayland.
+- Exactly one GrayHaired DING/WebKit child runs while GrayHaired is active; stock Zorin DING remains disabled.
+- Real desktop icons/files/folders remain usable in the left icon pane.
+- The live webpage remains clickable and interactive on the right.
+- Normal applications can appear above the desktop surface.
+- Compressed icon-pane widths are physically accepted: Tiny/Small 240 px, Standard 264 px, Large 284 px.
+- Stage 15 adaptive vertical scrolling is physically verified on Tiny, Small, Standard, and Large.
+- Stage 15 counts regular desktop items plus special Home/Trash items and grows only the internal DING canvas when overflow exists.
+- The normal GTK vertical scrollbar appears only when needed.
+- Right-click `Arrange Icons` continues to work and is the preferred native fix for occasional preserved-coordinate gaps; no custom icon-packing code is needed.
 - Automatic Blend solid-page sampling works.
 - Stage 9 synchronizes the GNOME backing color for no-photo pages so translucent taskbar areas do not reveal stale photographic wallpaper.
-- `msn.com` visual fallback test sampled `rgb(36, 36, 36)` / `#242424` with confidence 1.0 and looked visually correct after Stage 9.
-- Photographic continuation works on `desktop-c`.
-- Cached active photo is painted behind the DING icon area.
-- GNOME wallpaper synchronization keeps translucent shell/taskbar areas aligned with the page photo.
-- Rotating `desktop-c` photos are followed.
-- Stage 7 live photographic reflow keeps the photo aligned while changing Tiny/Small/Standard/Large icon sizes without reload.
-- Wayland visual test of `desktop-c` showed no visible seam or right-edge black strip.
-- Safe WebKit keyboard guard remains in place; forced EventBox focus/grab_focus experiments remain absent.
+- `msn.com` visually passes with sampled `rgb(36, 36, 36)` / `#242424`; MSN link behavior remains inconsistent and is not considered fully solved.
+- DuckDuckGo visually and functionally passes: searches/navigation stay embedded and external search results open in the default browser.
+- Photographic continuation works on `desktop-c`, including rotating photos.
+- Stage 7 keeps the visible photo aligned through live icon-size changes without reload.
+- Stage 16 extends the photographic background through the taller Stage 15 scroll canvas; physical testing judged the repeated vertical continuation acceptable.
+- Switching from a photo page to a solid page correctly returns to solid-color behavior; Stage 16 does not interfere with no-photo pages.
+- Safe WebKit keyboard handling remains in place; forced EventBox focus/grab_focus experiments remain absent.
 
 ## Promoted Automatic Blend chain
 
-Supported promoted chain currently includes:
+The supported installation chain is:
 
 1. edge sampler
 2. sampled-color solid blend
-3. page-level photo discovery/continuation
+3. page photo discovery/continuation
 4. local photo cache support
 5. curl cache path
 5C. URL cleanup
 6. GNOME wallpaper photo sync
 7. live photo geometry reflow
 9. solid/no-photo GNOME backing-color sync
+11. compressed live icon-pane widths
+15. adaptive vertical DING scroll canvas
+16. photographic continuation through the Stage 15 scroll canvas
 
-The verifier explicitly requires these promoted markers and explicitly requires failed Stage 8 to be absent.
+`patch-live-desktop-automatic-blend-promoted.sh` installs this chain. `verify-live-desktop-known-good.sh` requires the Stage 11, Stage 15, and Stage 16 markers and the corresponding implementation details.
 
-## Failed / unresolved experiment
+## Failed / retired experiments
+
+The following experiments are intentionally excluded from known-good and should not be reintroduced without a new design and physical testing:
+
+- Stage 8 broad arbitrary-link handoff: worsened modern-site link behavior.
+- Stage 10 fixed scroll pane: broke layout and could kill the child process.
+- Stage 12 Large row-density change: gained too little and was superseded.
+- Stage 13 custom overflow drawer/helper approaches: functional in parts, but intrusive or unstable; native scrolling is preferred.
+- Stage 13E DING overlay: hard failure/blank desktop.
+- Stage 14 scrollbar-only change: no usable overflow because the DING canvas did not grow.
+- Forced EventBox focus / `grab_focus()`: caused a hard lock and must remain absent.
+
+## Remaining known issue
 
 ### Arbitrary modern-site link handling
 
-`msn.com` exposed unreliable link behavior. Some cards/links open the normal browser while others appear clicked but do nothing useful.
+`msn.com` still exposes unreliable JavaScript/card navigation: some links open the default browser while others appear to click without a useful result. Stage 8 is not the answer and remains retired.
 
-Stage 8 attempted a broader arbitrary-site WebKit navigation handoff. Physical testing felt worse, with fewer links working, so Stage 8 was rolled back and must remain excluded from the supported chain.
+Future work should examine WebKit new-window/create-policy and JavaScript-driven navigation paths without disturbing the proven GrayHaired pages or DuckDuckGo behavior.
 
-Future requirement: arbitrary modern websites should preserve the embedded live desktop document while reliably opening intended clicked destinations in the user's normal browser. Investigate WebKit navigation/new-window/JavaScript-driven click paths without destabilizing the proven GrayHaired pages.
+## Future user-facing feature
 
-## Future user-facing feature requested
+Add manual background-color customization:
 
-Add background-color customization so users are not forced to use the current gray choice. Desired UI concept:
-
-- friendly dropdown of common background colors
-- optional custom color-code entry, especially hex values such as `#41464C`
-- immediate preview before saving
-- Automatic Blend/manual-background behavior should be clearly defined so a user's manual choice is respected when manual mode is selected
-
-This is a future step, not part of the current stabilization work.
+- friendly color dropdown
+- optional custom hex entry such as `#41464C`
+- immediate preview
+- clear precedence between Manual Background and Automatic Blend, with manual mode overriding Automatic Blend when selected
 
 ## Operational notes
 
-- Do not edit `/usr/share/gnome-shell/extensions/...`; GrayHaired uses the user-local copy.
-- Do not use forced `Gtk.EventBox.grab_focus()` or forced EventBox focus; that earlier experiment caused a hard lock.
+- Never edit `/usr/share/gnome-shell/extensions/...`; GrayHaired uses the user-local extension tree.
 - Site HTML/CSS/JS changes: use page Reload.
-- Child app-code changes: `bash ~/GrayHairedDesktop/scripts/reload-grayhaired.sh`.
-- `extension.js` changes: prefer logout/login.
-- Clean reinstall requires both stock and GrayHaired DING child processes truly stopped first. On Wayland, disabling the stock Zorin extension can leave its DING child alive; logout/login successfully clears it.
+- GrayHaired child app-code changes: `bash ~/GrayHairedDesktop/scripts/reload-grayhaired.sh`.
+- `extension.js` changes: logout/login is the normal safe reload path.
 - No reboot is required for the known workflows.
-- Original GNOME wallpaper backup remains at `~/.config/grayhaired-live-desktop-wallpaper-backup.txt` and should not be overwritten by GrayHaired-generated photo state.
+- Original GNOME wallpaper backup remains at `~/.config/grayhaired-live-desktop-wallpaper-backup.txt` and should not be overwritten by GrayHaired-generated state.
 
-## Suggested next session order
+## Promotion decision
 
-1. Return temporary test URL from `desktop-c` to `desktop-d` if desired before continuing.
-2. Confirm Stage 9 solid backing-color return on Wayland after switching from photo mode to `desktop-d`.
-3. Optionally repeat the MSN visual fallback on Wayland.
-4. Research a better arbitrary-site link strategy; keep Stage 8 out unless a replacement is physically proven.
-5. Once both-session behavior is considered stable enough, prepare the research branch for a logical PR/merge checkpoint.
-6. Later add the user-selectable background color feature.
+Stage 15 adaptive icon scrolling and Stage 16 photographic scroll-canvas continuation have both passed physical testing and are promoted into the regular installer/verifier. This checkpoint is suitable for merge to `main` as the official live-desktop implementation, while arbitrary MSN-style link handling remains documented as follow-up work rather than a release blocker.
