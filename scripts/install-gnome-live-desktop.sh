@@ -33,9 +33,15 @@ bash "$SCRIPT_DIR/patch-live-desktop-block-local-file-drop-stage19.sh"
 # background account probes remain embedded in WebKit.
 bash "$SCRIPT_DIR/patch-live-desktop-modern-site-links-stage20.sh"
 
-# Publish a normal Zorin application-menu entry for the friendly GTK 4 settings
-# window so users do not need to know or run helper commands.
+# Stage 21 replaces the hard-coded startup URL with a persistent user setting.
+# The GTK 4 selector supports presets plus arbitrary HTTP(S) websites and keeps
+# the choice under ~/.config/grayhaired-live-desktop/site.json.
+bash "$SCRIPT_DIR/patch-live-desktop-website-config-stage21.sh"
+bash "$SCRIPT_DIR/install-live-desktop-website-launcher.sh"
+
+# Publish a normal Zorin application-menu entry for the friendly GTK 4
+# background settings window too.
 bash "$SCRIPT_DIR/install-live-desktop-background-launcher.sh"
 
-printf '\n[GRAYHAIRED-INSTALL] PASS: GrayHaired Live Desktop with Automatic Blend, Manual Background, 204px compact icon geometry, adaptive vertical scrolling, local-file drop protection, and modern-site browser handoff installed.\n'
+printf '\n[GRAYHAIRED-INSTALL] PASS: GrayHaired Live Desktop with Automatic Blend, Manual Background, 204px compact icon geometry, adaptive vertical scrolling, local-file drop protection, modern-site browser handoff, and persistent website selection installed.\n'
 printf '[GRAYHAIRED-INSTALL] INFO: run scripts/verify-live-desktop-known-good.sh after enabling the extension.\n'
