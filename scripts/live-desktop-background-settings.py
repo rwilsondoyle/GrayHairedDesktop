@@ -4,9 +4,11 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import sys
+import time
 from pathlib import Path
 
 try:
@@ -14,7 +16,7 @@ try:
 
     gi.require_version("Gtk", "4.0")
     gi.require_version("Gdk", "4.0")
-    from gi.repository import Gdk, Gtk
+    from gi.repository import Gdk, Gio, GLib, Gtk
 except (ImportError, ValueError) as exc:
     raise SystemExit(
         "GTK 4 Python bindings are required for the Live Desktop Background settings window."
@@ -26,8 +28,6 @@ SETTER = REPO_DIR / "scripts" / "set-live-desktop-background.sh"
 RELOADER = REPO_DIR / "scripts" / "reload-grayhaired.sh"
 HEX_RE = re.compile(r"^#[0-9A-Fa-f]{6}$")
 
-# Keep the quick-pick list deliberately short. The Choose Color button opens
-# the full GTK color chooser immediately for any other color.
 PRESETS = (
     ("Gray", "#808080"),
     ("White", "#FFFFFF"),
@@ -65,13 +65,23 @@ def hex_from_rgba(rgba: Gdk.RGBA) -> str:
     return f"#{red:02X}{green:02X}{blue:02X}"
 
 
+def hex_from_rgb_floats(red: float, green: float, blue: float) -> str:
+    return (
+        f"#{round(max(0.0, min(1.0, red)) * 255):02X}"
+        f"{round(max(0.0, min(1.0, green)) * 255):02X}"
+        f"{round(max(0.0, min(1.0, blue)) * 255):02X}"
+    )
+
+
 class BackgroundSettingsWindow(Gtk.ApplicationWindow):
     def __init__(self, app: Gtk.Application) -> None:
         super().__init__(application=app, title="My Desktop Background")
-        self.set_default_size(540, 530)
+        self.set_default_size(560, 585)
         self.set_resizable(False)
         self._syncing_color_controls = False
         self._chooser_dialog = None
+        self._portal_bus = None
+        self._portal_signal_id = None
 
         mode, color = load_config()
 
@@ -125,15 +135,22 @@ class BackgroundSettingsWindow(Gtk.ApplicationWindow):
 
         self.choose_color_button = Gtk.Button(label="Choose Color…")
         self.choose_color_button.set_tooltip_text(
-            "Open the full color picker and choose virtually any screen color."
+            "Open the full color chooser and select a color manually."
         )
         custom_row.append(self.choose_color_button)
         outer.append(custom_row)
 
+        self.pick_screen_button = Gtk.Button(label="Pick Color From Screen…")
+        self.pick_screen_button.set_size_request(-1, 40)
+        self.pick_screen_button.set_tooltip_text(
+            "Hide this window, then click a color anywhere on the desktop or website."
+        )
+        outer.append(self.pick_screen_button)
+
         picker_help = Gtk.Label(
             label=(
-                "Use a quick color above, type a hex color, or click Choose Color… "
-                "to open the full color picker immediately."
+                "To match your website, click Pick Color From Screen…, then click the exact "
+                "color you want on the live desktop. The sampled color will appear below."
             )
         )
         picker_help.set_wrap(True)
@@ -185,6 +202,7 @@ class BackgroundSettingsWindow(Gtk.ApplicationWindow):
         self.preset.connect("changed", self._preset_changed)
         self.custom.connect("changed", self._custom_changed)
         self.choose_color_button.connect("clicked", self._open_color_chooser)
+        self.pick_screen_button.connect("clicked", self._pick_color_from_screen)
         self.apply_button.connect("clicked", self._apply)
 
         self._select_initial_preset(color)
@@ -223,8 +241,6 @@ class BackgroundSettingsWindow(Gtk.ApplicationWindow):
 
         current = self._current_color() or "#41464C"
 
-        # Gtk.ColorChooserDialog gives the full system chooser: saturation/value
-        # area, hue controls, preview, and numeric/hex entry where supported.
         if hasattr(Gtk, "ColorChooserDialog"):
             dialog = Gtk.ColorChooserDialog(title="Choose Color", transient_for=self)
             dialog.set_modal(True)
@@ -234,8 +250,6 @@ class BackgroundSettingsWindow(Gtk.ApplicationWindow):
             dialog.present()
             return
 
-        # Fallback for newer GTK builds that remove ColorChooserDialog. A
-        # temporary ColorButton still launches the platform's color chooser.
         hidden_picker = Gtk.ColorButton()
         hidden_picker.set_rgba(rgba_from_hex(current))
         hidden_picker.connect("color-set", self._fallback_picker_changed)
@@ -255,11 +269,91 @@ class BackgroundSettingsWindow(Gtk.ApplicationWindow):
         self._set_color(hex_from_rgba(picker.get_rgba()))
         self._fallback_picker = None
 
+    def _pick_color_from_screen(self, *_args) -> None:
+        if not self.manual.get_active():
+            self.manual.set_active(True)
+
+        self.pick_screen_button.set_sensitive(False)
+        self.status.set_text("Click the color you want anywhere on the desktop or website…")
+
+        # Hide the settings window so it cannot cover the color the user wants.
+        self.set_visible(False)
+        GLib.timeout_add(150, self._start_portal_color_pick)
+
+    def _start_portal_color_pick(self) -> bool:
+        try:
+            bus = Gio.bus_get_sync(Gio.BusType.SESSION, None)
+            token = f"grayhaired_{os.getpid()}_{int(time.time() * 1000)}"
+            options = {"handle_token": GLib.Variant("s", token)}
+            result = bus.call_sync(
+                "org.freedesktop.portal.Desktop",
+                "/org/freedesktop/portal/desktop",
+                "org.freedesktop.portal.Screenshot",
+                "PickColor",
+                GLib.Variant("(sa{sv})", ("", options)),
+                GLib.VariantType.new("(o)"),
+                Gio.DBusCallFlags.NONE,
+                -1,
+                None,
+            )
+            request_path = result.unpack()[0]
+            self._portal_bus = bus
+            self._portal_signal_id = bus.signal_subscribe(
+                "org.freedesktop.portal.Desktop",
+                "org.freedesktop.portal.Request",
+                "Response",
+                request_path,
+                None,
+                Gio.DBusSignalFlags.NONE,
+                self._portal_color_response,
+            )
+        except Exception as exc:  # D-Bus/portal availability varies by desktop.
+            self.present()
+            self.pick_screen_button.set_sensitive(True)
+            self._show_error(f"Screen color picker could not start: {exc}")
+        return GLib.SOURCE_REMOVE
+
+    def _portal_color_response(
+        self,
+        _connection,
+        _sender_name,
+        _object_path,
+        _interface_name,
+        _signal_name,
+        parameters,
+    ) -> None:
+        try:
+            response, results = parameters.unpack()
+            if response != 0:
+                self.status.set_text("Color picking was canceled.")
+                return
+
+            color_value = results.get("color")
+            if hasattr(color_value, "unpack"):
+                color_value = color_value.unpack()
+            if not color_value or len(color_value) != 3:
+                raise ValueError("portal returned no color value")
+
+            red, green, blue = (float(component) for component in color_value)
+            picked = hex_from_rgb_floats(red, green, blue)
+            self._set_color(picked)
+            self.status.set_text(f"Picked from screen: {picked}")
+        except Exception as exc:
+            self._show_error(f"Could not read the picked color: {exc}")
+        finally:
+            if self._portal_bus is not None and self._portal_signal_id is not None:
+                self._portal_bus.signal_unsubscribe(self._portal_signal_id)
+            self._portal_signal_id = None
+            self._portal_bus = None
+            self.pick_screen_button.set_sensitive(True)
+            self.present()
+
     def _update_controls(self, *_args) -> None:
         manual = self.manual.get_active()
         self.preset.set_sensitive(manual)
         self.custom.set_sensitive(manual)
         self.choose_color_button.set_sensitive(manual)
+        self.pick_screen_button.set_sensitive(manual and self._portal_signal_id is None)
         self.apply_button.set_label(
             "Apply Background" if manual else "Apply Automatic Blend"
         )
