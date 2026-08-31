@@ -27,9 +27,15 @@ bash "$SCRIPT_DIR/patch-live-desktop-tight-width-stage18.sh"
 # desktop-icon dragging remain unchanged.
 bash "$SCRIPT_DIR/patch-live-desktop-block-local-file-drop-stage19.sh"
 
+# Stage 20 adds physically verified modern-site link handling: explicit
+# user-gesture HTTP(S) create requests open in the default browser, and the
+# interactive MSN/Microsoft sign-in flow is handed off narrowly while silent
+# background account probes remain embedded in WebKit.
+bash "$SCRIPT_DIR/patch-live-desktop-modern-site-links-stage20.sh"
+
 # Publish a normal Zorin application-menu entry for the friendly GTK 4 settings
 # window so users do not need to know or run helper commands.
 bash "$SCRIPT_DIR/install-live-desktop-background-launcher.sh"
 
-printf '\n[GRAYHAIRED-INSTALL] PASS: GrayHaired Live Desktop with Automatic Blend, Manual Background, 204px compact icon geometry, adaptive vertical scrolling, and local-file drop protection installed.\n'
+printf '\n[GRAYHAIRED-INSTALL] PASS: GrayHaired Live Desktop with Automatic Blend, Manual Background, 204px compact icon geometry, adaptive vertical scrolling, local-file drop protection, and modern-site browser handoff installed.\n'
 printf '[GRAYHAIRED-INSTALL] INFO: run scripts/verify-live-desktop-known-good.sh after enabling the extension.\n'
