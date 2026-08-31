@@ -93,6 +93,23 @@ require_grid_text "GRAYHAIRED-BLOCK-LOCAL-FILE-DROP-STAGE19" "local-file drop/na
 require_grid_text "uri.startsWith('file://')" "Stage 19 file URI rejection is present"
 require_grid_text "[GRAYHAIRED-DROP19] blocked local file navigation:" "Stage 19 blocked-drop diagnostics are present"
 
+# Stage 20 modern-site link handling. Physically verified with MSN: ordinary
+# JavaScript/new-window card links open in the default browser, and explicit
+# Microsoft sign-in is handed off while silent prompt=none probes stay embedded.
+require_grid_text "GRAYHAIRED-MODERN-SITE-LINKS-STAGE20" "modern-site create handoff Stage 20 is present"
+require_grid_text "navigationAction.is_user_gesture()" "Stage 20 user-gesture check is present"
+require_grid_text "uri.startsWith('https://') || uri.startsWith('http://')" "Stage 20 HTTP(S)-only create handoff is present"
+require_grid_text "[GRAYHAIRED-LINK20] handoff browser uri=" "Stage 20 browser-handoff logging is present"
+require_grid_text "GRAYHAIRED-MICROSOFT-AUTH-HANDOFF-STAGE20" "Stage 20 narrow Microsoft-auth handoff is present"
+require_grid_text "uri.includes('prompt=select_account')" "Stage 20 interactive Microsoft-auth selector is present"
+require_grid_text "[GRAYHAIRED-LINK20] handoff Microsoft sign-in uri=" "Stage 20 Microsoft-auth handoff logging is present"
+
+# Diagnostic-only test scaffolding should not be part of a clean promoted install.
+forbid_grid_text "GRAYHAIRED-CREATE-DIAGNOSTICS-STAGE20" "Stage 20 create diagnostic scaffold is absent"
+forbid_grid_text "GRAYHAIRED-NAVIGATION-DIAGNOSTICS-STAGE20B" "Stage 20B navigation diagnostic scaffold is absent"
+forbid_grid_text "GRAYHAIRED-CREATE-HANDOFF-STAGE20" "Stage 20 test create-handoff marker is absent"
+forbid_grid_text "GRAYHAIRED-MICROSOFT-AUTH-HANDOFF-STAGE20C" "Stage 20C test auth marker is absent"
+
 # Failed/superseded experiments do not belong in known-good.
 forbid_grid_text "GRAYHAIRED-ARBITRARY-LINK-HANDOFF-STAGE8" "failed Stage 8 arbitrary-link experiment is absent"
 forbid_grid_text "GRAYHAIRED-FIXED-SCROLL-PANE-STAGE10" "failed Stage 10 scrolling-pane experiment is absent"
@@ -100,4 +117,4 @@ forbid_grid_text "GRAYHAIRED-LARGE-ROW-DENSITY-STAGE12" "superseded Stage 12 row
 forbid_grid_text "GRAYHAIRED-OVERFLOW-OVERLAY-STAGE13E" "failed Stage 13E overlay experiment is absent"
 forbid_grid_text "GRAYHAIRED-VERTICAL-SCROLL-STAGE14" "superseded Stage 14 scrollbar-only experiment is absent"
 
-pass "promoted live desktop is configured with Stage 15 scrolling, Stage 16 photo continuation, Stage 17 background controls, Stage 18 compact 204px width, and Stage 19 local-file drop protection"
+pass "promoted live desktop is configured with Stage 15 scrolling, Stage 16 photo continuation, Stage 17 background controls, Stage 18 compact 204px width, Stage 19 local-file drop protection, and Stage 20 modern-site browser handoff"
