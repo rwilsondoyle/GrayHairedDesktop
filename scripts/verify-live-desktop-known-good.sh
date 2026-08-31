@@ -55,9 +55,21 @@ require_grid_text "[GRAYHAIRED-PHOTO7] reflow" "live photographic reflow logging
 require_grid_text "GRAYHAIRED-COMPRESSED-WIDTH-STAGE11" "compressed icon-pane width Stage 11 is present"
 require_grid_text "const liveIconStripMin = 240;" "compressed icon-pane minimum width is present"
 
-# Stage 8 made navigation on a complex arbitrary site less reliable in physical
-# testing and Stage 10 broke the split surface. Neither belongs in known-good.
+# Stage 15 is the physically verified vertical-overflow design. It preserves
+# the Stage 11 horizontal split and grows only the internal DING icon canvas,
+# allowing the existing ScrolledWindow to expose a normal vertical scrollbar
+# when required. Physical testing passed Tiny, Small, Standard, and Large.
+require_grid_text "GRAYHAIRED-VIRTUAL-SCROLL-CANVAS-STAGE15" "virtual scrolling icon canvas Stage 15 is present"
+require_grid_text "vscrollbar_policy: Gtk.PolicyType.AUTOMATIC" "automatic vertical scrollbar policy is present"
+require_grid_text "_grayhairedScrollableItemCount()" "Stage 15 desktop and special-icon counter is present"
+require_grid_text "this._container.set_size_request(-1, this._height);" "Stage 15 virtual canvas height request is present"
+require_grid_text "[GRAYHAIRED-SCROLL15] items=" "Stage 15 scrolling diagnostics are present"
+
+# Failed/superseded experiments do not belong in known-good.
 forbid_grid_text "GRAYHAIRED-ARBITRARY-LINK-HANDOFF-STAGE8" "failed Stage 8 arbitrary-link experiment is absent"
 forbid_grid_text "GRAYHAIRED-FIXED-SCROLL-PANE-STAGE10" "failed Stage 10 scrolling-pane experiment is absent"
+forbid_grid_text "GRAYHAIRED-LARGE-ROW-DENSITY-STAGE12" "superseded Stage 12 row-density experiment is absent"
+forbid_grid_text "GRAYHAIRED-OVERFLOW-OVERLAY-STAGE13E" "failed Stage 13E overlay experiment is absent"
+forbid_grid_text "GRAYHAIRED-VERTICAL-SCROLL-STAGE14" "superseded Stage 14 scrollbar-only experiment is absent"
 
-pass "promoted Automatic Blend is configured for solid and photographic pages with compressed live icon-size reflow"
+pass "promoted Automatic Blend is configured with Stage 11 compressed width and Stage 15 adaptive vertical icon scrolling"
