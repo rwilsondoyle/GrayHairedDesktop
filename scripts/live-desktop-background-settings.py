@@ -26,13 +26,26 @@ SETTER = REPO_DIR / "scripts" / "set-live-desktop-background.sh"
 RELOADER = REPO_DIR / "scripts" / "reload-grayhaired.sh"
 HEX_RE = re.compile(r"^#[0-9A-Fa-f]{6}$")
 
+# A deliberately varied starter palette. Any preset can still be replaced by
+# Custom Color, which exposes GTK's full color chooser.
 PRESETS = (
     ("Gunmetal Gray", "#41464C", "gunmetal"),
+    ("Medium Gray", "#808080", None),
+    ("Light Gray", "#D3D3D3", None),
+    ("White", "#FFFFFF", None),
     ("Charcoal", "#303030", "charcoal"),
-    ("Slate Gray", "#4A5568", "slate"),
-    ("Dark Blue", "#243447", "navy"),
     ("Black", "#000000", "black"),
-    ("Custom Color", None, None),
+    ("Forest Green", "#2E6B3A", None),
+    ("Emerald Green", "#228B22", None),
+    ("Brick Red", "#A33A32", None),
+    ("Red", "#C62828", None),
+    ("Dark Blue", "#243447", "navy"),
+    ("Royal Blue", "#3155A6", None),
+    ("Sky Blue", "#4A90E2", None),
+    ("Purple", "#6A3D9A", None),
+    ("Gold", "#B8860B", None),
+    ("Tan", "#B89B72", None),
+    ("Custom Color…", None, None),
 )
 
 
@@ -51,11 +64,25 @@ def load_config() -> tuple[str, str]:
     return mode, color
 
 
+def rgba_from_hex(color: str) -> Gdk.RGBA:
+    rgba = Gdk.RGBA()
+    rgba.parse(color)
+    return rgba
+
+
+def hex_from_rgba(rgba: Gdk.RGBA) -> str:
+    red = round(max(0.0, min(1.0, rgba.red)) * 255)
+    green = round(max(0.0, min(1.0, rgba.green)) * 255)
+    blue = round(max(0.0, min(1.0, rgba.blue)) * 255)
+    return f"#{red:02X}{green:02X}{blue:02X}"
+
+
 class BackgroundSettingsWindow(Gtk.ApplicationWindow):
     def __init__(self, app: Gtk.Application) -> None:
         super().__init__(application=app, title="My Desktop Background")
-        self.set_default_size(520, 480)
+        self.set_default_size(540, 560)
         self.set_resizable(False)
+        self._syncing_color_controls = False
 
         mode, color = load_config()
 
@@ -99,14 +126,31 @@ class BackgroundSettingsWindow(Gtk.ApplicationWindow):
         outer.append(row)
 
         custom_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
-        custom_row.append(Gtk.Label(label="Custom hex color:"))
+        custom_row.append(Gtk.Label(label="Custom color:"))
         self.custom = Gtk.Entry()
         self.custom.set_hexpand(True)
         self.custom.set_text(color)
         self.custom.set_placeholder_text("Example: #41464C")
         self.custom.set_max_length(7)
         custom_row.append(self.custom)
+
+        self.color_picker = Gtk.ColorButton()
+        self.color_picker.set_rgba(rgba_from_hex(color))
+        self.color_picker.set_tooltip_text(
+            "Open the full color picker and choose virtually any screen color."
+        )
+        custom_row.append(self.color_picker)
         outer.append(custom_row)
+
+        picker_help = Gtk.Label(
+            label=(
+                "Choose Custom Color to type a hex code or click the color square "
+                "for the full color picker."
+            )
+        )
+        picker_help.set_wrap(True)
+        picker_help.set_xalign(0)
+        outer.append(picker_help)
 
         preview_label = Gtk.Label(label="Preview:")
         preview_label.set_xalign(0)
@@ -151,7 +195,8 @@ class BackgroundSettingsWindow(Gtk.ApplicationWindow):
         self.automatic.connect("toggled", self._update_controls)
         self.manual.connect("toggled", self._update_controls)
         self.preset.connect("changed", self._preset_changed)
-        self.custom.connect("changed", self._update_preview)
+        self.custom.connect("changed", self._custom_changed)
+        self.color_picker.connect("color-set", self._color_picker_changed)
         self.apply_button.connect("clicked", self._apply)
 
         self._select_initial_preset(color)
@@ -164,19 +209,52 @@ class BackgroundSettingsWindow(Gtk.ApplicationWindow):
                 return
         self.preset.set_active(len(PRESETS) - 1)
 
+    def _set_color_controls(self, color: str) -> None:
+        self._syncing_color_controls = True
+        try:
+            self.custom.set_text(color)
+            self.color_picker.set_rgba(rgba_from_hex(color))
+        finally:
+            self._syncing_color_controls = False
+        self._update_preview()
+
     def _preset_changed(self, *_args) -> None:
         index = self.preset.get_active()
         if 0 <= index < len(PRESETS):
             _label, hex_color, _setter = PRESETS[index]
             if hex_color:
-                self.custom.set_text(hex_color)
+                self._set_color_controls(hex_color)
         self._update_controls()
+
+    def _custom_changed(self, *_args) -> None:
+        if self._syncing_color_controls:
+            return
+        color = self._current_color()
+        if color is not None:
+            self._syncing_color_controls = True
+            try:
+                self.color_picker.set_rgba(rgba_from_hex(color))
+            finally:
+                self._syncing_color_controls = False
+        self._update_preview()
+
+    def _color_picker_changed(self, *_args) -> None:
+        if self._syncing_color_controls:
+            return
+        color = hex_from_rgba(self.color_picker.get_rgba())
+        self._syncing_color_controls = True
+        try:
+            self.custom.set_text(color)
+        finally:
+            self._syncing_color_controls = False
+        self._update_preview()
 
     def _update_controls(self, *_args) -> None:
         manual = self.manual.get_active()
         self.preset.set_sensitive(manual)
         custom_selected = self.preset.get_active() == len(PRESETS) - 1
         self.custom.set_sensitive(manual and custom_selected)
+        self.color_picker.set_sensitive(manual and custom_selected)
         self.apply_button.set_label(
             "Apply Background" if manual else "Apply Automatic Blend"
         )
@@ -213,8 +291,7 @@ class BackgroundSettingsWindow(Gtk.ApplicationWindow):
             self._set_preview_css("#F2F2F2", "#222222", "#B00020")
             return
 
-        rgba = Gdk.RGBA()
-        rgba.parse(color)
+        rgba = rgba_from_hex(color)
         lightness = max(rgba.red, rgba.green, rgba.blue) + min(
             rgba.red, rgba.green, rgba.blue
         )
