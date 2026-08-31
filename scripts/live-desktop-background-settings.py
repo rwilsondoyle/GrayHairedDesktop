@@ -26,25 +26,14 @@ SETTER = REPO_DIR / "scripts" / "set-live-desktop-background.sh"
 RELOADER = REPO_DIR / "scripts" / "reload-grayhaired.sh"
 HEX_RE = re.compile(r"^#[0-9A-Fa-f]{6}$")
 
-# A deliberately varied starter palette. Any preset can still be replaced by
-# Custom Color, which exposes GTK's full color chooser.
+# Keep the quick-pick list deliberately short. Most users who want something
+# beyond these basics can use Custom Color and the full GTK color chooser.
 PRESETS = (
-    ("Gunmetal Gray", "#41464C", "gunmetal"),
-    ("Medium Gray", "#808080", None),
-    ("Light Gray", "#D3D3D3", None),
+    ("Gray", "#808080", None),
     ("White", "#FFFFFF", None),
-    ("Charcoal", "#303030", "charcoal"),
-    ("Black", "#000000", "black"),
-    ("Forest Green", "#2E6B3A", None),
-    ("Emerald Green", "#228B22", None),
-    ("Brick Red", "#A33A32", None),
+    ("Green", "#2E7D32", None),
     ("Red", "#C62828", None),
-    ("Dark Blue", "#243447", "navy"),
-    ("Royal Blue", "#3155A6", None),
-    ("Sky Blue", "#4A90E2", None),
-    ("Purple", "#6A3D9A", None),
-    ("Gold", "#B8860B", None),
-    ("Tan", "#B89B72", None),
+    ("Blue", "#3155A6", None),
     ("Custom Color…", None, None),
 )
 
@@ -137,7 +126,7 @@ class BackgroundSettingsWindow(Gtk.ApplicationWindow):
         self.color_picker = Gtk.ColorButton()
         self.color_picker.set_rgba(rgba_from_hex(color))
         self.color_picker.set_tooltip_text(
-            "Open the full color picker and choose virtually any screen color."
+            "Open the color picker and choose virtually any screen color."
         )
         custom_row.append(self.color_picker)
         outer.append(custom_row)
@@ -145,7 +134,7 @@ class BackgroundSettingsWindow(Gtk.ApplicationWindow):
         picker_help = Gtk.Label(
             label=(
                 "Choose Custom Color to type a hex code or click the color square "
-                "for the full color picker."
+                "to choose your own color."
             )
         )
         picker_help.set_wrap(True)
