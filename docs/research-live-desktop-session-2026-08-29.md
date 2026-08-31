@@ -2,7 +2,7 @@
 
 ## Official status
 
-The original live-desktop research branch was promoted to `main` in PR #60. Follow-up production work has now physically verified Stages 17 through 20: Manual Background, compact 204 px icon-pane geometry, local-file drop protection, and modern-site browser handoff.
+The original live-desktop research branch was promoted to `main` in PR #60. Follow-up production work has now physically verified Stages 17 through 21: Manual Background, compact 204 px icon-pane geometry, local-file drop protection, modern-site browser handoff, and persistent website selection.
 
 ### Confirmed working
 
@@ -23,10 +23,11 @@ The original live-desktop research branch was promoted to `main` in PR #60. Foll
 - Stage 17 Manual Background is physically verified. Manual color overrides Automatic Blend, including photographic pages, and switching back to Automatic restores the normal behavior.
 - The GTK 4 `My Desktop Background` settings window is physically verified with five simple presets, a direct `Choose Color…` picker, live preview, Apply, and Automatic mode.
 - A normal Zorin application-menu entry named `My Desktop Background` provides user access without terminal commands.
-- Stage 18 changes the Stage-11 minimum icon-pane width from 240 px to 204 px. Physical testing confirmed Tiny, Small, Standard, and Large all look correct; Tiny no longer expands to an unintended three-column grid.
-- Stage 19 rejects `file://` WebKit navigation. Physical testing confirmed that repeatedly dropping a local text file onto the webpage side no longer replaces the configured desktop website.
-- Stage 20 handles JavaScript-heavy modern-site links through WebKit's `create` signal. User-gesture HTTP(S) card/article requests open in the default browser while the live desktop page remains in place.
-- Stage 20 also handles the explicit MSN/Microsoft sign-in flow narrowly. Silent `prompt=none` account probes stay embedded; the interactive `prompt=select_account` OAuth request opens in the default browser. Physical testing confirmed successful MSN sign-in end-to-end.
+- Stage 18 changes the Stage-11 minimum icon-pane width from 240 px to 204 px. Physical testing confirmed Tiny, Small, Standard, and Large all look correct.
+- Stage 19 rejects `file://` WebKit navigation. Physical testing confirmed that dropping a local text file onto the webpage side no longer replaces the configured desktop website.
+- Stage 20 handles JavaScript-heavy modern-site links through WebKit's `create` signal. User-gesture HTTP(S) requests open in the default browser while the live desktop page remains in place.
+- Stage 20 also handles the explicit MSN/Microsoft sign-in flow narrowly. Silent account probes stay embedded; the interactive OAuth request opens in the default browser. Physical testing confirmed successful MSN sign-in end-to-end.
+- Stage 21 replaces the hard-coded startup site with `~/.config/grayhaired-live-desktop/site.json`. The GTK 4 `My Desktop Website` window can switch among GrayHaired Desktop C/D, MSN, DuckDuckGo, and arbitrary HTTP(S) custom sites. Physical testing confirmed the listed presets and many other sites load correctly.
 - DuckDuckGo remains a strong compatibility example: searches/navigation stay embedded and external results open in the default browser.
 - Safe WebKit keyboard handling remains in place; forced EventBox focus/grab_focus experiments remain absent.
 
@@ -37,14 +38,15 @@ The supported installation path now consists of:
 1. base GrayHaired DING/WebKit live desktop
 2. Automatic Blend appearance chain
 3. Stage 15 adaptive vertical DING scroll canvas
-4. Stage 16 photographic continuation through the scroll canvas (installed by the promoted appearance chain)
+4. Stage 16 photographic continuation through the scroll canvas
 5. Stage 17 Manual Background override and GTK 4 settings UI
 6. Stage 18 compact 204 px minimum icon-pane width
 7. Stage 19 local-file WebKit navigation/drop protection
 8. Stage 20 modern-site browser handoff and narrow Microsoft sign-in handoff
-9. Zorin application-menu launcher for `My Desktop Background`
+9. Stage 21 persistent website selection and GTK 4 `My Desktop Website` launcher
+10. Zorin application-menu launcher for `My Desktop Background`
 
-`install-gnome-live-desktop.sh` installs the supported combination. `verify-live-desktop-known-good.sh` requires the corresponding Stage 15, 16, 17, 18, 19, and 20 markers and implementation details.
+`install-gnome-live-desktop.sh` installs the supported combination. `verify-live-desktop-known-good.sh` requires the corresponding Stage 15 through Stage 21 markers and implementation details.
 
 ## Failed / retired experiments
 
@@ -65,9 +67,10 @@ The following experiments are intentionally excluded from known-good and should 
 - Site HTML/CSS/JS changes: use page Reload.
 - GrayHaired child app-code changes: `bash ~/GrayHairedDesktop/scripts/reload-grayhaired.sh`.
 - `extension.js` changes: logout/login is the normal safe reload path.
+- Website choices are stored at `~/.config/grayhaired-live-desktop/site.json` and survive normal extension reinstalls.
 - No reboot is required for the known workflows.
 - Original GNOME wallpaper backup remains at `~/.config/grayhaired-live-desktop-wallpaper-backup.txt` and should not be overwritten by GrayHaired-generated state.
 
 ## Promotion decision
 
-Stages 17 through 20 have passed physical testing on the Dell Inspiron 3502 running Zorin OS 18.1 / GNOME Shell 46 Wayland. Stage 20 specifically passed with MSN article/card links opening in the default browser, MSN remaining on the live desktop, and Microsoft sign-in completing successfully in the normal browser. These features are approved for the regular installer/verifier and promotion to `main`.
+Stages 17 through 21 have passed physical testing on the Dell Inspiron 3502 running Zorin OS 18.1 / GNOME Shell 46 Wayland. Stage 21 specifically passed with the preset sites and multiple custom HTTP(S) websites loading from the persistent user config. These features are approved for the regular installer/verifier and promotion to `main`.
