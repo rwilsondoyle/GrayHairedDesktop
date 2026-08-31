@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Friendly GTK settings window for GrayHaired Live Desktop background mode."""
+"""Friendly GTK 4 settings window for GrayHaired Live Desktop background mode."""
 
 from __future__ import annotations
 
@@ -11,11 +11,13 @@ from pathlib import Path
 
 try:
     import gi
-    gi.require_version("Gtk", "3.0")
+
+    gi.require_version("Gtk", "4.0")
+    gi.require_version("Gdk", "4.0")
     from gi.repository import Gdk, Gtk
 except (ImportError, ValueError) as exc:
     raise SystemExit(
-        "GTK 3 Python bindings are required for the Live Desktop Background settings window."
+        "GTK 4 Python bindings are required for the Live Desktop Background settings window."
     ) from exc
 
 CONFIG_FILE = Path.home() / ".config" / "grayhaired-live-desktop" / "background.json"
@@ -49,22 +51,25 @@ def load_config() -> tuple[str, str]:
     return mode, color
 
 
-class BackgroundSettingsWindow(Gtk.Window):
-    def __init__(self) -> None:
-        super().__init__(title="My Desktop Background")
-        self.set_default_size(520, 460)
-        self.set_border_width(18)
-        self.connect("destroy", Gtk.main_quit)
+class BackgroundSettingsWindow(Gtk.ApplicationWindow):
+    def __init__(self, app: Gtk.Application) -> None:
+        super().__init__(application=app, title="My Desktop Background")
+        self.set_default_size(520, 480)
+        self.set_resizable(False)
 
         mode, color = load_config()
 
         outer = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
-        self.add(outer)
+        outer.set_margin_top(18)
+        outer.set_margin_bottom(18)
+        outer.set_margin_start(18)
+        outer.set_margin_end(18)
+        self.set_child(outer)
 
         title = Gtk.Label()
         title.set_markup("<span size='x-large' weight='bold'>Desktop Background</span>")
         title.set_xalign(0)
-        outer.pack_start(title, False, False, 0)
+        outer.append(title)
 
         help_text = Gtk.Label(
             label=(
@@ -72,59 +77,76 @@ class BackgroundSettingsWindow(Gtk.Window):
                 "you choose for the desktop-icon area and the GNOME backing color."
             )
         )
-        help_text.set_line_wrap(True)
+        help_text.set_wrap(True)
         help_text.set_xalign(0)
-        outer.pack_start(help_text, False, False, 0)
+        outer.append(help_text)
 
-        self.automatic = Gtk.RadioButton.new_with_label_from_widget(
-            None, "Automatic Blend (recommended)"
-        )
-        self.manual = Gtk.RadioButton.new_with_label_from_widget(
-            self.automatic, "Manual Background"
-        )
+        self.automatic = Gtk.CheckButton(label="Automatic Blend (recommended)")
+        self.manual = Gtk.CheckButton(label="Manual Background")
+        self.manual.set_group(self.automatic)
         self.automatic.set_active(mode == "automatic")
         self.manual.set_active(mode == "manual")
-        outer.pack_start(self.automatic, False, False, 0)
-        outer.pack_start(self.manual, False, False, 0)
+        outer.append(self.automatic)
+        outer.append(self.manual)
 
         row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
-        row.pack_start(Gtk.Label(label="Color choice:"), False, False, 0)
+        row.append(Gtk.Label(label="Color choice:"))
         self.preset = Gtk.ComboBoxText()
+        self.preset.set_hexpand(True)
         for label, _hex_color, _setter in PRESETS:
             self.preset.append_text(label)
-        row.pack_start(self.preset, True, True, 0)
-        outer.pack_start(row, False, False, 0)
+        row.append(self.preset)
+        outer.append(row)
 
         custom_row = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
-        custom_row.pack_start(Gtk.Label(label="Custom hex color:"), False, False, 0)
+        custom_row.append(Gtk.Label(label="Custom hex color:"))
         self.custom = Gtk.Entry()
+        self.custom.set_hexpand(True)
         self.custom.set_text(color)
         self.custom.set_placeholder_text("Example: #41464C")
         self.custom.set_max_length(7)
-        custom_row.pack_start(self.custom, True, True, 0)
-        outer.pack_start(custom_row, False, False, 0)
+        custom_row.append(self.custom)
+        outer.append(custom_row)
 
         preview_label = Gtk.Label(label="Preview:")
         preview_label.set_xalign(0)
-        outer.pack_start(preview_label, False, False, 0)
+        outer.append(preview_label)
 
-        self.preview = Gtk.EventBox()
+        self.preview = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         self.preview.set_size_request(-1, 86)
+        self.preview.add_css_class("grayhaired-preview")
+        self.preview.set_valign(Gtk.Align.FILL)
         self.preview_text = Gtk.Label()
-        self.preview.add(self.preview_text)
-        outer.pack_start(self.preview, False, False, 0)
+        self.preview_text.set_hexpand(True)
+        self.preview_text.set_vexpand(True)
+        self.preview_text.set_halign(Gtk.Align.FILL)
+        self.preview_text.set_valign(Gtk.Align.CENTER)
+        self.preview_text.set_justify(Gtk.Justification.CENTER)
+        self.preview_text.add_css_class("grayhaired-preview-text")
+        self.preview.append(self.preview_text)
+        outer.append(self.preview)
 
         self.status = Gtk.Label()
         self.status.set_xalign(0)
-        outer.pack_start(self.status, False, False, 0)
+        self.status.set_wrap(True)
+        outer.append(self.status)
 
         self.apply_button = Gtk.Button(label="Apply Now")
         self.apply_button.set_size_request(-1, 42)
-        outer.pack_start(self.apply_button, False, False, 0)
+        outer.append(self.apply_button)
 
         close_button = Gtk.Button(label="Close")
-        close_button.connect("clicked", lambda *_: self.destroy())
-        outer.pack_start(close_button, False, False, 0)
+        close_button.connect("clicked", lambda *_: self.close())
+        outer.append(close_button)
+
+        self._preview_provider = Gtk.CssProvider()
+        display = Gdk.Display.get_default()
+        if display is not None:
+            Gtk.StyleContext.add_provider_for_display(
+                display,
+                self._preview_provider,
+                Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION,
+            )
 
         self.automatic.connect("toggled", self._update_controls)
         self.manual.connect("toggled", self._update_controls)
@@ -134,7 +156,6 @@ class BackgroundSettingsWindow(Gtk.Window):
 
         self._select_initial_preset(color)
         self._update_controls()
-        self.show_all()
 
     def _select_initial_preset(self, color: str) -> None:
         for index, (_label, hex_color, _setter) in enumerate(PRESETS):
@@ -166,24 +187,19 @@ class BackgroundSettingsWindow(Gtk.Window):
         return value if HEX_RE.fullmatch(value) else None
 
     def _set_preview_css(self, background: str, foreground: str, border: str) -> None:
-        provider = Gtk.CssProvider()
-        provider.load_from_data(
-            (
-                "eventbox {"
-                f"background-color: {background};"
-                f"border: 2px solid {border};"
-                "border-radius: 8px;"
-                "}"
-                f"label {{ color: {foreground}; font-weight: bold; font-size: 16px; }}"
-            ).encode("utf-8")
+        css = (
+            ".grayhaired-preview {"
+            f"background-color: {background};"
+            f"border: 2px solid {border};"
+            "border-radius: 8px;"
+            "}"
+            ".grayhaired-preview-text {"
+            f"color: {foreground};"
+            "font-weight: bold;"
+            "font-size: 16px;"
+            "}"
         )
-        self.preview.get_style_context().add_provider(
-            provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
-        )
-        self.preview_text.get_style_context().add_provider(
-            provider, Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION
-        )
-        self._preview_provider = provider
+        self._preview_provider.load_from_data(css.encode("utf-8"))
 
     def _update_preview(self, *_args) -> None:
         if self.automatic.get_active():
@@ -206,25 +222,12 @@ class BackgroundSettingsWindow(Gtk.Window):
         self.preview_text.set_text(color)
         self._set_preview_css(color, foreground, "#777777")
 
-    def _message(self, message_type, title: str, text: str) -> None:
-        dialog = Gtk.MessageDialog(
-            transient_for=self,
-            flags=0,
-            message_type=message_type,
-            buttons=Gtk.ButtonsType.OK,
-            text=title,
-        )
-        dialog.format_secondary_text(text)
-        dialog.run()
-        dialog.destroy()
+    def _show_error(self, text: str) -> None:
+        self.status.set_markup(f"<span foreground='#C01C28'><b>{text}</b></span>")
 
     def _apply(self, *_args) -> None:
         if not SETTER.is_file() or not RELOADER.is_file():
-            self._message(
-                Gtk.MessageType.ERROR,
-                "My Desktop Background",
-                "The GrayHairedDesktop helper scripts could not be found.",
-            )
+            self._show_error("The GrayHairedDesktop helper scripts could not be found.")
             return
 
         if self.automatic.get_active():
@@ -232,31 +235,23 @@ class BackgroundSettingsWindow(Gtk.Window):
         else:
             color = self._current_color()
             if color is None:
-                self._message(
-                    Gtk.MessageType.WARNING,
-                    "Invalid Color",
-                    "Enter a six-digit hex color such as #41464C.",
-                )
+                self._show_error("Enter a six-digit hex color such as #41464C.")
                 return
             index = self.preset.get_active()
+            if not (0 <= index < len(PRESETS)):
+                self._show_error("Choose a background color first.")
+                return
             _label, preset_hex, setter_value = PRESETS[index]
             value = setter_value if preset_hex and color == preset_hex.upper() else color
 
         self.apply_button.set_sensitive(False)
         self.status.set_text("Applying background…")
-        while Gtk.events_pending():
-            Gtk.main_iteration_do(False)
 
         try:
             subprocess.run(["bash", str(SETTER), value], check=True)
             subprocess.run(["bash", str(RELOADER)], check=True)
         except subprocess.CalledProcessError as exc:
-            self.status.set_text("The background could not be applied.")
-            self._message(
-                Gtk.MessageType.ERROR,
-                "My Desktop Background",
-                f"The background change failed (exit code {exc.returncode}).",
-            )
+            self._show_error(f"Background change failed (exit code {exc.returncode}).")
         else:
             label = "Automatic Blend" if value == "automatic" else "Manual Background"
             self.status.set_text(f"Applied: {label}")
@@ -264,10 +259,20 @@ class BackgroundSettingsWindow(Gtk.Window):
             self.apply_button.set_sensitive(True)
 
 
+class BackgroundSettingsApp(Gtk.Application):
+    def __init__(self) -> None:
+        super().__init__(application_id="tech.grayhaired.LiveDesktopBackgroundSettings")
+
+    def do_activate(self) -> None:
+        window = self.props.active_window
+        if window is None:
+            window = BackgroundSettingsWindow(self)
+        window.present()
+
+
 def main() -> int:
-    BackgroundSettingsWindow()
-    Gtk.main()
-    return 0
+    app = BackgroundSettingsApp()
+    return app.run(sys.argv)
 
 
 if __name__ == "__main__":
