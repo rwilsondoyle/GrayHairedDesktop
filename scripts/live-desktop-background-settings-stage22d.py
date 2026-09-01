@@ -21,24 +21,29 @@ class BackgroundSettingsWindow(base.BackgroundSettingsWindow):
     def __init__(self, app: base.Gtk.Application) -> None:
         super().__init__(app)
 
-        # The large preview naturally looks interactive, so let it open the
-        # same full color chooser as the Choose Color button. Keep it in the
-        # keyboard focus chain as well so mouse and keyboard users get the
-        # same behavior.
+        # Replace the decorative preview box with a real GTK Button. A real
+        # button participates in GTK keyboard focus automatically and handles
+        # mouse clicks, Enter, and Space consistently.
+        old_preview = self.preview
+        parent = old_preview.get_parent()
+        previous = old_preview.get_prev_sibling()
+
+        old_preview.remove(self.preview_text)
+        parent.remove(old_preview)
+
+        self.preview = base.Gtk.Button()
+        self.preview.set_size_request(-1, 86)
+        self.preview.add_css_class("grayhaired-preview")
+        self.preview.set_valign(base.Gtk.Align.FILL)
+        self.preview.set_hexpand(True)
         self.preview.set_focusable(True)
         self.preview.set_tooltip_text(
             "Click this preview, or focus it and press Enter or Space, to choose a color."
         )
+        self.preview.set_child(self.preview_text)
+        self.preview.connect("clicked", self._preview_clicked)
 
-        click = base.Gtk.GestureClick()
-        click.connect("released", self._preview_clicked)
-        self.preview.add_controller(click)
-        self._preview_click_controller = click
-
-        keys = base.Gtk.EventControllerKey()
-        keys.connect("key-pressed", self._preview_key_pressed)
-        self.preview.add_controller(keys)
-        self._preview_key_controller = keys
+        parent.insert_child_after(self.preview, previous)
 
     def _select_initial_preset(self, color: str) -> None:
         """Select only an exact preset match; otherwise preserve the saved color."""
@@ -54,16 +59,6 @@ class BackgroundSettingsWindow(base.BackgroundSettingsWindow):
 
     def _preview_clicked(self, *_args) -> None:
         self._open_color_chooser()
-
-    def _preview_key_pressed(self, _controller, keyval, _keycode, _state) -> bool:
-        if keyval in {
-            base.Gdk.KEY_Return,
-            base.Gdk.KEY_KP_Enter,
-            base.Gdk.KEY_space,
-        }:
-            self._open_color_chooser()
-            return True
-        return False
 
 
 class BackgroundSettingsApp(base.Gtk.Application):
