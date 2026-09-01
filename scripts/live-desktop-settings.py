@@ -51,8 +51,9 @@ def current_background() -> str:
 class SettingsHubWindow(Gtk.ApplicationWindow):
     def __init__(self, app: Gtk.Application) -> None:
         super().__init__(application=app, title="My Desktop Settings")
-        self.set_default_size(620, 440)
+        self.set_default_size(620, 390)
         self.set_resizable(False)
+        self.connect("notify::is-active", self._active_changed)
 
         outer = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=14)
         outer.set_margin_top(20)
@@ -123,13 +124,6 @@ class SettingsHubWindow(Gtk.ApplicationWindow):
         background_box.append(background_button)
         outer.append(background_frame)
 
-        refresh_button = Gtk.Button(label="Refresh Current Settings")
-        refresh_button.set_tooltip_text(
-            "Update this window after changing the website or background."
-        )
-        refresh_button.connect("clicked", self._refresh)
-        outer.append(refresh_button)
-
         close_button = Gtk.Button(label="Close")
         close_button.set_tooltip_text("Close My Desktop Settings.")
         close_button.connect("clicked", lambda *_: self.close())
@@ -155,7 +149,11 @@ class SettingsHubWindow(Gtk.ApplicationWindow):
     def _open_background(self, *_args) -> None:
         self._launch(BACKGROUND_LAUNCHER, "My Desktop Background")
 
-    def _refresh(self, *_args) -> None:
+    def _active_changed(self, *_args) -> None:
+        if self.get_property("is-active"):
+            self._refresh()
+
+    def _refresh(self) -> None:
         self.website_status.set_text(current_website())
         self.background_status.set_text(current_background())
 
