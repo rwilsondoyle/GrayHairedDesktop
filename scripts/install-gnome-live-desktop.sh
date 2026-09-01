@@ -4,6 +4,16 @@ set -euo pipefail
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 APPLICATIONS_DIR="$HOME/.local/share/applications"
 
+# Stage 22 publishes one simple control-center entry in the application menu.
+# Website and Background remain available inside My Desktop Settings, so remove
+# the older stand-alone menu entries before any live-desktop reinstall guard can
+# stop the rest of this script. This keeps menu cleanup reliable even when the
+# GrayHaired Live Desktop DING process is already running.
+mkdir -p "$APPLICATIONS_DIR"
+rm -f \
+    "$APPLICATIONS_DIR/grayhaired-live-desktop-website.desktop" \
+    "$APPLICATIONS_DIR/grayhaired-live-desktop-background.desktop"
+
 # Build the proven GNOME X11/Wayland live-desktop geometry and WebKit surface.
 bash "$SCRIPT_DIR/install-wayland-separate-ding-prototype.sh" "$@"
 
@@ -39,14 +49,7 @@ bash "$SCRIPT_DIR/patch-live-desktop-modern-site-links-stage20.sh"
 # the choice under ~/.config/grayhaired-live-desktop/site.json.
 bash "$SCRIPT_DIR/patch-live-desktop-website-config-stage21.sh"
 
-# Stage 22 publishes one simple control-center entry in the application menu.
-# Website and Background remain available inside My Desktop Settings, so the
-# older stand-alone menu entries are removed to avoid three nearly identical
-# choices for the user.
-mkdir -p "$APPLICATIONS_DIR"
-rm -f \
-    "$APPLICATIONS_DIR/grayhaired-live-desktop-website.desktop" \
-    "$APPLICATIONS_DIR/grayhaired-live-desktop-background.desktop"
+# Install/refresh the one consolidated Stage 22 application-menu entry.
 bash "$SCRIPT_DIR/install-live-desktop-settings-launcher.sh"
 
 if command -v update-desktop-database >/dev/null 2>&1; then
