@@ -84,10 +84,16 @@ class SettingsHubWindow(Gtk.ApplicationWindow):
         self.website_status = Gtk.Label(label=current_website())
         self.website_status.set_xalign(0)
         self.website_status.set_wrap(True)
+        self.website_status.set_tooltip_text(
+            "This is the website currently shown on your live desktop."
+        )
         website_box.append(self.website_status)
 
         website_button = Gtk.Button(label="Change Desktop Website…")
         website_button.set_size_request(-1, 46)
+        website_button.set_tooltip_text(
+            "Choose a different website to display on your live desktop."
+        )
         website_button.connect("clicked", self._open_website)
         website_box.append(website_button)
         outer.append(website_frame)
@@ -103,19 +109,29 @@ class SettingsHubWindow(Gtk.ApplicationWindow):
         self.background_status = Gtk.Label(label=current_background())
         self.background_status.set_xalign(0)
         self.background_status.set_wrap(True)
+        self.background_status.set_tooltip_text(
+            "This is the background setting currently used behind your desktop icons."
+        )
         background_box.append(self.background_status)
 
         background_button = Gtk.Button(label="Change Desktop Background…")
         background_button.set_size_request(-1, 46)
+        background_button.set_tooltip_text(
+            "Choose Automatic Blend or pick a color for the desktop-icon area."
+        )
         background_button.connect("clicked", self._open_background)
         background_box.append(background_button)
         outer.append(background_frame)
 
         refresh_button = Gtk.Button(label="Refresh Current Settings")
+        refresh_button.set_tooltip_text(
+            "Update this window after changing the website or background."
+        )
         refresh_button.connect("clicked", self._refresh)
         outer.append(refresh_button)
 
         close_button = Gtk.Button(label="Close")
+        close_button.set_tooltip_text("Close My Desktop Settings.")
         close_button.connect("clicked", lambda *_: self.close())
         outer.append(close_button)
 
