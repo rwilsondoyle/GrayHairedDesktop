@@ -11,7 +11,8 @@ from pathlib import Path
 try:
     import gi
     gi.require_version("Gtk", "4.0")
-    from gi.repository import Gtk
+    gi.require_version("Gdk", "4.0")
+    from gi.repository import Gdk, Gtk
 except (ImportError, ValueError) as exc:
     raise SystemExit("GTK 4 Python bindings are required for My Desktop Settings.") from exc
 
@@ -55,6 +56,10 @@ class SettingsHubWindow(Gtk.ApplicationWindow):
         self.set_resizable(False)
         self.connect("notify::is-active", self._active_changed)
 
+        key_controller = Gtk.EventControllerKey()
+        key_controller.connect("key-pressed", self._key_pressed)
+        self.add_controller(key_controller)
+
         outer = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=14)
         outer.set_margin_top(20)
         outer.set_margin_bottom(20)
@@ -90,13 +95,13 @@ class SettingsHubWindow(Gtk.ApplicationWindow):
         )
         website_box.append(self.website_status)
 
-        website_button = Gtk.Button(label="Change Desktop Website…")
-        website_button.set_size_request(-1, 46)
-        website_button.set_tooltip_text(
+        self.website_button = Gtk.Button(label="Change Desktop Website…")
+        self.website_button.set_size_request(-1, 46)
+        self.website_button.set_tooltip_text(
             "Choose a different website to display on your live desktop."
         )
-        website_button.connect("clicked", self._open_website)
-        website_box.append(website_button)
+        self.website_button.connect("clicked", self._open_website)
+        website_box.append(self.website_button)
         outer.append(website_frame)
 
         background_frame = Gtk.Frame(label="Background")
@@ -115,19 +120,21 @@ class SettingsHubWindow(Gtk.ApplicationWindow):
         )
         background_box.append(self.background_status)
 
-        background_button = Gtk.Button(label="Change Desktop Background…")
-        background_button.set_size_request(-1, 46)
-        background_button.set_tooltip_text(
+        self.background_button = Gtk.Button(label="Change Desktop Background…")
+        self.background_button.set_size_request(-1, 46)
+        self.background_button.set_tooltip_text(
             "Choose Automatic Blend or pick a color for the desktop-icon area."
         )
-        background_button.connect("clicked", self._open_background)
-        background_box.append(background_button)
+        self.background_button.connect("clicked", self._open_background)
+        background_box.append(self.background_button)
         outer.append(background_frame)
 
-        close_button = Gtk.Button(label="Close")
-        close_button.set_tooltip_text("Close My Desktop Settings.")
-        close_button.connect("clicked", lambda *_: self.close())
-        outer.append(close_button)
+        self.close_button = Gtk.Button(label="Close")
+        self.close_button.set_tooltip_text("Close My Desktop Settings.")
+        self.close_button.connect("clicked", lambda *_: self.close())
+        outer.append(self.close_button)
+
+        self.website_button.grab_focus()
 
     def _launch(self, path: Path, friendly_name: str) -> None:
         if not path.is_file():
@@ -149,9 +156,17 @@ class SettingsHubWindow(Gtk.ApplicationWindow):
     def _open_background(self, *_args) -> None:
         self._launch(BACKGROUND_LAUNCHER, "My Desktop Background")
 
+    def _key_pressed(self, _controller, keyval, _keycode, _state) -> bool:
+        if keyval == Gdk.KEY_Escape:
+            self.close()
+            return True
+        return False
+
     def _active_changed(self, *_args) -> None:
         if self.get_property("is-active"):
             self._refresh()
+            if self.get_focus() is None:
+                self.website_button.grab_focus()
 
     def _refresh(self) -> None:
         self.website_status.set_text(current_website())
