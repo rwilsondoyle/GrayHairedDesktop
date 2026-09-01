@@ -213,7 +213,9 @@ class BackgroundSettingsWindow(Gtk.ApplicationWindow):
             if hex_color.upper() == color.upper():
                 self.preset.set_active(index)
                 return
-        self.preset.set_active(0)
+        # A saved custom color must stay custom.  Leaving the combo unselected
+        # avoids firing "changed" with Gray and overwriting the loaded color.
+        self.preset.set_active(-1)
 
     def _set_color(self, color: str) -> None:
         self._syncing_color_controls = True
