@@ -49,6 +49,12 @@ bash "$SCRIPT_DIR/patch-live-desktop-modern-site-links-stage20.sh"
 # the choice under ~/.config/grayhaired-live-desktop/site.json.
 bash "$SCRIPT_DIR/patch-live-desktop-website-config-stage21.sh"
 
+# Stage 23 adds the physically verified reliability layer for configured sites:
+# friendly network/TLS failure handling, HTTP 4xx/5xx handling, a clear Retry
+# action, and visible 1.2-second Trying Again feedback without changing the
+# saved website selection.
+bash "$SCRIPT_DIR/patch-live-desktop-website-reliability-stage23.sh"
+
 # Install/refresh the one consolidated Stage 22 application-menu entry.
 bash "$SCRIPT_DIR/install-live-desktop-settings-launcher.sh"
 
@@ -56,5 +62,5 @@ if command -v update-desktop-database >/dev/null 2>&1; then
     update-desktop-database "$APPLICATIONS_DIR" >/dev/null 2>&1 || true
 fi
 
-printf '\n[GRAYHAIRED-INSTALL] PASS: GrayHaired Live Desktop with Automatic Blend, Manual Background, 204px compact icon geometry, adaptive vertical scrolling, local-file drop protection, modern-site browser handoff, persistent website selection, and the consolidated My Desktop Settings control center installed.\n'
+printf '\n[GRAYHAIRED-INSTALL] PASS: GrayHaired Live Desktop with Automatic Blend, Manual Background, 204px compact icon geometry, adaptive vertical scrolling, local-file drop protection, modern-site browser handoff, persistent website selection, friendly website reliability handling, and the consolidated My Desktop Settings control center installed.\n'
 printf '[GRAYHAIRED-INSTALL] INFO: run scripts/verify-live-desktop-known-good.sh after enabling the extension.\n'
