@@ -18,8 +18,8 @@ pass() {
 [[ -f "$GRID" ]] || fail "installed desktopGrid.js not found: $GRID"
 grep -Fq 'GRAYHAIRED-WEBSITE-CONFIG-STAGE21' "$GRID" || fail "Stage 21 persistent website selection is missing"
 
-if grep -Fq 'GRAYHAIRED-FRIENDLY-LOAD-ERROR-STAGE23A-V5' "$GRID"; then
-    pass "Stage 23A v5 friendly load error handling is already installed"
+if grep -Fq 'GRAYHAIRED-FRIENDLY-LOAD-ERROR-STAGE23A-V6' "$GRID"; then
+    pass "Stage 23A v6 friendly load error handling is already installed"
     exit 0
 fi
 
@@ -36,13 +36,94 @@ import sys
 path = Path(sys.argv[1])
 text = path.read_text(encoding='utf-8')
 
-# Upgrade the physically verified v4 friendly page in place. Navigation-based
-# retry links rendered correctly but clicks were not observable reliably in the
-# live desktop WebKit surface. V5 uses WebKit's script-message bridge instead,
-# so the page button talks directly to the owning GJS process without relying
-# on navigation policy or a custom URI scheme.
-if 'GRAYHAIRED-FRIENDLY-LOAD-ERROR-STAGE23A-V4' in text:
-    old_handler = r'''// GRAYHAIRED-FRIENDLY-LOAD-ERROR-STAGE23A-V4
+# V5 proved the friendly failure page itself works, but the script-message
+# bridge is not firing from the desktop WebKit surface on the physical test
+# machine. V6 deliberately uses a normal HTTP(S) link for Retry, because normal
+# website links are already physically proven to generate WebKit navigation
+# actions. A narrow policy handler keeps only a retry to the configured desktop
+# URL inside My Desktop; all other Stage 20 link behavior remains unchanged.
+if 'GRAYHAIRED-FRIENDLY-LOAD-ERROR-STAGE23A-V5' in text:
+    old_bridge = r'''// GRAYHAIRED-FRIENDLY-LOAD-ERROR-STAGE23A-V5
+// Friendly recovery for the configured desktop website. Use WebKit's script
+// message bridge for Retry so the button does not depend on navigation-policy
+// behavior inside the special error document.
+const liveRetryContentManager = this._liveWebView.get_user_content_manager();
+liveRetryContentManager.register_script_message_handler('grayhairedRetry');
+this.connectSignal(liveRetryContentManager,
+    'script-message-received::grayhairedRetry',
+    () => {
+        print(`[GRAYHAIRED-SITE23A] retrying ${liveDesktopUrl}`);
+        this._liveWebView.load_uri(liveDesktopUrl);
+    });
+
+'''
+    new_retry = r'''// GRAYHAIRED-FRIENDLY-LOAD-ERROR-STAGE23A-V6
+// Retry uses a real HTTP(S) navigation, because ordinary website-link clicks
+// are already physically proven on this desktop WebKit surface.
+this.connectSignal(this._liveWebView, 'decide-policy',
+    (webView, decision, decisionType) => {
+        if (decisionType !== WebKit2.PolicyDecisionType.NAVIGATION_ACTION &&
+            decisionType !== WebKit2.PolicyDecisionType.NEW_WINDOW_ACTION)
+            return false;
+
+        let uri = null;
+        try {
+            const action = decision.get_navigation_action();
+            const request = action ? action.get_request() : null;
+            uri = request ? request.get_uri() : null;
+        } catch (e) {
+            return false;
+        }
+
+        const normalizeRetryUri = value => String(value || '').replace(/\/$/, '');
+        let currentUri = '';
+        try {
+            currentUri = String(webView.get_uri() || '');
+        } catch (e) {
+            // If current URI cannot be inspected, do not intercept anything.
+            return false;
+        }
+
+        if (!currentUri.startsWith('about:blank') ||
+            normalizeRetryUri(uri) !== normalizeRetryUri(liveDesktopUrl))
+            return false;
+
+        print(`[GRAYHAIRED-SITE23A] retrying ${liveDesktopUrl}`);
+        decision.use();
+        return true;
+    });
+
+'''
+    if old_bridge not in text:
+        raise SystemExit('Stage 23A v5 retry bridge anchor not found; no changes made')
+    text = text.replace(old_bridge, new_retry, 1)
+    old_button = '<button class="button" type="button" onclick="window.webkit.messageHandlers.grayhairedRetry.postMessage(\'retry\')">Try Again</button>'
+    new_button = '<a class="button" href="${safeUri}">Try Again</a>'
+    if old_button not in text:
+        raise SystemExit('Stage 23A v5 Retry button anchor not found; no changes made')
+    text = text.replace(old_button, new_button, 1)
+    path.write_text(text, encoding='utf-8')
+    print('[GRAYHAIRED-SITE23A] upgraded v5 script-message Retry to v6 HTTP(S) Retry')
+    raise SystemExit(0)
+
+if 'GRAYHAIRED-FRIENDLY-LOAD-ERROR-STAGE23A' in text:
+    raise SystemExit(
+        'An unsupported older Stage 23A marker is already present; restore the pre-Stage23A backup before applying v6.'
+    )
+
+pattern = re.compile(
+    r'(?m)^(?P<indent>\s*)this\._liveWebView\.load_uri\(liveDesktopUrl\);\s*$'
+)
+matches = list(pattern.finditer(text))
+if len(matches) != 1:
+    raise SystemExit(
+        f'Expected exactly one configured liveDesktopUrl load call; found {len(matches)}; no changes made'
+    )
+
+match = matches[0]
+indent = match.group('indent')
+
+block_lines = r'''// GRAYHAIRED-FRIENDLY-LOAD-ERROR-STAGE23A-V6
 // Friendly recovery for the configured desktop website.
 this.connectSignal(this._liveWebView, 'decide-policy',
     (webView, decision, decisionType) => {
@@ -59,76 +140,21 @@ this.connectSignal(this._liveWebView, 'decide-policy',
             return false;
         }
 
-        // Use a normal about:blank fragment rather than a custom URI scheme.
-        // WebKit reliably emits decide-policy for this navigation.
-        if (uri !== 'about:blank#grayhaired-retry')
+        const normalizeRetryUri = value => String(value || '').replace(/\/$/, '');
+        let currentUri = '';
+        try {
+            currentUri = String(webView.get_uri() || '');
+        } catch (e) {
+            return false;
+        }
+
+        if (!currentUri.startsWith('about:blank') ||
+            normalizeRetryUri(uri) !== normalizeRetryUri(liveDesktopUrl))
             return false;
 
         print(`[GRAYHAIRED-SITE23A] retrying ${liveDesktopUrl}`);
-        decision.ignore();
-        webView.load_uri(liveDesktopUrl);
+        decision.use();
         return true;
-    });
-
-'''
-    new_handler = r'''// GRAYHAIRED-FRIENDLY-LOAD-ERROR-STAGE23A-V5
-// Friendly recovery for the configured desktop website. Use WebKit's script
-// message bridge for Retry so the button does not depend on navigation-policy
-// behavior inside the special error document.
-const liveRetryContentManager = this._liveWebView.get_user_content_manager();
-liveRetryContentManager.register_script_message_handler('grayhairedRetry');
-this.connectSignal(liveRetryContentManager,
-    'script-message-received::grayhairedRetry',
-    () => {
-        print(`[GRAYHAIRED-SITE23A] retrying ${liveDesktopUrl}`);
-        this._liveWebView.load_uri(liveDesktopUrl);
-    });
-
-'''
-    if old_handler not in text:
-        raise SystemExit('Stage 23A v4 retry handler anchor not found; no changes made')
-    text = text.replace(old_handler, new_handler, 1)
-    text = text.replace(
-        '<a class="button" href="about:blank#grayhaired-retry">Try Again</a>',
-        '<button class="button" type="button" onclick="window.webkit.messageHandlers.grayhairedRetry.postMessage(\'retry\')">Try Again</button>',
-        1,
-    )
-    text = text.replace(
-        "    text-decoration: none;\n",
-        "    text-decoration: none;\n    border: 0;\n    cursor: pointer;\n",
-        1,
-    )
-    path.write_text(text, encoding='utf-8')
-    print('[GRAYHAIRED-SITE23A] upgraded v4 retry navigation to v5 script-message bridge')
-    raise SystemExit(0)
-
-if 'GRAYHAIRED-FRIENDLY-LOAD-ERROR-STAGE23A' in text:
-    raise SystemExit(
-        'An unsupported older Stage 23A marker is already present; restore the pre-Stage23A backup before applying v5.'
-    )
-
-pattern = re.compile(
-    r'(?m)^(?P<indent>\s*)this\._liveWebView\.load_uri\(liveDesktopUrl\);\s*$'
-)
-matches = list(pattern.finditer(text))
-if len(matches) != 1:
-    raise SystemExit(
-        f'Expected exactly one configured liveDesktopUrl load call; found {len(matches)}; no changes made'
-    )
-
-match = matches[0]
-indent = match.group('indent')
-
-block_lines = r'''// GRAYHAIRED-FRIENDLY-LOAD-ERROR-STAGE23A-V5
-// Friendly recovery for the configured desktop website. Use WebKit's script
-// message bridge for Retry so the button talks directly to the GJS owner.
-const liveRetryContentManager = this._liveWebView.get_user_content_manager();
-liveRetryContentManager.register_script_message_handler('grayhairedRetry');
-this.connectSignal(liveRetryContentManager,
-    'script-message-received::grayhairedRetry',
-    () => {
-        print(`[GRAYHAIRED-SITE23A] retrying ${liveDesktopUrl}`);
-        this._liveWebView.load_uri(liveDesktopUrl);
     });
 
 this.connectSignal(this._liveWebView, 'load-failed',
@@ -226,7 +252,7 @@ this.connectSignal(this._liveWebView, 'load-failed',
     <p>My Desktop could not reach your selected website.</p>
     <p>This can happen if the Internet connection is down or the website is temporarily unavailable.</p>
     <div class="site">${safeUri}</div>
-    <button class="button" type="button" onclick="window.webkit.messageHandlers.grayhairedRetry.postMessage('retry')">Try Again</button>
+    <a class="button" href="${safeUri}">Try Again</a>
     <p class="help">To choose a different website, open <strong>My Desktop Settings</strong> from the application menu.</p>
   </main>
 </body>
@@ -243,10 +269,10 @@ text = text[:match.start()] + replacement + text[match.end():]
 path.write_text(text, encoding='utf-8')
 PY
 
-grep -Fq 'GRAYHAIRED-FRIENDLY-LOAD-ERROR-STAGE23A-V5' "$GRID" || fail "Stage 23A v5 marker missing after patch"
+grep -Fq 'GRAYHAIRED-FRIENDLY-LOAD-ERROR-STAGE23A-V6' "$GRID" || fail "Stage 23A v6 marker missing after patch"
 grep -Fq "'load-failed'" "$GRID" || fail "WebKit load-failed handler missing after patch"
-grep -Fq 'grayhairedRetry' "$GRID" || fail "WebKit retry script-message bridge missing after patch"
 grep -Fq 'Website Not Available' "$GRID" || fail "friendly error heading missing after patch"
+grep -Fq 'href="${safeUri}">Try Again' "$GRID" || fail "HTTP(S) Retry link missing after patch"
 
-pass "Stage 23A v5 friendly configured-website failure screen installed"
+pass "Stage 23A v6 friendly configured-website failure screen installed"
 printf '[GRAYHAIRED-SITE23A] INFO: reload only the GrayHaired child process to test it.\n'
