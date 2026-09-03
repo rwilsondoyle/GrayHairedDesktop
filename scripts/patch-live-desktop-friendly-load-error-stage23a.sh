@@ -18,8 +18,8 @@ pass() {
 [[ -f "$GRID" ]] || fail "installed desktopGrid.js not found: $GRID"
 grep -Fq 'GRAYHAIRED-WEBSITE-CONFIG-STAGE21' "$GRID" || fail "Stage 21 persistent website selection is missing"
 
-if grep -Fq 'GRAYHAIRED-FRIENDLY-LOAD-ERROR-STAGE23A-V4' "$GRID"; then
-    pass "Stage 23A v4 friendly load error handling is already installed"
+if grep -Fq 'GRAYHAIRED-FRIENDLY-LOAD-ERROR-STAGE23A-V5' "$GRID"; then
+    pass "Stage 23A v5 friendly load error handling is already installed"
     exit 0
 fi
 
@@ -36,56 +36,13 @@ import sys
 path = Path(sys.argv[1])
 text = path.read_text(encoding='utf-8')
 
-# Upgrade the physically tested v3 error page in place. WebKit displays the
-# custom grayhaired-retry:// URI but does not reliably route it through the
-# policy callback. An about:blank fragment is a normal WebKit navigation, so
-# the retry click is observable and can be intercepted safely.
-if 'GRAYHAIRED-FRIENDLY-LOAD-ERROR-STAGE23A-V3' in text:
-    old_handler = """        if (uri !== 'grayhaired-retry://retry')
-            return false;
-
-        print(`[GRAYHAIRED-SITE23A] retrying ${liveDesktopUrl}`);
-"""
-    new_handler = """        if (uri !== 'about:blank#grayhaired-retry')
-            return false;
-
-        print(`[GRAYHAIRED-SITE23A] retrying ${liveDesktopUrl}`);
-"""
-    if old_handler not in text:
-        raise SystemExit('Stage 23A v3 retry handler anchor not found; no changes made')
-    text = text.replace(old_handler, new_handler, 1)
-    text = text.replace(
-        '<a class="button" href="grayhaired-retry://retry">Try Again</a>',
-        '<a class="button" href="about:blank#grayhaired-retry">Try Again</a>',
-        1,
-    )
-    text = text.replace(
-        'GRAYHAIRED-FRIENDLY-LOAD-ERROR-STAGE23A-V3',
-        'GRAYHAIRED-FRIENDLY-LOAD-ERROR-STAGE23A-V4',
-        1,
-    )
-    path.write_text(text, encoding='utf-8')
-    print('[GRAYHAIRED-SITE23A] upgraded v3 retry navigation to v4')
-    raise SystemExit(0)
-
-if 'GRAYHAIRED-FRIENDLY-LOAD-ERROR-STAGE23A' in text:
-    raise SystemExit(
-        'An unsupported older Stage 23A marker is already present; restore the pre-Stage23A backup before applying v4.'
-    )
-
-pattern = re.compile(
-    r'(?m)^(?P<indent>\s*)this\._liveWebView\.load_uri\(liveDesktopUrl\);\s*$'
-)
-matches = list(pattern.finditer(text))
-if len(matches) != 1:
-    raise SystemExit(
-        f'Expected exactly one configured liveDesktopUrl load call; found {len(matches)}; no changes made'
-    )
-
-match = matches[0]
-indent = match.group('indent')
-
-block_lines = r'''// GRAYHAIRED-FRIENDLY-LOAD-ERROR-STAGE23A-V4
+# Upgrade the physically verified v4 friendly page in place. Navigation-based
+# retry links rendered correctly but clicks were not observable reliably in the
+# live desktop WebKit surface. V5 uses WebKit's script-message bridge instead,
+# so the page button talks directly to the owning GJS process without relying
+# on navigation policy or a custom URI scheme.
+if 'GRAYHAIRED-FRIENDLY-LOAD-ERROR-STAGE23A-V4' in text:
+    old_handler = r'''// GRAYHAIRED-FRIENDLY-LOAD-ERROR-STAGE23A-V4
 // Friendly recovery for the configured desktop website.
 this.connectSignal(this._liveWebView, 'decide-policy',
     (webView, decision, decisionType) => {
@@ -111,6 +68,67 @@ this.connectSignal(this._liveWebView, 'decide-policy',
         decision.ignore();
         webView.load_uri(liveDesktopUrl);
         return true;
+    });
+
+'''
+    new_handler = r'''// GRAYHAIRED-FRIENDLY-LOAD-ERROR-STAGE23A-V5
+// Friendly recovery for the configured desktop website. Use WebKit's script
+// message bridge for Retry so the button does not depend on navigation-policy
+// behavior inside the special error document.
+const liveRetryContentManager = this._liveWebView.get_user_content_manager();
+liveRetryContentManager.register_script_message_handler('grayhairedRetry');
+this.connectSignal(liveRetryContentManager,
+    'script-message-received::grayhairedRetry',
+    () => {
+        print(`[GRAYHAIRED-SITE23A] retrying ${liveDesktopUrl}`);
+        this._liveWebView.load_uri(liveDesktopUrl);
+    });
+
+'''
+    if old_handler not in text:
+        raise SystemExit('Stage 23A v4 retry handler anchor not found; no changes made')
+    text = text.replace(old_handler, new_handler, 1)
+    text = text.replace(
+        '<a class="button" href="about:blank#grayhaired-retry">Try Again</a>',
+        '<button class="button" type="button" onclick="window.webkit.messageHandlers.grayhairedRetry.postMessage(\'retry\')">Try Again</button>',
+        1,
+    )
+    text = text.replace(
+        "    text-decoration: none;\n",
+        "    text-decoration: none;\n    border: 0;\n    cursor: pointer;\n",
+        1,
+    )
+    path.write_text(text, encoding='utf-8')
+    print('[GRAYHAIRED-SITE23A] upgraded v4 retry navigation to v5 script-message bridge')
+    raise SystemExit(0)
+
+if 'GRAYHAIRED-FRIENDLY-LOAD-ERROR-STAGE23A' in text:
+    raise SystemExit(
+        'An unsupported older Stage 23A marker is already present; restore the pre-Stage23A backup before applying v5.'
+    )
+
+pattern = re.compile(
+    r'(?m)^(?P<indent>\s*)this\._liveWebView\.load_uri\(liveDesktopUrl\);\s*$'
+)
+matches = list(pattern.finditer(text))
+if len(matches) != 1:
+    raise SystemExit(
+        f'Expected exactly one configured liveDesktopUrl load call; found {len(matches)}; no changes made'
+    )
+
+match = matches[0]
+indent = match.group('indent')
+
+block_lines = r'''// GRAYHAIRED-FRIENDLY-LOAD-ERROR-STAGE23A-V5
+// Friendly recovery for the configured desktop website. Use WebKit's script
+// message bridge for Retry so the button talks directly to the GJS owner.
+const liveRetryContentManager = this._liveWebView.get_user_content_manager();
+liveRetryContentManager.register_script_message_handler('grayhairedRetry');
+this.connectSignal(liveRetryContentManager,
+    'script-message-received::grayhairedRetry',
+    () => {
+        print(`[GRAYHAIRED-SITE23A] retrying ${liveDesktopUrl}`);
+        this._liveWebView.load_uri(liveDesktopUrl);
     });
 
 this.connectSignal(this._liveWebView, 'load-failed',
@@ -188,6 +206,8 @@ this.connectSignal(this._liveWebView, 'load-failed',
     background: #3155a6;
     color: white;
     text-decoration: none;
+    border: 0;
+    cursor: pointer;
     font-size: 19px;
     font-weight: 600;
   }
@@ -206,7 +226,7 @@ this.connectSignal(this._liveWebView, 'load-failed',
     <p>My Desktop could not reach your selected website.</p>
     <p>This can happen if the Internet connection is down or the website is temporarily unavailable.</p>
     <div class="site">${safeUri}</div>
-    <a class="button" href="about:blank#grayhaired-retry">Try Again</a>
+    <button class="button" type="button" onclick="window.webkit.messageHandlers.grayhairedRetry.postMessage('retry')">Try Again</button>
     <p class="help">To choose a different website, open <strong>My Desktop Settings</strong> from the application menu.</p>
   </main>
 </body>
@@ -223,10 +243,10 @@ text = text[:match.start()] + replacement + text[match.end():]
 path.write_text(text, encoding='utf-8')
 PY
 
-grep -Fq 'GRAYHAIRED-FRIENDLY-LOAD-ERROR-STAGE23A-V4' "$GRID" || fail "Stage 23A v4 marker missing after patch"
+grep -Fq 'GRAYHAIRED-FRIENDLY-LOAD-ERROR-STAGE23A-V5' "$GRID" || fail "Stage 23A v5 marker missing after patch"
 grep -Fq "'load-failed'" "$GRID" || fail "WebKit load-failed handler missing after patch"
-grep -Fq 'about:blank#grayhaired-retry' "$GRID" || fail "retry navigation missing after patch"
+grep -Fq 'grayhairedRetry' "$GRID" || fail "WebKit retry script-message bridge missing after patch"
 grep -Fq 'Website Not Available' "$GRID" || fail "friendly error heading missing after patch"
 
-pass "Stage 23A v4 friendly configured-website failure screen installed"
+pass "Stage 23A v5 friendly configured-website failure screen installed"
 printf '[GRAYHAIRED-SITE23A] INFO: reload only the GrayHaired child process to test it.\n'
