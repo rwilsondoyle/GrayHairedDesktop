@@ -18,8 +18,8 @@ pass() {
 [[ -f "$GRID" ]] || fail "installed desktopGrid.js not found: $GRID"
 grep -Fq 'GRAYHAIRED-WEBSITE-CONFIG-STAGE21' "$GRID" || fail "Stage 21 persistent website selection is missing"
 
-if grep -Fq 'GRAYHAIRED-FRIENDLY-LOAD-ERROR-STAGE23A-V2' "$GRID"; then
-    pass "Stage 23A v2 friendly load error handling is already installed"
+if grep -Fq 'GRAYHAIRED-FRIENDLY-LOAD-ERROR-STAGE23A-V3' "$GRID"; then
+    pass "Stage 23A v3 friendly load error handling is already installed"
     exit 0
 fi
 
@@ -30,86 +30,89 @@ fi
 
 python3 - "$GRID" <<'PY'
 from pathlib import Path
+import re
 import sys
 
 path = Path(sys.argv[1])
 text = path.read_text(encoding='utf-8')
 
-# If the first Stage 23A attempt partially landed, refuse to stack another
-# handler on top of it. The physical baseline showed no Stage 23A markers, so
-# this guard is primarily for repeatability on later test machines.
+# Do not stack Stage 23 handlers. Failed earlier attempts did not modify the
+# installed file, but this keeps repeat runs safe on other systems.
 if 'GRAYHAIRED-FRIENDLY-LOAD-ERROR-STAGE23A' in text:
     raise SystemExit(
-        'An older Stage 23A marker is already present; restore the pre-Stage23A backup before applying v2.'
+        'An older Stage 23A marker is already present; restore the pre-Stage23A backup before applying v3.'
     )
 
-load_anchor = """        print(`[GRAYHAIRED-SITE21] loading ${liveDesktopUrl}`);
-        this._liveWebView.load_uri(liveDesktopUrl);
-"""
+# Stage 20/21 development checkpoints changed nearby diagnostics over time, so
+# do not depend on the line immediately before the configured load call. Find
+# the one actual Stage 21 WebView load call directly and replace only that line.
+pattern = re.compile(
+    r'(?m)^(?P<indent>\s*)this\._liveWebView\.load_uri\(liveDesktopUrl\);\s*$'
+)
+matches = list(pattern.finditer(text))
+if len(matches) != 1:
+    raise SystemExit(
+        f'Expected exactly one configured liveDesktopUrl load call; found {len(matches)}; no changes made'
+    )
 
-if load_anchor not in text:
-    raise SystemExit('Expected Stage 21 configured load anchor not found; no changes made')
+match = matches[0]
+indent = match.group('indent')
 
-block = r"""        // GRAYHAIRED-FRIENDLY-LOAD-ERROR-STAGE23A-V2
-        // Handle the private retry action in its own policy callback so this
-        // remains compatible with both the earlier physically tested Stage 20B
-        // navigation diagnostics and the later promoted Stage 20 handler.
-        this.connectSignal(this._liveWebView, 'decide-policy',
-            (webView, decision, decisionType) => {
-                if (decisionType !== WebKit2.PolicyDecisionType.NAVIGATION_ACTION &&
-                    decisionType !== WebKit2.PolicyDecisionType.NEW_WINDOW_ACTION)
-                    return false;
+block_lines = r'''// GRAYHAIRED-FRIENDLY-LOAD-ERROR-STAGE23A-V3
+// Friendly recovery for the configured desktop website.
+this.connectSignal(this._liveWebView, 'decide-policy',
+    (webView, decision, decisionType) => {
+        if (decisionType !== WebKit2.PolicyDecisionType.NAVIGATION_ACTION &&
+            decisionType !== WebKit2.PolicyDecisionType.NEW_WINDOW_ACTION)
+            return false;
 
-                let uri = null;
-                try {
-                    const action = decision.get_navigation_action();
-                    const request = action ? action.get_request() : null;
-                    uri = request ? request.get_uri() : null;
-                } catch (e) {
-                    return false;
-                }
+        let uri = null;
+        try {
+            const action = decision.get_navigation_action();
+            const request = action ? action.get_request() : null;
+            uri = request ? request.get_uri() : null;
+        } catch (e) {
+            return false;
+        }
 
-                if (uri !== 'grayhaired-retry://retry')
-                    return false;
+        if (uri !== 'grayhaired-retry://retry')
+            return false;
 
-                print(`[GRAYHAIRED-SITE23A] retrying ${liveDesktopUrl}`);
-                decision.ignore();
-                webView.load_uri(liveDesktopUrl);
-                return true;
-            });
+        print(`[GRAYHAIRED-SITE23A] retrying ${liveDesktopUrl}`);
+        decision.ignore();
+        webView.load_uri(liveDesktopUrl);
+        return true;
+    });
 
-        // WebKit may canonicalize a host-only URL by adding a trailing slash.
-        // Compare normalized forms so a failure for https://example.invalid/
-        // is still recognized as the configured https://example.invalid site.
-        this.connectSignal(this._liveWebView, 'load-failed',
-            (webView, loadEvent, failingUri, error) => {
-                if (!failingUri)
-                    return false;
+this.connectSignal(this._liveWebView, 'load-failed',
+    (webView, loadEvent, failingUri, error) => {
+        if (!failingUri)
+            return false;
 
-                const normalizeUri = value => String(value || '').replace(/\/$/, '');
-                if (normalizeUri(failingUri) !== normalizeUri(liveDesktopUrl))
-                    return false;
+        const normalizeUri = value => String(value || '').replace(/\/$/, '');
+        if (normalizeUri(failingUri) !== normalizeUri(liveDesktopUrl))
+            return false;
 
-                let detail = '';
-                try {
-                    detail = error && error.message ? String(error.message) : '';
-                } catch (e) {
-                    // Diagnostic detail only.
-                }
+        let detail = '';
+        try {
+            detail = error && error.message ? String(error.message) : '';
+        } catch (e) {
+            // Technical detail is diagnostic only.
+        }
 
-                print(
-                    `[GRAYHAIRED-SITE23A] configured website failed uri=${failingUri} ` +
-                    `error=${detail || '<none>'}`
-                );
+        print(
+            `[GRAYHAIRED-SITE23A] configured website failed uri=${failingUri} ` +
+            `error=${detail || '<none>'}`
+        );
 
-                const safeUri = String(failingUri)
-                    .replace(/&/g, '&amp;')
-                    .replace(/</g, '&lt;')
-                    .replace(/>/g, '&gt;')
-                    .replace(/\"/g, '&quot;')
-                    .replace(/'/g, '&#39;');
+        const safeUri = String(failingUri)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/\"/g, '&quot;')
+            .replace(/'/g, '&#39;');
 
-                const errorHtml = `<!doctype html>
+        const errorHtml = `<!doctype html>
 <html>
 <head>
 <meta charset="utf-8">
@@ -180,22 +183,21 @@ block = r"""        // GRAYHAIRED-FRIENDLY-LOAD-ERROR-STAGE23A-V2
 </body>
 </html>`;
 
-                webView.load_html(errorHtml, 'about:blank');
-                return true;
-            });
+        webView.load_html(errorHtml, 'about:blank');
+        return true;
+    });
 
-        print(`[GRAYHAIRED-SITE21] loading ${liveDesktopUrl}`);
-        this._liveWebView.load_uri(liveDesktopUrl);
-"""
+this._liveWebView.load_uri(liveDesktopUrl);'''
 
-text = text.replace(load_anchor, block, 1)
+replacement = '\n'.join(indent + line if line else '' for line in block_lines.splitlines())
+text = text[:match.start()] + replacement + text[match.end():]
 path.write_text(text, encoding='utf-8')
 PY
 
-grep -Fq 'GRAYHAIRED-FRIENDLY-LOAD-ERROR-STAGE23A-V2' "$GRID" || fail "Stage 23A v2 marker missing after patch"
+grep -Fq 'GRAYHAIRED-FRIENDLY-LOAD-ERROR-STAGE23A-V3' "$GRID" || fail "Stage 23A v3 marker missing after patch"
 grep -Fq "'load-failed'" "$GRID" || fail "WebKit load-failed handler missing after patch"
 grep -Fq 'grayhaired-retry://retry' "$GRID" || fail "private retry action missing after patch"
 grep -Fq 'Website Not Available' "$GRID" || fail "friendly error heading missing after patch"
 
-pass "Stage 23A v2 friendly configured-website failure screen installed"
+pass "Stage 23A v3 friendly configured-website failure screen installed"
 printf '[GRAYHAIRED-SITE23A] INFO: reload only the GrayHaired child process to test it.\n'
