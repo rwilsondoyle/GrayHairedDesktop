@@ -17,10 +17,9 @@ pass() {
 
 [[ -f "$GRID" ]] || fail "installed desktopGrid.js not found: $GRID"
 grep -Fq 'GRAYHAIRED-WEBSITE-CONFIG-STAGE21' "$GRID" || fail "Stage 21 persistent website selection is missing"
-grep -Fq 'Opening in default browser' "$GRID" || fail "existing WebKit navigation policy handler is missing"
 
-if grep -Fq 'GRAYHAIRED-FRIENDLY-LOAD-ERROR-STAGE23A' "$GRID"; then
-    pass "Stage 23A friendly load error handling is already installed"
+if grep -Fq 'GRAYHAIRED-FRIENDLY-LOAD-ERROR-STAGE23A-V2' "$GRID"; then
+    pass "Stage 23A v2 friendly load error handling is already installed"
     exit 0
 fi
 
@@ -36,56 +35,68 @@ import sys
 path = Path(sys.argv[1])
 text = path.read_text(encoding='utf-8')
 
-# The retry action is deliberately handled inside the existing navigation
-# policy callback. It reloads the saved live-site URL inside WebKit and never
-# opens a browser or changes the user's saved setting.
-retry_anchor = """                if (!uri || (!isNewWindow && !isUserGesture)) {
-                    return false;
-                }
-
-                // Keep the initial My Desktop document inside WebKit. Hand
-"""
-retry_block = """                // GRAYHAIRED-FRIENDLY-LOAD-ERROR-STAGE23A
-                // The friendly error page uses a private retry URI. Keep it
-                // inside My Desktop, ignore the synthetic navigation, and try
-                // the currently saved live-site URL again without changing it.
-                if (uri === 'grayhaired-retry://retry') {
-                    print(`[GRAYHAIRED-SITE23A] retrying ${liveDesktopUrl}`);
-                    decision.ignore();
-                    webView.load_uri(liveDesktopUrl);
-                    return true;
-                }
-
-                if (!uri || (!isNewWindow && !isUserGesture)) {
-                    return false;
-                }
-
-                // Keep the initial My Desktop document inside WebKit. Hand
-"""
-if retry_anchor not in text:
-    raise SystemExit('Expected WebKit navigation-policy retry anchor not found')
-text = text.replace(retry_anchor, retry_block, 1)
+# If the first Stage 23A attempt partially landed, refuse to stack another
+# handler on top of it. The physical baseline showed no Stage 23A markers, so
+# this guard is primarily for repeatability on later test machines.
+if 'GRAYHAIRED-FRIENDLY-LOAD-ERROR-STAGE23A' in text:
+    raise SystemExit(
+        'An older Stage 23A marker is already present; restore the pre-Stage23A backup before applying v2.'
+    )
 
 load_anchor = """        print(`[GRAYHAIRED-SITE21] loading ${liveDesktopUrl}`);
         this._liveWebView.load_uri(liveDesktopUrl);
 """
-load_block = r"""        // GRAYHAIRED-FRIENDLY-LOAD-ERROR-STAGE23A
-        // Replace WebKit's terse DNS/network failure text for the configured
-        // startup site with a calm recovery screen. Restrict this first
-        // reliability checkpoint to the configured URL itself so unrelated
-        // background/auth requests cannot replace the desktop by accident.
+
+if load_anchor not in text:
+    raise SystemExit('Expected Stage 21 configured load anchor not found; no changes made')
+
+block = r"""        // GRAYHAIRED-FRIENDLY-LOAD-ERROR-STAGE23A-V2
+        // Handle the private retry action in its own policy callback so this
+        // remains compatible with both the earlier physically tested Stage 20B
+        // navigation diagnostics and the later promoted Stage 20 handler.
+        this.connectSignal(this._liveWebView, 'decide-policy',
+            (webView, decision, decisionType) => {
+                if (decisionType !== WebKit2.PolicyDecisionType.NAVIGATION_ACTION &&
+                    decisionType !== WebKit2.PolicyDecisionType.NEW_WINDOW_ACTION)
+                    return false;
+
+                let uri = null;
+                try {
+                    const action = decision.get_navigation_action();
+                    const request = action ? action.get_request() : null;
+                    uri = request ? request.get_uri() : null;
+                } catch (e) {
+                    return false;
+                }
+
+                if (uri !== 'grayhaired-retry://retry')
+                    return false;
+
+                print(`[GRAYHAIRED-SITE23A] retrying ${liveDesktopUrl}`);
+                decision.ignore();
+                webView.load_uri(liveDesktopUrl);
+                return true;
+            });
+
+        // WebKit may canonicalize a host-only URL by adding a trailing slash.
+        // Compare normalized forms so a failure for https://example.invalid/
+        // is still recognized as the configured https://example.invalid site.
         this.connectSignal(this._liveWebView, 'load-failed',
             (webView, loadEvent, failingUri, error) => {
-                if (!failingUri || failingUri !== liveDesktopUrl)
+                if (!failingUri)
+                    return false;
+
+                const normalizeUri = value => String(value || '').replace(/\/$/, '');
+                if (normalizeUri(failingUri) !== normalizeUri(liveDesktopUrl))
                     return false;
 
                 let detail = '';
                 try {
                     detail = error && error.message ? String(error.message) : '';
                 } catch (e) {
-                    // Technical detail is diagnostic only; the user message
-                    // remains useful even when WebKit provides none.
+                    // Diagnostic detail only.
                 }
+
                 print(
                     `[GRAYHAIRED-SITE23A] configured website failed uri=${failingUri} ` +
                     `error=${detail || '<none>'}`
@@ -176,17 +187,15 @@ load_block = r"""        // GRAYHAIRED-FRIENDLY-LOAD-ERROR-STAGE23A
         print(`[GRAYHAIRED-SITE21] loading ${liveDesktopUrl}`);
         this._liveWebView.load_uri(liveDesktopUrl);
 """
-if load_anchor not in text:
-    raise SystemExit('Expected Stage 21 configured load anchor not found')
-text = text.replace(load_anchor, load_block, 1)
 
+text = text.replace(load_anchor, block, 1)
 path.write_text(text, encoding='utf-8')
 PY
 
-grep -Fq 'GRAYHAIRED-FRIENDLY-LOAD-ERROR-STAGE23A' "$GRID" || fail "Stage 23A marker missing after patch"
+grep -Fq 'GRAYHAIRED-FRIENDLY-LOAD-ERROR-STAGE23A-V2' "$GRID" || fail "Stage 23A v2 marker missing after patch"
 grep -Fq "'load-failed'" "$GRID" || fail "WebKit load-failed handler missing after patch"
 grep -Fq 'grayhaired-retry://retry' "$GRID" || fail "private retry action missing after patch"
 grep -Fq 'Website Not Available' "$GRID" || fail "friendly error heading missing after patch"
 
-pass "Stage 23A friendly configured-website failure screen installed"
+pass "Stage 23A v2 friendly configured-website failure screen installed"
 printf '[GRAYHAIRED-SITE23A] INFO: reload only the GrayHaired child process to test it.\n'
