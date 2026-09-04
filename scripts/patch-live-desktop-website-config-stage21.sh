@@ -16,7 +16,7 @@ pass() {
 }
 
 [[ -f "$GRID" ]] || fail "installed desktopGrid.js not found: $GRID"
-grep -Fq 'GRAYHAIRED-CREATE-HANDOFF-STAGE20' "$GRID" || fail "Stage 20 modern-site handoff is missing"
+grep -Fq 'GRAYHAIRED-MODERN-SITE-LINKS-STAGE20' "$GRID" || fail "Stage 20 modern-site handoff is missing"
 grep -Fq 'GRAYHAIRED-BLOCK-LOCAL-FILE-DROP-STAGE19' "$GRID" || fail "Stage 19 local-file guard is missing"
 
 if grep -Fq 'GRAYHAIRED-WEBSITE-CONFIG-STAGE21' "$GRID"; then
