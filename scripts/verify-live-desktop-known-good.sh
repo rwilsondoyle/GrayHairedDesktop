@@ -6,8 +6,9 @@ UUID="grayhaired-live-desktop@grayhaired.tech"
 EXT="$HOME/.local/share/gnome-shell/extensions/$UUID"
 GRID="$EXT/app/desktopGrid.js"
 RESTORE="$SCRIPT_DIR/restore-live-desktop-wallpaper-stage6.sh"
-BG_LAUNCHER="$HOME/.local/share/applications/grayhaired-live-desktop-background.desktop"
-SITE_LAUNCHER="$HOME/.local/share/applications/grayhaired-live-desktop-website.desktop"
+SETTINGS_LAUNCHER="$HOME/.local/share/applications/grayhaired-live-desktop-settings.desktop"
+OLD_BG_LAUNCHER="$HOME/.local/share/applications/grayhaired-live-desktop-background.desktop"
+OLD_SITE_LAUNCHER="$HOME/.local/share/applications/grayhaired-live-desktop-website.desktop"
 SITE_CONFIG="$HOME/.config/grayhaired-live-desktop/site.json"
 
 # First run the proven geometry/WebKit/runtime verifier.
@@ -33,6 +34,13 @@ forbid_grid_text() {
 [[ -f "$GRID" ]] || fail "desktopGrid.js is missing: $GRID"
 [[ -f "$RESTORE" ]] || fail "GNOME wallpaper restore helper is missing: $RESTORE"
 pass "GNOME wallpaper restore helper is present"
+
+# Current Zorin/DING releases may provide desktopDescription.zoom instead of
+# desktopDescription.scaleFactor. The promoted compatibility layer prevents
+# undefined scale data from turning the desktop geometry into NaN.
+require_grid_text "GRAYHAIRED-ZORIN-ZOOM-COMPAT" "Zorin zoom/scale compatibility is present"
+require_grid_text "this._desktopDescription.zoom" "Zorin zoom fallback is present"
+require_grid_text "grayhairedScale > 0 ? grayhairedScale : 1" "safe geometry scale fallback is present"
 
 # Promoted Automatic Blend combines the exact physically tested solid-page and
 # photographic-page paths.
@@ -75,9 +83,6 @@ require_grid_text "[GRAYHAIRED-MANUAL17] photo override color=" "Stage 17 photog
 pass "GTK background settings UI is present"
 [[ -f "$SCRIPT_DIR/open-live-desktop-background-settings.sh" ]] || fail "background settings launcher helper is missing"
 pass "background settings launcher helper is present"
-[[ -f "$BG_LAUNCHER" ]] || fail "Zorin application-menu background launcher is missing"
-grep -Fq 'Name=My Desktop Background' "$BG_LAUNCHER" || fail "background app-menu launcher name is incorrect"
-pass "Zorin application-menu entry for My Desktop Background is present"
 
 # Stage 18 compact width.
 require_grid_text "GRAYHAIRED-TIGHT-WIDTH-STAGE18" "tight icon-pane width Stage 18 is present"
@@ -101,9 +106,12 @@ require_grid_text "uri.includes('prompt=select_account')" "Stage 20 interactive 
 require_grid_text "[GRAYHAIRED-LINK20] handoff Microsoft sign-in uri=" "Stage 20 Microsoft-auth handoff logging is present"
 
 # Stage 21 persistent website selection. The startup URL is read from the user
-# config rather than being hard-coded into desktopGrid.js.
+# config rather than being hard-coded into desktopGrid.js. Verify the two path
+# components separately so harmless quote-style changes do not produce a false
+# failure.
 require_grid_text "GRAYHAIRED-WEBSITE-CONFIG-STAGE21" "persistent website selection Stage 21 is present"
-require_grid_text "grayhaired-live-desktop', 'site.json'" "Stage 21 site config path is present"
+require_grid_text "grayhaired-live-desktop" "Stage 21 config directory component is present"
+require_grid_text "site.json" "Stage 21 site config filename is present"
 require_grid_text "[GRAYHAIRED-SITE21] loading" "Stage 21 selected-site logging is present"
 require_grid_text "this._liveWebView.load_uri(liveDesktopUrl);" "Stage 21 configured URL is passed to WebKit"
 [[ -f "$SCRIPT_DIR/set-live-desktop-website.sh" ]] || fail "Stage 21 website setter is missing"
@@ -112,9 +120,6 @@ pass "Stage 21 website setter is present"
 pass "Stage 21 GTK website settings UI is present"
 [[ -f "$SCRIPT_DIR/open-live-desktop-website-settings.sh" ]] || fail "Stage 21 website settings launcher helper is missing"
 pass "Stage 21 website settings launcher helper is present"
-[[ -f "$SITE_LAUNCHER" ]] || fail "Stage 21 Zorin application-menu website launcher is missing"
-grep -Fq 'Name=My Desktop Website' "$SITE_LAUNCHER" || fail "Stage 21 website app-menu launcher name is incorrect"
-pass "Zorin application-menu entry for My Desktop Website is present"
 if [[ -f "$SITE_CONFIG" ]]; then
     python3 - "$SITE_CONFIG" <<'PY' || fail "Stage 21 site config is invalid"
 import json, sys
@@ -129,6 +134,26 @@ else
     pass "Stage 21 site config is absent; desktop-d fallback will be used"
 fi
 
+# Stage 22 deliberately consolidates Website and Background into one app-menu
+# control center. The two older standalone launchers must therefore be absent.
+[[ -f "$SCRIPT_DIR/open-live-desktop-settings.sh" ]] || fail "Stage 22 settings hub launcher helper is missing"
+pass "Stage 22 settings hub launcher helper is present"
+[[ -f "$SETTINGS_LAUNCHER" ]] || fail "Stage 22 My Desktop Settings app-menu launcher is missing"
+grep -Fq 'Name=My Desktop Settings' "$SETTINGS_LAUNCHER" || fail "Stage 22 settings app-menu launcher name is incorrect"
+pass "Stage 22 My Desktop Settings app-menu launcher is present"
+[[ ! -e "$OLD_BG_LAUNCHER" ]] || fail "obsolete standalone My Desktop Background launcher is still present"
+pass "obsolete standalone My Desktop Background launcher is absent"
+[[ ! -e "$OLD_SITE_LAUNCHER" ]] || fail "obsolete standalone My Desktop Website launcher is still present"
+pass "obsolete standalone My Desktop Website launcher is absent"
+
+# Stage 23 friendly website reliability handling.
+require_grid_text "GRAYHAIRED-WEBSITE-RELIABILITY-STAGE23" "website reliability Stage 23 is present"
+require_grid_text "grayhaired-retry://retry" "Stage 23 retry action is present"
+require_grid_text "'load-failed'" "Stage 23 network/TLS failure handler is present"
+require_grid_text "get_status_code()" "Stage 23 HTTP status handling is present"
+require_grid_text "GLib.timeout_add(GLib.PRIORITY_DEFAULT, 1200" "Stage 23 1.2-second retry feedback is present"
+require_grid_text "[GRAYHAIRED-SITE23] finished uri=" "Stage 23 success/status logging is present"
+
 # Diagnostic-only Stage 20 test scaffolding should not be part of a clean install.
 forbid_grid_text "GRAYHAIRED-CREATE-DIAGNOSTICS-STAGE20" "Stage 20 create diagnostic scaffold is absent"
 forbid_grid_text "GRAYHAIRED-NAVIGATION-DIAGNOSTICS-STAGE20B" "Stage 20B navigation diagnostic scaffold is absent"
@@ -141,5 +166,7 @@ forbid_grid_text "GRAYHAIRED-FIXED-SCROLL-PANE-STAGE10" "failed Stage 10 scrolli
 forbid_grid_text "GRAYHAIRED-LARGE-ROW-DENSITY-STAGE12" "superseded Stage 12 row-density experiment is absent"
 forbid_grid_text "GRAYHAIRED-OVERFLOW-OVERLAY-STAGE13E" "failed Stage 13E overlay experiment is absent"
 forbid_grid_text "GRAYHAIRED-VERTICAL-SCROLL-STAGE14" "superseded Stage 14 scrollbar-only experiment is absent"
+forbid_grid_text "GRAYHAIRED-FRIENDLY-LOAD-ERROR-STAGE23A" "experimental Stage 23A marker is absent"
+forbid_grid_text "GRAYHAIRED-HTTP-ERROR-STAGE23B" "experimental Stage 23B marker is absent"
 
-pass "promoted live desktop is configured with Stage 15 scrolling, Stage 16 photo continuation, Stage 17 background controls, Stage 18 compact 204px width, Stage 19 local-file drop protection, Stage 20 modern-site browser handoff, and Stage 21 persistent website selection"
+pass "promoted live desktop is configured with Zorin zoom compatibility, Stage 15 scrolling, Stage 16 photo continuation, Stage 17 background controls, Stage 18 compact 204px width, Stage 19 local-file drop protection, Stage 20 modern-site browser handoff, Stage 21 persistent website selection, Stage 22 consolidated settings, and Stage 23 website reliability"

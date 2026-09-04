@@ -29,44 +29,62 @@ if not backup.exists():
 # bubbled key events must not also be processed by DING.
 keyboard_marker = "The WebKit live-desktop surface and DING icon strip share this"
 if keyboard_marker not in text:
-    old = """        this.connectSignal(this._window, 'key-press-event', (actor, event) => {
+    old_variants = [
+        """        this.connectSignal(this._window, 'key-press-event', (actor, event) => {
             this._desktopManager.onKeyPress(event, this);
         });
         // key-release-event must be used for the arrow keys to avoid conflicts
         // with assistive technologies.
         this.connectSignal(this._window, 'key-release-event', (actor, event) => {
             this._desktopManager.onKeyRelease(event, this);
-        });"""
+        });""",
+        """        this.connectSignal(this._window, 'key-press-event', (window, event) => {
+            this._desktopManager.onKeyPress(window, event, this);
+        });
+        // key-release-event must be used for the arrow keys to avoid conflicts
+        // with assistive technologies.
+        this.connectSignal(this._window, 'key-release-event', (actor, event) => {
+            this._desktopManager.onKeyRelease(event, this);
+        });""",
+    ]
 
-    new = """        // GrayHairedDesktop:
+    matched_old = next((variant for variant in old_variants if variant in text), None)
+    if matched_old is None:
+        raise SystemExit("Expected DING keyboard-event block not found; no changes made.")
+
+    # Keep the exact onKeyPress call signature from the detected Zorin base.
+    current_press_call = (
+        "            this._desktopManager.onKeyPress(window, event, this);"
+        if "onKeyPress(window, event, this);" in matched_old
+        else "            this._desktopManager.onKeyPress(event, this);"
+    )
+
+    new = f"""        // GrayHairedDesktop:
         // The WebKit live-desktop surface and DING icon strip share this
         // top-level window. Keyboard events from WebKit can therefore bubble
         // up to the window. Do not let DING process those keys while WebKit
         // owns the keyboard focus.
-        this.connectSignal(this._window, 'key-press-event', (actor, event) => {
-            if (this._liveWebView && this._liveWebView.has_focus) {
+        this.connectSignal(this._window, 'key-press-event', (window, event) => {{
+            if (this._liveWebView && this._liveWebView.has_focus) {{
                 return false;
-            }
+            }}
 
-            this._desktopManager.onKeyPress(event, this);
+{current_press_call}
             return false;
-        });
+        }});
 
         // key-release-event must be used for the arrow keys to avoid conflicts
         // with assistive technologies.
-        this.connectSignal(this._window, 'key-release-event', (actor, event) => {
-            if (this._liveWebView && this._liveWebView.has_focus) {
+        this.connectSignal(this._window, 'key-release-event', (actor, event) => {{
+            if (this._liveWebView && this._liveWebView.has_focus) {{
                 return false;
-            }
+            }}
 
             this._desktopManager.onKeyRelease(event, this);
             return false;
-        });"""
+        }});"""
 
-    if old not in text:
-        raise SystemExit("Expected DING keyboard-event block not found; no changes made.")
-
-    text = text.replace(old, new, 1)
+    text = text.replace(matched_old, new, 1)
     changed = True
 
 # Remove the experimental focus-reclaim code. Physical testing showed Escape

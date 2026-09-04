@@ -17,6 +17,11 @@ rm -f \
 # Build the proven GNOME X11/Wayland live-desktop geometry and WebKit surface.
 bash "$SCRIPT_DIR/install-wayland-separate-ding-prototype.sh" "$@"
 
+# Current Zorin/DING desktop descriptions may expose monitor scale as `zoom`
+# instead of the older `scaleFactor`. Normalize that before later geometry
+# stages so a fresh install cannot collapse into NaN dimensions.
+bash "$SCRIPT_DIR/patch-live-desktop-zorin-zoom-compat.sh"
+
 # Add the promoted Automatic Blend appearance chain, including photographic
 # continuation through the scrollable icon canvas.
 bash "$SCRIPT_DIR/patch-live-desktop-automatic-blend-promoted.sh"
@@ -49,6 +54,12 @@ bash "$SCRIPT_DIR/patch-live-desktop-modern-site-links-stage20.sh"
 # the choice under ~/.config/grayhaired-live-desktop/site.json.
 bash "$SCRIPT_DIR/patch-live-desktop-website-config-stage21.sh"
 
+# Stage 23 adds the physically verified reliability layer for configured sites:
+# friendly network/TLS failure handling, HTTP 4xx/5xx handling, a clear Retry
+# action, and visible 1.2-second Trying Again feedback without changing the
+# saved website selection.
+bash "$SCRIPT_DIR/patch-live-desktop-website-reliability-stage23.sh"
+
 # Install/refresh the one consolidated Stage 22 application-menu entry.
 bash "$SCRIPT_DIR/install-live-desktop-settings-launcher.sh"
 
@@ -56,5 +67,5 @@ if command -v update-desktop-database >/dev/null 2>&1; then
     update-desktop-database "$APPLICATIONS_DIR" >/dev/null 2>&1 || true
 fi
 
-printf '\n[GRAYHAIRED-INSTALL] PASS: GrayHaired Live Desktop with Automatic Blend, Manual Background, 204px compact icon geometry, adaptive vertical scrolling, local-file drop protection, modern-site browser handoff, persistent website selection, and the consolidated My Desktop Settings control center installed.\n'
+printf '\n[GRAYHAIRED-INSTALL] PASS: GrayHaired Live Desktop with Zorin zoom compatibility, Automatic Blend, Manual Background, 204px compact icon geometry, adaptive vertical scrolling, local-file drop protection, modern-site browser handoff, persistent website selection, friendly website reliability handling, and the consolidated My Desktop Settings control center installed.\n'
 printf '[GRAYHAIRED-INSTALL] INFO: run scripts/verify-live-desktop-known-good.sh after enabling the extension.\n'
