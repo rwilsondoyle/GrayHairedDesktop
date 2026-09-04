@@ -106,9 +106,12 @@ require_grid_text "uri.includes('prompt=select_account')" "Stage 20 interactive 
 require_grid_text "[GRAYHAIRED-LINK20] handoff Microsoft sign-in uri=" "Stage 20 Microsoft-auth handoff logging is present"
 
 # Stage 21 persistent website selection. The startup URL is read from the user
-# config rather than being hard-coded into desktopGrid.js.
+# config rather than being hard-coded into desktopGrid.js. Verify the two path
+# components separately so harmless quote-style changes do not produce a false
+# failure.
 require_grid_text "GRAYHAIRED-WEBSITE-CONFIG-STAGE21" "persistent website selection Stage 21 is present"
-require_grid_text "grayhaired-live-desktop', 'site.json'" "Stage 21 site config path is present"
+require_grid_text "grayhaired-live-desktop" "Stage 21 config directory component is present"
+require_grid_text "site.json" "Stage 21 site config filename is present"
 require_grid_text "[GRAYHAIRED-SITE21] loading" "Stage 21 selected-site logging is present"
 require_grid_text "this._liveWebView.load_uri(liveDesktopUrl);" "Stage 21 configured URL is passed to WebKit"
 [[ -f "$SCRIPT_DIR/set-live-desktop-website.sh" ]] || fail "Stage 21 website setter is missing"
