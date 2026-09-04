@@ -29,6 +29,11 @@ bash "$SCRIPT_DIR/patch-live-desktop-automatic-blend-promoted.sh"
 # Keep the physically verified Stage 15 adaptive vertical icon scrolling.
 bash "$SCRIPT_DIR/patch-live-desktop-virtual-scroll-canvas-stage15.sh"
 
+# Issue #76: when desktop files are added or removed, rebuild the GrayHaired
+# grid geometry before placing icons so the virtual scroll canvas immediately
+# reflects the new item count at every icon size.
+bash "$SCRIPT_DIR/patch-live-desktop-file-refresh-reflow-issue76.sh"
+
 # Stage 17 adds the physically verified user-selectable Manual Background
 # override while preserving Automatic Blend as the default/fallback behavior.
 bash "$SCRIPT_DIR/patch-live-desktop-manual-background-stage17.sh"
@@ -67,5 +72,5 @@ if command -v update-desktop-database >/dev/null 2>&1; then
     update-desktop-database "$APPLICATIONS_DIR" >/dev/null 2>&1 || true
 fi
 
-printf '\n[GRAYHAIRED-INSTALL] PASS: GrayHaired Live Desktop with Zorin zoom compatibility, Automatic Blend, Manual Background, 204px compact icon geometry, adaptive vertical scrolling, local-file drop protection, modern-site browser handoff, persistent website selection, friendly website reliability handling, and the consolidated My Desktop Settings control center installed.\n'
+printf '\n[GRAYHAIRED-INSTALL] PASS: GrayHaired Live Desktop with Zorin zoom compatibility, Automatic Blend, Manual Background, 204px compact icon geometry, adaptive vertical scrolling, automatic desktop-file icon reflow, local-file drop protection, modern-site browser handoff, persistent website selection, friendly website reliability handling, and the consolidated My Desktop Settings control center installed.\n'
 printf '[GRAYHAIRED-INSTALL] INFO: run scripts/verify-live-desktop-known-good.sh after enabling the extension.\n'
