@@ -158,6 +158,36 @@ application; it is not presented as Desktop Mode.
   [`RELEASE_READINESS.md`](RELEASE_READINESS.md) for the status table, exact
   Desktop Mode definition, and preserved rejected-approach record.
 
+## Current post-1.0 promoted direction — GNOME Live Desktop
+
+Status: **promoted and physically verified on Zorin/GNOME Wayland through Stage 23, with Issue #76 follow-up complete.**
+
+The earlier Version 1.0 release decision remains valid history: Version 1.0.0 was
+released as the safe normal windowed application. Later work found a materially
+different architecture for a live desktop experience. It does not make a Qt
+window sit below Zorin's icons and it does not revive the rejected PR #39/PR #45
+layering mechanisms. Instead, the promoted design uses a separate DING-derived
+GrayHaired icon surface beside a WebKit2 website surface.
+
+- Physical development stages 11, 15, 16, 17, 18, 19, 20, 21, 22, and 23 passed
+  on Zorin/GNOME Wayland hardware.
+- Stage 22 consolidated the user-facing live-desktop settings/control center.
+- Stage 23 added friendly website failure handling, keyboard-reachable Retry,
+  retry feedback, TLS/unreachable/HTTP error handling, and restoration to the
+  configured Desktop Website.
+- Zorin-specific zoom geometry compatibility and keyboard-focus compatibility
+  are promoted parts of the live-desktop patch chain.
+- Modern website links hand off to the operating system's default browser while
+  local-file drops remain protected.
+- Issue #76 fixed stale icon-pane geometry after desktop-file additions or
+  removals by rebuilding grid geometry in the shared redraw path. Physical Large
+  and Small icon-size tests passed, removal refresh passed, and the full
+  `scripts/verify-live-desktop-known-good.sh` verifier passed afterward. See
+  [`ISSUE76_PHYSICAL_VERIFICATION.md`](ISSUE76_PHYSICAL_VERIFICATION.md).
+- The main live-desktop installer includes the promoted Stage 23 and Issue #76
+  patch chain. Historical rejected approaches remain documented because they
+  explain why the successful split-surface architecture is materially different.
+
 ## Principal post-1.0 direction — Wallpaper Mode
 
 Status: implementation complete; physical Wayland and X11 verification
@@ -198,20 +228,29 @@ Status: implementation complete; physical Wayland and X11 verification
   interactive wallpaper, so **True Desktop Mode** remains separate Future
   Research.
 
-## Future research — true Desktop Mode
+## Historical research — earlier True Desktop Mode layering approaches
 
-True Desktop Mode retains its exact historical requirement—an interactive
+This section preserves the conclusions that were correct for the architectures
+actually tested in PR #39 and PR #45. Those tests rejected attempts to place a
+normal external Qt/WebEngine surface between GNOME wallpaper and Zorin's real
+icon windows. They do not describe the later promoted DING/WebKit split-surface
+architecture recorded above.
+
+True Desktop Mode retained its exact historical requirement—an interactive
 GrayHaired Desktop surface between the GNOME wallpaper and the user's real Zorin
-Desktop Icons—but is no longer a Version 1.0 blocker. PR #45's current result is
-**Result 3 — NO PRACTICAL SUPPORTED PATH FOUND** on Zorin OS / GNOME Shell 46.
+Desktop Icons—and was no longer a Version 1.0 blocker. PR #45's result was
+**Result 3 — NO PRACTICAL SUPPORTED PATH FOUND** for the tested Zorin OS / GNOME
+Shell 46 layering approaches.
 
-Research should resume only if at least one material premise changes: Zorin
-Desktop Icons adds a supported background/provider API; GNOME/Mutter adds a
-supported external-surface or background layer; Zorin supplies an explicit
-third-party integration point; Mutter supports a relevant new upstream
-protocol; or a substantially different architecture avoids the rejected
-mechanisms. A routine GNOME or Zorin update alone is not a reason to repeat the
-experiments. Preserve and consult PR #39 and PR #45 evidence before future work.
+Research on those specific approaches should resume only if at least one
+material premise changes: Zorin Desktop Icons adds a supported
+background/provider API; GNOME/Mutter adds a supported external-surface or
+background layer; Zorin supplies an explicit third-party integration point;
+Mutter supports a relevant new upstream protocol; or a substantially different
+architecture avoids the rejected mechanisms. The later promoted split-surface
+architecture is exactly such a substantially different architecture; it does
+not invalidate the old test evidence. Preserve and consult PR #39 and PR #45
+before revisiting the rejected mechanisms.
 
 ## Longer-term ideas
 

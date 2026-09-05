@@ -1,5 +1,36 @@
 # Development Log
 
+## Stage 24 current checkpoint — promoted GNOME Live Desktop
+
+**Checkpoint status:** promoted live-desktop path physically verified through Stage 23; Issue #76 follow-up complete.
+
+- The historical PR #39 and PR #45 conclusions remain valid for the specific
+  approaches they tested: normal Qt/WebEngine window layering, direct Mutter
+  lowering/reordering, managed-window hiding, and the tested Shell-owned actor
+  placements did not provide a safe shippable layer between wallpaper and
+  Zorin's icon windows.
+- Later work succeeded by changing the architecture rather than retrying those
+  rejected mechanisms. The promoted GNOME Live Desktop uses a separate
+  DING-derived GrayHaired icon surface beside a WebKit2 website surface.
+- Physical Zorin/GNOME Wayland development stages 11, 15, 16, 17, 18, 19, 20,
+  21, 22, and 23 passed on real hardware.
+- Stage 22 consolidated the live-desktop settings/control center.
+- Stage 23 added friendly website failure handling, keyboard-reachable Retry,
+  retry feedback, TLS/unreachable/HTTP error handling, and restoration to the
+  configured Desktop Website.
+- Zorin zoom-geometry compatibility and keyboard-focus compatibility fixes are
+  part of the promoted live-desktop patch chain.
+- Modern website links are handed to the default browser; local-file drops are
+  protected.
+- Issue #76 fixed stale icon-pane geometry after desktop-file additions and
+  removals by rebuilding grid geometry during the shared redraw path. Physical
+  Large and Small icon-size tests passed, automatic removal refresh passed, and
+  the full `scripts/verify-live-desktop-known-good.sh` verifier passed afterward.
+- The permanent Issue #76 record is
+  [`ISSUE76_PHYSICAL_VERIFICATION.md`](ISSUE76_PHYSICAL_VERIFICATION.md).
+- My Desktop 1.0.0 remains the historical released windowed baseline. The GNOME
+  Live Desktop is later post-1.0 work and does not rewrite that release decision.
+
 ## Post-1.0 checkpoint — PR #55 Wallpaper Mode foundation
 
 **Checkpoint status:** implementation complete; physical Wayland verification
